@@ -37,9 +37,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-`include "bus_sources.vh"
-`include "control_signals.vh"
-
 module sar6502(
     input phi2,
     input [7:0] data_in,
@@ -55,14 +52,65 @@ module sar6502(
     output SYNC
     );
 
-logic [ctrl_signal_names.num()-1:0] ctrl_signals;
+// Input latches
+logic [7:0] data_in_l;
+logic RESET_L;
+logic ready_l;
+logic IRQ_L;
+logic NMI_L;
+logic SO_L, previous_SO;
 
+always_ff@(negedge phi2) begin
+    data_in_l <= data_in;
+    RESET_L <= RES;
+    ready_l <= rdy;
+    IRQ_L <= IRQ;
+    NMI_L <= NMI;
+    SO_L <= SO;
+    previous_SO <= SO_L;
+end
+
+// Buses
 logic [7:0]data_bus;
-logic [15:0]address_bus;
+logic [7:0]data_bus_sources[bus_sources::data_bus_sources_ctl.num()];
+bus_sources::data_bus_sources_ctl data_bus_source;
+assign data_bus = data_bus_sources[data_bus_source];
+assign data_out = data_bus;
 
-register register_a(.latch(ctrl_signals[LOAD_A]));
-register register_x(.latch(ctrl_signals[LOAD_X]));
-register register_y(.latch(ctrl_signals[LOAD_Y]));
-register register_stack();
+logic [15:0]address_bus;
+logic [15:0]address_bus_sources[bus_sources::address_bus_sources_ctl.num()];
+bus_sources::address_bus_sources_ctl address_bus_source;
+
+assign address_bus = address_bus_sources[address_bus_source];
+assign address = address_bus;
+
+// Registers
+register register_a(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[LOAD_A]), .data_out(data_bus_sources[bus_sources::DataBusSrc_A]));
+register register_x(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[LOAD_X]), .data_out(data_bus_sources[bus_sources::DataBusSrc_X]));
+register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[LOAD_Y]), .data_out(data_bus_sources[bus_sources::DataBusSrc_Y]));
+register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[LOAD_SP]), .data_out(data_bus_sources[bus_sources::DataBusSrc_SP]));
+
+always_comb begin
+    address_bus_sources[bus_sources::AddrBusSrc_SP] = {8'h01, data_bus_sources[bus_sources::DataBusSrc_SP]};
+end
+
+program_counter register_pc(
+    .address_in(address_bus), .ctl_advance(ctrl_signals[PC_ADVANCE]), .ctl_load(ctrl_signals[PC_LOAD]), .clock(phi2),
+    .address_out(address_bus_sources[bus_sources::AddrBusSrc_PC]));
+
+// Control
+logic [control_signals::ctrl_signal_names.num()-1:0] ctrl_signals;
+
+decoder decoder(
+    .memory_in(data_in_l),
+    .clock(phi2),
+    .RESET(RESET_L),
+
+    .address_bus_source( address_bus_source ),
+    .data_bus_source( data_bus_source ),
+    .ctrl_signals( ctrl_signals )
+);
+
+assign data_bus_sources[bus_sources::DataBusSrc_Mem] = data_in_l;
 
 endmodule

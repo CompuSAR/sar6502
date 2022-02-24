@@ -42,19 +42,18 @@ module program_counter(
         input ctl_advance,
         input ctl_load,
         input clock,
+        input RESET,
 
         output reg [15:0] address_out
     );
 
 always_ff@(negedge clock) begin
-    if( !ctl_advance && !ctl_load ) begin
-    end else if( ctl_advance ) begin
-        address_out <= address_out+1;
-    end else if( ctl_load ) begin
-        address_out <= address_in;
-    end else begin
-        address_out <= 15'bX; // Gigo
-    end
+    if( !RESET )
+        address_out <= 0;
+    else
+        address_out <=
+            ( ctl_load ? address_in : address_out ) +
+            ( ctl_advance ? 1 : 0 );
 end
 
 endmodule

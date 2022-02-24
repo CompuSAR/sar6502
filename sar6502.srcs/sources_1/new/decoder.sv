@@ -44,6 +44,92 @@ module decoder(
 
         output bus_sources::address_bus_sources_ctl address_bus_source,
         output bus_sources::data_bus_sources_ctl data_bus_source,
-        output [control_signals::ctrl_signal_names.num()-1:0] ctrl_signals
+        output logic [control_signals::ctrl_signals_last:0] ctrl_signals,
+
+        output logic rW,
+        output logic sync,
+        output logic ML,
+        output logic VP
     );
+
+localparam FIRST_OPERATION_CYCLE = 8;
+localparam MAX_OPCODE_CYCLES = 16;
+
+logic [MAX_OPCODE_CYCLES-1:0]op_cycle = 0, op_cycle_next;
+enum { AddrImplicit } active_addr_mode, active_addr_mode_next;
+typedef enum { OpNop } operations;
+operations active_op, active_op_next;
+
+always_ff@(negedge clock) begin
+    if( !RESET ) begin
+        op_cycle <= 0;
+    end else begin
+        op_cycle <= op_cycle_next;
+        active_addr_mode <= active_addr_mode_next;
+        active_op <= active_op_next;
+    end
+end
+
+task set_invalid_state();
+begin
+    op_cycle_next = { MAX_OPCODE_CYCLES{1'bX} };
+    data_bus_source = bus_sources::DataBusSrc_Invalid;
+    address_bus_source = bus_sources::AddrBusSrc_Invalid;
+end
+endtask
+
+always_comb begin
+    ctrl_signals = 0;
+    rW = 1;
+    sync = 0;
+    ML = 1;
+    VP = 1;
+
+    op_cycle_next = op_cycle << 1;
+    if( op_cycle==0 ) begin
+        // Instruction fetch cycle
+        op_cycle_next = 1;
+        sync = 1;
+        address_bus_source = bus_sources::AddrBusSrc_PC;
+        ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    end else if( op_cycle == 1 ) begin
+        do_decode();
+    end else if( op_cycle < (1<<FIRST_OPERATION_CYCLE) ) begin
+        do_addr_lookup();
+    end else begin
+        do_operation(active_op);
+    end
+end
+
+task do_decode();
+    case( memory_in )
+        8'hea: begin
+            active_addr_mode_next = AddrImplicit;
+            do_operation( OpNop );
+        end
+    endcase
+endtask
+
+task do_addr_lookup();
+endtask
+
+task do_operation(operations current_op);
+    case( current_op )
+        OpNop: do_op_nop();
+    endcase
+endtask
+
+task next_instruction();
+begin
+    address_bus_source = bus_sources::AddrBusSrc_PC;
+    op_cycle_next = 0;
+end
+endtask
+
+task do_op_nop();
+begin
+    next_instruction();
+end
+endtask
+
 endmodule

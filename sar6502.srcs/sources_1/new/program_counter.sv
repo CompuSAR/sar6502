@@ -44,16 +44,22 @@ module program_counter(
         input clock,
         input RESET,
 
-        output reg [15:0] address_out
+        output logic [15:0] address_out
     );
+
+logic [15:0] address_stored;
+
+always_comb begin
+    address_out <=
+        ( ctl_load ? address_in : address_stored ) +
+        ( ctl_advance ? 1 : 0 );
+end
 
 always_ff@(negedge clock) begin
     if( !RESET )
-        address_out <= 0;
+        address_stored <= 0;
     else
-        address_out <=
-            ( ctl_load ? address_in : address_out ) +
-            ( ctl_advance ? 1 : 0 );
+        address_stored <= address_out;
 end
 
 endmodule

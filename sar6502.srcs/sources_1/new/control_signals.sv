@@ -10,9 +10,13 @@ typedef enum logic[31:0] {
     LOAD_Y,
     LOAD_SP,
     PC_LOAD,
-    PC_ADVANCE
+    PC_ADVANCE,
+
+    // Early signals
+    DummySmdms
 } ctrl_signals;
 
-localparam ctrl_signals_last = PC_ADVANCE;
+localparam ctrl_signals_last_latched = PC_ADVANCE;
+localparam ctrl_signals_last = DummySmdms;
 
 endpackage // control_signals

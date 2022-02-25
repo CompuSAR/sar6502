@@ -1,5 +1,7 @@
 .*.swp
 
+/sar6502
+
 /*.cache
 /*.runs
 /*.sim

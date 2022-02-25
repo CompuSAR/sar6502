@@ -52,13 +52,28 @@ module decoder(
         output logic VP
     );
 
+bus_sources::address_bus_sources_ctl address_bus_source_next;
+bus_sources::data_bus_sources_ctl data_bus_source_next;
+logic [control_signals::ctrl_signals_last:0] ctrl_signals_next;
+
+logic rW_next, sync_next, ML_next, VP_next;
+
 localparam FIRST_OPERATION_CYCLE = 8;
 localparam MAX_OPCODE_CYCLES = 16;
 
+logic [control_signals::ctrl_signals_last_latched:0] latched_ctrl_signals;
+assign ctrl_signals[control_signals::ctrl_signals_last:0] = latched_ctrl_signals;
+assign ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched+1] =
+    ctrl_signals_next[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched+1];
+
 logic [MAX_OPCODE_CYCLES-1:0]op_cycle = 0, op_cycle_next;
 enum { AddrImplicit } active_addr_mode, active_addr_mode_next;
-typedef enum { OpNop } operations;
+typedef enum {
+    OpLda,
+    OpNop
+} operations;
 operations active_op, active_op_next;
+
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
@@ -67,31 +82,41 @@ always_ff@(negedge clock) begin
         op_cycle <= op_cycle_next;
         active_addr_mode <= active_addr_mode_next;
         active_op <= active_op_next;
+
+        address_bus_source <= address_bus_source_next;
+        data_bus_source <= data_bus_source_next;
+        latched_ctrl_signals <= ctrl_signals_next[control_signals::ctrl_signals_last_latched:0];
+
+        rW <= rW_next;
+        sync <= sync_next;
+        ML <= ML_next;
+        VP <= VP_next;
     end
 end
 
 task set_invalid_state();
 begin
     op_cycle_next = { MAX_OPCODE_CYCLES{1'bX} };
-    data_bus_source = bus_sources::DataBusSrc_Invalid;
-    address_bus_source = bus_sources::AddrBusSrc_Invalid;
+    data_bus_source_next = bus_sources::DataBusSrc_Invalid;
+    address_bus_source_next = bus_sources::AddrBusSrc_Invalid;
 end
 endtask
 
 always_comb begin
-    ctrl_signals = 0;
-    rW = 1;
-    sync = 0;
-    ML = 1;
-    VP = 1;
+    set_invalid_state();
+
+    ctrl_signals_next = 0;
+    rW_next = 1;
+    sync_next = 0;
+    ML_next = 1;
+    VP_next = 1;
 
     op_cycle_next = op_cycle << 1;
     if( op_cycle==0 ) begin
         // Instruction fetch cycle
         op_cycle_next = 1;
-        sync = 1;
-        address_bus_source = bus_sources::AddrBusSrc_PC;
-        ctrl_signals[control_signals::PC_ADVANCE] = 1;
+        address_bus_source_next = bus_sources::AddrBusSrc_PC;
+        ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
     end else if( op_cycle == 1 ) begin
         do_decode();
     end else if( op_cycle < (1<<FIRST_OPERATION_CYCLE) ) begin
@@ -103,9 +128,11 @@ end
 
 task do_decode();
     case( memory_in )
+        8'ha9: begin
+            set_addr_mode_immediate(OpLda);
+        end
         8'hea: begin
-            active_addr_mode_next = AddrImplicit;
-            do_operation( OpNop );
+            set_addr_mode_implicit( OpNop );
         end
     endcase
 endtask
@@ -113,20 +140,51 @@ endtask
 task do_addr_lookup();
 endtask
 
-task do_operation(operations current_op);
+task set_addr_mode_immediate(operations current_op);
+begin
+    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+
+    set_operation(current_op);
+end
+endtask
+
+task set_addr_mode_implicit(operations current_op);
+begin
+    active_addr_mode_next = AddrImplicit;
+    set_operation(current_op);
+end
+endtask
+
+task set_operation(operations current_op);
+    active_op_next = current_op;
+    op_cycle_next = FIRST_OPERATION_CYCLE;
+
     case( current_op )
-        OpNop: do_op_nop();
+        OpLda: do_op_lda_first();
+        OpNop: do_op_nop_first();
     endcase
 endtask
 
 task next_instruction();
 begin
-    address_bus_source = bus_sources::AddrBusSrc_PC;
+    address_bus_source_next = bus_sources::AddrBusSrc_PC;
     op_cycle_next = 0;
+    sync_next = 1;
 end
 endtask
 
-task do_op_nop();
+task do_operation(operations current_op);
+endtask
+
+task do_op_lda_first();
+begin
+    next_instruction();
+    ctrl_signals_next[control_signals::LOAD_A] = 1;
+    data_bus_source_next = bus_sources::DataBusSrc_Mem;
+end
+endtask
+
+task do_op_nop_first();
 begin
     next_instruction();
 end

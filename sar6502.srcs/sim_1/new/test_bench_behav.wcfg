@@ -13,18 +13,22 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="212.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="545.501 ns"></ZoomEndTime>
-      <Cursor1Time time="490.000 ns"></Cursor1Time>
+      <ZoomStartTime time="363.750 ns"></ZoomStartTime>
+      <ZoomEndTime time="702.751 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="259"></NameColumnWidth>
-      <ValueColumnWidth column_width="100"></ValueColumnWidth>
+      <ValueColumnWidth column_width="88"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="16" />
+   <WVObjectSize size="24" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_bench/sync">
+      <obj_property name="ElementShortName">sync</obj_property>
+      <obj_property name="ObjectShortName">sync</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/address_bus">
       <obj_property name="ElementShortName">address_bus[15:0]</obj_property>
@@ -34,9 +38,41 @@
       <obj_property name="ElementShortName">data_in[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_in[7:0]</obj_property>
    </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/memory_in">
+      <obj_property name="ElementShortName">memory_in[7:0]</obj_property>
+      <obj_property name="ObjectShortName">memory_in[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/op_cycle">
+      <obj_property name="ElementShortName">op_cycle[15:0]</obj_property>
+      <obj_property name="ObjectShortName">op_cycle[15:0]</obj_property>
+   </wvobject>
    <wvobject type="array" fp_name="/test_bench/data_out">
       <obj_property name="ElementShortName">data_out[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/register_a/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">A</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/register_x/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">X</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/register_y/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Y</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/register_pc/address_stored">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">address_stored[15:0]</obj_property>
+      <obj_property name="ObjectShortName">address_stored[15:0]</obj_property>
+      <obj_property name="label">PC_reg</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/RES">
       <obj_property name="ElementShortName">RES</obj_property>
@@ -70,10 +106,6 @@
       <obj_property name="ElementShortName">memory_lock</obj_property>
       <obj_property name="ObjectShortName">memory_lock</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/test_bench/sync">
-      <obj_property name="ElementShortName">sync</obj_property>
-      <obj_property name="ObjectShortName">sync</obj_property>
-   </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/address_bus_source">
       <obj_property name="ElementShortName">address_bus_source[31:0]</obj_property>
       <obj_property name="ObjectShortName">address_bus_source[31:0]</obj_property>
@@ -86,5 +118,13 @@
       <obj_property name="ElementShortName">pending_signals[4:0]</obj_property>
       <obj_property name="ObjectShortName">pending_signals[4:0]</obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals">
+      <obj_property name="ElementShortName">ctrl_signals[5:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_signals[5:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals_next">
+      <obj_property name="ElementShortName">ctrl_signals_next[5:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_signals_next[5:0]</obj_property>
    </wvobject>
 </wave_config>

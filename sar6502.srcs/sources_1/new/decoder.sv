@@ -164,6 +164,7 @@ task do_decode();
     case( memory_in )
         8'ha9: set_addr_mode_immediate( OpLda );
         8'ha5: set_addr_mode_zp( OpLda );
+        8'had: set_addr_mode_absolute( OpLda );
         8'hea: set_addr_mode_implicit( OpNop );
     endcase
 endtask
@@ -179,25 +180,29 @@ end
 endtask
 
 task set_addr_mode_absolute(operations current_op);
+    active_op_next = current_op;
     active_addr_mode_next = AddrAbsolute;
-    //address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
-    //address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
+
     internal_bus_source_next = bus_sources::InternalBusSrc_Mem;
     ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
     ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
+    address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
 endtask
 
 task do_addr_mode_absolute();
 begin
     case( op_cycle )
         CycleAddr1: begin
-            // XXX address_bus_source_next = bus_sources::AddrBusSrc_PC;
             internal_bus_source_next = bus_sources::InternalBusSrc_Mem;
             ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
             ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+
+            address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_Internal;
         end
         CycleAddr2: begin
-            // XXX address_bus_source_next = bus_sources::AddrBusSrc_DataLatch;
             set_operation( active_op );
         end
         default: set_invalid_state();

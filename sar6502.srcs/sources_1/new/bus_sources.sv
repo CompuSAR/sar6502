@@ -11,18 +11,48 @@ typedef enum logic[31:0] {
     DataBusSrc_Y,
     DataBusSrc_SP,
 
-    DataBusSrc_Mem
-} data_bus_sources_ctl;
+    DataBusSrc_Mem,
 
-localparam data_bus_sources_ctl_last = DataBusSrc_Mem;
+    DataBusSrc_End_Marker
+} DataBusSourceCtl;
+
+localparam DataBusSourceCtlLast = DataBusSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
-    AddrBusSrc_Invalid = 'X,
+    AddrBusLowSrc_Invalid = 'X,
 
-    AddrBusSrc_PC = 0,
-    AddrBusSrc_SP
-} address_bus_sources_ctl;
+    AddrBusLowSrc_PC = 0,
+    AddrBusLowSrc_SP,
 
-localparam address_bus_sources_ctl_last = AddrBusSrc_SP;
+    AddrBusLowSrc_End_Marker
+} AddressBusLowSourceCtl;
+
+localparam AddressBusLowSourceCtlLast = AddrBusLowSrc_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    AddrBusHighSrc_Invalid = 'X,
+
+    AddrBusHighSrc_Zero = 0,
+    AddrBusHighSrc_One,
+    AddrBusHighSrc_PC,
+
+    AddrBusHighSrc_End_Marker
+} AddressBusHighSourceCtl;
+
+localparam AddressBusHighSourceCtlLast = AddrBusHighSrc_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    InternalBusSrc_Invalid = 'X,
+
+    InternalBusSrc_Mem = 0,
+    InternalBusSrc_PcLow,
+    InternalBusSrc_PcHigh,
+    InternalBusSrc_DataLatchLow,
+    InternalBusSrc_DataLatchHigh,
+
+    InternalBusSrc_End_Marker
+} InternalBusSourceCtl;
+
+localparam InternalBusSourceCtlLast = InternalBusSrc_End_Marker - 1;
 
 endpackage // bus_sources

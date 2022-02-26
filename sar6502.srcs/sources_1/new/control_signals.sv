@@ -9,6 +9,8 @@ typedef enum logic[31:0] {
     LOAD_X,
     LOAD_Y,
     LOAD_SP,
+    LOAD_DataLow,
+    LOAD_DataHigh,
     PC_LOAD,
     PC_ADVANCE,
 

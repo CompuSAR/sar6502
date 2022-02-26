@@ -73,32 +73,47 @@ end
 
 // Buses
 logic [7:0]data_bus;
-logic [7:0]data_bus_sources[bus_sources::data_bus_sources_ctl_last:0];
-bus_sources::data_bus_sources_ctl data_bus_source;
-assign data_bus = data_bus_sources[data_bus_source];
+logic [7:0]data_bus_inputs[bus_sources::DataBusSourceCtlLast:0];
+bus_sources::DataBusSourceCtl data_bus_source;
+assign data_bus = data_bus_inputs[data_bus_source];
 assign data_out = data_bus;
 
-logic [15:0]address_bus;
-logic [15:0]address_bus_sources[bus_sources::address_bus_sources_ctl_last:0];
-bus_sources::address_bus_sources_ctl address_bus_source;
+logic [7:0]address_bus_low;
+logic [7:0]address_bus_low_inputs[bus_sources::AddressBusLowSourceCtlLast:0];
+bus_sources::AddressBusLowSourceCtl address_bus_low_source;
 
-assign address_bus = address_bus_sources[address_bus_source];
-assign address = address_bus;
+logic [7:0]address_bus_high;
+logic [7:0]address_bus_high_inputs[bus_sources::AddressBusHighSourceCtlLast:0];
+bus_sources::AddressBusHighSourceCtl address_bus_high_source;
+
+assign address = { address_bus_high_inputs[address_bus_high_source], address_bus_low_inputs[address_bus_low_source] };
+
+logic [7:0]internal_bus;
+logic [7:0]internal_bus_inputs[bus_sources::InternalBusSourceCtlLast:0];
+bus_sources::InternalBusSourceCtl internal_bus_source;
+
+assign internal_bus = internal_bus_inputs[internal_bus_source];
 
 // Registers
-register register_a(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_A]), .data_out(data_bus_sources[bus_sources::DataBusSrc_A]));
-register register_x(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_X]), .data_out(data_bus_sources[bus_sources::DataBusSrc_X]));
-register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_Y]), .data_out(data_bus_sources[bus_sources::DataBusSrc_Y]));
-register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_SP]), .data_out(data_bus_sources[bus_sources::DataBusSrc_SP]));
+register register_a(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_A]),
+    .data_out(data_bus_inputs[bus_sources::DataBusSrc_A]));
+register register_x(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_X]),
+    .data_out(data_bus_inputs[bus_sources::DataBusSrc_X]));
+register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_Y]),
+    .data_out(data_bus_inputs[bus_sources::DataBusSrc_Y]));
+register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_SP]),
+    .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
-always_comb begin
-    address_bus_sources[bus_sources::AddrBusSrc_SP] = {8'h01, data_bus_sources[bus_sources::DataBusSrc_SP]};
-end
+register data_latch_low( .data_in(internal_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataLow]),
+    .data_out(internal_bus_inputs[bus_sources::InternalBusSrc_DataLatchLow]));
+register data_latch_high( .data_in(internal_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataHigh]),
+    .data_out(internal_bus_inputs[bus_sources::InternalBusSrc_DataLatchHigh]));
 
+wire [15:0]pc_value;
 program_counter register_pc(
-    .address_in(address_bus), .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
+    .address_in(address), .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
     .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2), .RESET(RESET_L),
-    .address_out(address_bus_sources[bus_sources::AddrBusSrc_PC]));
+    .address_out(pc_value));
 
 // Control
 logic [control_signals::ctrl_signals_last:0] ctrl_signals;
@@ -108,8 +123,10 @@ decoder decoder(
     .clock(phi2),
     .RESET(RESET_L),
 
-    .address_bus_source( address_bus_source ),
+    .address_bus_low_source( address_bus_low_source ),
+    .address_bus_high_source( address_bus_high_source ),
     .data_bus_source( data_bus_source ),
+    .internal_bus_source( internal_bus_source ),
     .ctrl_signals( ctrl_signals ),
 
     .rW( rW ),
@@ -118,7 +135,18 @@ decoder decoder(
     .VP( VP )
 );
 
-assign data_bus_sources[bus_sources::DataBusSrc_Zero] = 8'b0;
-assign data_bus_sources[bus_sources::DataBusSrc_Mem] = data_in_l;
+assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
+assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
+
+assign internal_bus_inputs[bus_sources::InternalBusSrc_Mem] = data_in_l;
+assign internal_bus_inputs[bus_sources::InternalBusSrc_PcLow] = pc_value[7:0];
+assign internal_bus_inputs[bus_sources::InternalBusSrc_PcHigh] = pc_value[15:8];
+
+assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
+assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_PC] = pc_value[7:0];
+
+assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Zero] = 8'b0;
+assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_One] = 8'b1;
+assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_PC] = pc_value[15:8];
 
 endmodule

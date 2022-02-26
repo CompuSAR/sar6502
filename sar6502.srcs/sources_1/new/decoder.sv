@@ -90,9 +90,11 @@ localparam
     CycleOp8     = 16'b10000000_00000000;
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = CycleFetch, op_cycle_next;
 
-enum { AddrImplicit, AddrAbsolute } active_addr_mode, active_addr_mode_next;
-typedef enum {
-    OpLda,
+enum logic[31:0] { AddrInvalid = 'X, AddrImplicit=0, AddrAbsolute, AddrZeroPage } active_addr_mode, active_addr_mode_next;
+typedef enum logic[31:0] {
+    OpInvalid = 'X,
+
+    OpLda = 0,
     OpNop
 } operations;
 operations active_op, active_op_next;
@@ -126,6 +128,9 @@ begin
     address_bus_high_source_next = bus_sources::AddrBusHighSrc_Invalid;
     data_bus_source_next = bus_sources::DataBusSrc_Invalid;
     internal_bus_source_next = bus_sources::InternalBusSrc_Invalid;
+
+    active_op_next = OpInvalid;
+    active_addr_mode_next = AddrInvalid;
 end
 endtask
 
@@ -138,7 +143,10 @@ always_comb begin
     ML_next = 1;
     VP_next = 1;
 
+    active_op_next = active_op;
+    active_addr_mode_next = active_addr_mode;
     op_cycle_next = op_cycle << 1;
+
     if( op_cycle==CycleFetch ) begin
         op_cycle_next = 1;
         address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
@@ -155,7 +163,7 @@ end
 task do_decode();
     case( memory_in )
         8'ha9: set_addr_mode_immediate( OpLda );
-        8'had: set_addr_mode_absolute( OpLda );
+        8'ha5: set_addr_mode_zp( OpLda );
         8'hea: set_addr_mode_implicit( OpNop );
     endcase
 endtask
@@ -164,6 +172,7 @@ task do_addr_lookup();
 begin
     case( active_addr_mode )
         AddrAbsolute: do_addr_mode_absolute();
+        AddrZeroPage: do_addr_mode_zp();
         default: set_invalid_state();
     endcase
 end
@@ -208,6 +217,25 @@ task set_addr_mode_implicit(operations current_op);
 begin
     active_addr_mode_next = AddrImplicit;
     set_operation(current_op);
+end
+endtask
+
+task set_addr_mode_zp(operations current_op);
+begin
+    active_op_next = current_op;
+    active_addr_mode_next = AddrZeroPage;
+
+    internal_bus_source_next = bus_sources::InternalBusSrc_Mem;
+    ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_Internal;
+    address_bus_high_source_next = bus_sources::AddrBusHighSrc_Zero;
+end
+endtask
+
+task do_addr_mode_zp();
+begin
+    set_operation(active_op);
 end
 endtask
 

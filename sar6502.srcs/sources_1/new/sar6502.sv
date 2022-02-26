@@ -135,6 +135,7 @@ decoder decoder(
     .VP( VP )
 );
 
+// Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
 assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
 
@@ -144,6 +145,7 @@ assign internal_bus_inputs[bus_sources::InternalBusSrc_PcHigh] = pc_value[15:8];
 
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_PC] = pc_value[7:0];
+assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_Internal] = internal_bus;
 
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Zero] = 8'b0;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_One] = 8'b1;

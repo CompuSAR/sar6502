@@ -13,9 +13,9 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="561.001 ns"></ZoomEndTime>
-      <Cursor1Time time="595.000 ns"></Cursor1Time>
+      <ZoomStartTime time="420.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,182.501 ns"></ZoomEndTime>
+      <Cursor1Time time="770.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>

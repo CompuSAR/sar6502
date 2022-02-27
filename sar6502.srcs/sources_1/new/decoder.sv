@@ -64,11 +64,6 @@ logic rW_next, sync_next, ML_next, VP_next;
 
 localparam MAX_OPCODE_CYCLES = 16;
 
-logic [control_signals::ctrl_signals_last_latched:0] latched_ctrl_signals;
-assign ctrl_signals[control_signals::ctrl_signals_last:0] = latched_ctrl_signals;
-assign ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched+1] =
-    ctrl_signals_next[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched+1];
-
 localparam
     CycleInvalid = 16'bxxxxxxxx_xxxxxxxx,
     CycleFetch   = 16'b00000000_00000000,
@@ -102,7 +97,9 @@ operations active_op, active_op_next;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
-        next_instruction();
+        active_op <= OpInvalid;
+        active_addr_mode <= AddrInvalid;
+        op_cycle <= CycleFetch;
     end else begin
         op_cycle <= op_cycle_next;
         active_addr_mode <= active_addr_mode_next;
@@ -112,7 +109,7 @@ always_ff@(negedge clock) begin
         address_bus_high_source <= address_bus_high_source_next;
         data_bus_source <= data_bus_source_next;
         internal_bus_source <= internal_bus_source_next;
-        latched_ctrl_signals <= ctrl_signals_next[control_signals::ctrl_signals_last_latched:0];
+        ctrl_signals <= ctrl_signals_next;
 
         rW <= rW_next;
         sync <= sync_next;

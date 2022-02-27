@@ -106,7 +106,7 @@ register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[co
 
 status_register restier_p(.data_in(data_bus), .data_out(data_bus_inputs[bus_sources::DataBusSrc_Status]), .clock(phi2),
     .alu_carry(alu_carry),
-    .use_alu_carry(ctrl_signals[control_signals::UseAluCarry]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
+    .use_alu_carry(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
     .update_c(ctrl_signals[control_signals::UpdateFlagC]),
     .update_z(ctrl_signals[control_signals::UpdateFlagZ]),
     .update_i(ctrl_signals[control_signals::UpdateFlagI]),
@@ -154,6 +154,7 @@ assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
 assign internal_bus_inputs[bus_sources::InternalBusSrc_Mem] = data_in_l;
 assign internal_bus_inputs[bus_sources::InternalBusSrc_PcLow] = pc_value[7:0];
 assign internal_bus_inputs[bus_sources::InternalBusSrc_PcHigh] = pc_value[15:8];
+assign internal_bus_inputs[bus_sources::InternalBusSrc_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
 
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_PC] = pc_value[7:0];

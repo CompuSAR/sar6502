@@ -54,6 +54,8 @@ typedef enum logic[31:0] {
     InternalBusSrc_DataLatchLow,
     InternalBusSrc_DataLatchHigh,
 
+    InternalBusSrc_A,
+
     InternalBusSrc_End_Marker
 } InternalBusSourceCtl;
 

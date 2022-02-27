@@ -22,7 +22,7 @@ typedef enum logic[31:0] {
     UpdateFlagV,
     UpdateFlagN,
 
-    UseAluCarry,
+    UseAluFlags,
     CalculateFlagZ,
 
     // Early signals
@@ -30,6 +30,19 @@ typedef enum logic[31:0] {
 } ctrl_signals;
 
 localparam ctrl_signals_last_latched = EndMarker-1;
-localparam ctrl_signals_last = EndMarker;
+localparam ctrl_signals_last = EndMarker-1;
+
+typedef enum logic[31:0] {
+    AluOp_INVALID = 'X,
+
+    AluOp_pass = 0,
+    AluOp_add,
+    AluOp_and,
+    AluOp_or,
+    AluOp_xor,
+    AluOp_shift_left,
+    AluOp_shift_right_logical,
+    AluOp_shift_right_arithmetic
+} alu_control;
 
 endpackage // control_signals

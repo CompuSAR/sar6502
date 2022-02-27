@@ -271,6 +271,10 @@ begin
     next_instruction();
     ctrl_signals_next[control_signals::LOAD_A] = 1;
     data_bus_source_next = bus_sources::DataBusSrc_Mem;
+
+    ctrl_signals_next[control_signals::UpdateFlagN] = 1;
+    ctrl_signals_next[control_signals::UpdateFlagZ] = 1;
+    ctrl_signals_next[control_signals::CalculateFlagZ] = 1;
 end
 endtask
 

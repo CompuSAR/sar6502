@@ -104,6 +104,18 @@ register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[contro
 register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_SP]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
+status_register restier_p(.data_in(data_bus), .data_out(data_bus_inputs[bus_sources::DataBusSrc_Status]), .clock(phi2),
+    .alu_carry(alu_carry),
+    .use_alu_carry(ctrl_signals[control_signals::UseAluCarry]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
+    .update_c(ctrl_signals[control_signals::UpdateFlagC]),
+    .update_z(ctrl_signals[control_signals::UpdateFlagZ]),
+    .update_i(ctrl_signals[control_signals::UpdateFlagI]),
+    .update_d(ctrl_signals[control_signals::UpdateFlagD]),
+    .output_b(ctrl_signals[control_signals::OutputFlagB]),
+    .update_v(ctrl_signals[control_signals::UpdateFlagV]),
+    .update_n(ctrl_signals[control_signals::UpdateFlagN])
+);
+
 register data_latch_low( .data_in(internal_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataLow]),
     .data_out(internal_bus_inputs[bus_sources::InternalBusSrc_DataLatchLow]));
 register data_latch_high( .data_in(internal_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataHigh]),

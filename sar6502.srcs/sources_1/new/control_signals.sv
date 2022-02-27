@@ -14,11 +14,22 @@ typedef enum logic[31:0] {
     PC_LOAD,
     PC_ADVANCE,
 
+    UpdateFlagC,
+    UpdateFlagZ,
+    UpdateFlagI,
+    UpdateFlagD,
+    OutputFlagB,
+    UpdateFlagV,
+    UpdateFlagN,
+
+    UseAluCarry,
+    CalculateFlagZ,
+
     // Early signals
-    DummySmdms
+    EndMarker
 } ctrl_signals;
 
-localparam ctrl_signals_last_latched = PC_ADVANCE;
-localparam ctrl_signals_last = DummySmdms;
+localparam ctrl_signals_last_latched = EndMarker-1;
+localparam ctrl_signals_last = EndMarker;
 
 endpackage // control_signals

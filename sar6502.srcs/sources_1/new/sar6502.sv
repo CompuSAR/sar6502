@@ -94,6 +94,17 @@ bus_sources::InternalBusSourceCtl internal_bus_source;
 
 assign internal_bus = internal_bus_inputs[internal_bus_source];
 
+logic [7:0]alu_b_inputs[bus_sources::AluBSourceCtlLast:0];
+bus_sources::AluBSourceCtl alu_b_source;
+
+logic alu_carry_inputs[bus_sources::AluCarrySourceCtlLast:0];
+bus_sources::AluCarrySourceCtl alu_carry_source;
+control_signals::alu_control alu_control;
+logic alu_carry, alu_overflow;
+
+alu alu( .a(internal_bus), .b(alu_b_inputs[alu_b_source]), .carry_in(alu_carry_inputs[alu_carry_source]),
+    .control(alu_control), .result(internal_bus_inputs[bus_sources::InternalBusSrc_Alu]), .carry_out(alu_carry), .overflow_out(alu_overflow) );
+
 // Registers
 register register_a(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_A]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_A]));
@@ -106,7 +117,8 @@ register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[co
 
 status_register restier_p(.data_in(data_bus), .data_out(data_bus_inputs[bus_sources::DataBusSrc_Status]), .clock(phi2),
     .alu_carry(alu_carry),
-    .use_alu_carry(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
+    .alu_overflow(alu_overflow),
+    .use_alu_flags(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
     .update_c(ctrl_signals[control_signals::UpdateFlagC]),
     .update_z(ctrl_signals[control_signals::UpdateFlagZ]),
     .update_i(ctrl_signals[control_signals::UpdateFlagI]),
@@ -139,6 +151,9 @@ decoder decoder(
     .address_bus_high_source( address_bus_high_source ),
     .data_bus_source( data_bus_source ),
     .internal_bus_source( internal_bus_source ),
+    .alu_op(alu_control),
+    .alu_b_source(alu_b_source),
+    .alu_carry_source(alu_carry_source),
     .ctrl_signals( ctrl_signals ),
 
     .rW( rW ),
@@ -150,6 +165,7 @@ decoder decoder(
 // Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
 assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
+assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = internal_bus_inputs[bus_sources::InternalBusSrc_Alu];
 
 assign internal_bus_inputs[bus_sources::InternalBusSrc_Mem] = data_in_l;
 assign internal_bus_inputs[bus_sources::InternalBusSrc_PcLow] = pc_value[7:0];
@@ -166,5 +182,12 @@ assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Zero] = 8'b0;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_One] = 8'b1;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_PC] = pc_value[15:8];
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Internal] = internal_bus;
+
+assign alu_b_inputs[bus_sources::AluBSourceCtl_DataBus] = data_bus;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
+
+assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
+assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;
+assign alu_carry_inputs[bus_sources::AluCarrySource_Carry] = data_bus_inputs[bus_sources::DataBusSrc_Status][control_signals::FlagsCarry];
 
 endmodule

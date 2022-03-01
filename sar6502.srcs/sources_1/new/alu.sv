@@ -37,38 +37,33 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-`include "control_signals.vh"
-
 module alu(
         input [7:0]a,
         input [7:0]b,
         input carry_in,
-        input [7:0]control,
+        input control_signals::alu_control control,
 
-        output [7:0]result,
-        output carry_out,
-        output overflow_out
+        output logic [7:0]result,
+        output logic carry_out,
+        output logic overflow_out
     );
 
 always_comb
 begin
-    status_out = 0;
-
     result = 8'bX;
     carry_out = 1'bX;
+    overflow_out = 'X;
 
     case(control)
-        AluOp_pass:                     result = a;
-        AluOp_add:                      do_plus();
-        AluOp_and:                      result = a & b;
-        AluOp_or:                       result = a | b;
-        AluOp_xor:                      result = a ^ b;
-        AluOp_shift_left:               { carry_out, result } = { b, carry_in };
-        AluOp_shift_right_logical:      { result, carry_out } = { carry_in, b };
-        AluOp_shift_right_arithmetic:   { result, carry_out } = { b[7], b };
+        control_signals::AluOp_pass:                     result = a;
+        control_signals::AluOp_add:                      do_plus();
+        control_signals::AluOp_and:                      result = a & b;
+        control_signals::AluOp_or:                       result = a | b;
+        control_signals::AluOp_xor:                      result = a ^ b;
+        control_signals::AluOp_shift_left:               { carry_out, result } = { b, carry_in };
+        control_signals::AluOp_shift_right_logical:      { result, carry_out } = { carry_in, b };
+        control_signals::AluOp_shift_right_arithmetic:   { result, carry_out } = { b[7], b };
     endcase
-
-    overflow_out = result[6];
 end
 
 logic [8:0]intermediate_result;
@@ -83,6 +78,8 @@ begin
     if( a[7]==b[7] && a[7]!=result[7] )
         // Adding same sign integer resulted in opposite sign integer: must be an overflow
         overflow_out = 1;
+    else
+        overflow_out = 0;
 end
 endtask
 

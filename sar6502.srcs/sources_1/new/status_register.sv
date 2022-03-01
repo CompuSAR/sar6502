@@ -43,6 +43,7 @@ module status_register(
         output [7:0]data_out,
         input clock,
         input alu_carry,
+        input alu_overflow,
 
         input update_c,
         input update_z,
@@ -52,7 +53,7 @@ module status_register(
         input update_v,
         input update_n,
 
-        input use_alu_carry,
+        input use_alu_flags,
         input calculate_zero
     );
 
@@ -65,7 +66,7 @@ begin
     if( update_n )
         negative <= data_in[7];
     if( update_v )
-        overflow <= data_in[6];
+        overflow <= use_alu_flags ? alu_overflow : data_in[6];
     if( update_d )
         decimal <= data_in[3];
     if( update_i )
@@ -77,7 +78,7 @@ begin
             zero <= data_in[1];
     end
     if( update_c )
-        carry <= use_alu_carry ? alu_carry : data_in[0];
+        carry <= use_alu_flags ? alu_carry : data_in[0];
 end
 
 endmodule

@@ -45,4 +45,14 @@ typedef enum logic[31:0] {
     AluOp_shift_right_arithmetic
 } alu_control;
 
+typedef enum {
+    FlagsCarry = 0,
+    FlagsZero = 1,
+    FlagsIrqMark = 2,
+    FlagsDecimal = 3,
+    FlagsBrk = 4,
+    FlagsOverflow = 6,
+    FlagsNegative = 7
+} Flags;
+
 endpackage // control_signals

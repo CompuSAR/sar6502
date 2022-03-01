@@ -11,6 +11,7 @@ typedef enum logic[31:0] {
     DataBusSrc_Y,
     DataBusSrc_SP,
     DataBusSrc_Status,
+    DataBusSrc_Alu,
 
     DataBusSrc_Mem,
 
@@ -55,10 +56,34 @@ typedef enum logic[31:0] {
     InternalBusSrc_DataLatchHigh,
 
     InternalBusSrc_A,
+    InternalBusSrc_Alu,
 
     InternalBusSrc_End_Marker
 } InternalBusSourceCtl;
 
 localparam InternalBusSourceCtlLast = InternalBusSrc_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    AluBSourceCtl_Invalid = 'X,
+
+    AluBSourceCtl_DataBus = 0,
+    AluBSourceCtl_Mem,
+
+    AluBSourceCtl_End_Marker
+} AluBSourceCtl;
+
+localparam AluBSourceCtlLast = AluBSourceCtl_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    AluCarrySource_Invalid = 'X,
+
+    AluCarrySource_Zero = 0,
+    AluCarrySource_One,
+    AluCarrySource_Carry,
+
+    AluCarrySource_End_Marker
+} AluCarrySourceCtl;
+
+localparam AluCarrySourceCtlLast = AluCarrySource_End_Marker - 1;
 
 endpackage // bus_sources

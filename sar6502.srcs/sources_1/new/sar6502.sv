@@ -199,6 +199,7 @@ assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_DataLatch] = data_latch
 
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Zero] = 8'b0;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_One] = 8'b1;
+assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Mem] = data_in_l;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_PC] = pc_value[15:8];
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_DataLatch] = data_latch_value[15:8];
 

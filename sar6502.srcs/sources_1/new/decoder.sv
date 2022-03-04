@@ -114,6 +114,7 @@ typedef enum logic[31:0] {
     OpNop,
     OpPha,
     OpRti,
+    OpSta,
     OpTxs
 } operations;
 operations active_op, active_op_next;
@@ -217,6 +218,7 @@ task do_decode();
         8'h40: set_addr_mode_implicit( OpRti );
         8'h48: set_addr_mode_implicit( OpPha );
         8'h6d: set_addr_mode_absolute( OpAdc );
+        8'h8d: set_addr_mode_absolute( OpSta );
         8'h9a: set_addr_mode_implicit( OpTxs );
         8'ha2: set_addr_mode_immediate( OpLdx );
         8'ha9: set_addr_mode_immediate( OpLda );
@@ -257,9 +259,8 @@ begin
             ctrl_signals[control_signals::PC_ADVANCE] = 1;
 
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
-            address_bus_high_source_next = bus_sources::AddrBusHighSrc_DataLatch;
-        end
-        CycleAddr2: begin
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_Mem;
+
             set_operation( active_op );
         end
         default: set_invalid_state();
@@ -318,6 +319,7 @@ task set_operation(operations current_op);
         OpNop: do_op_nop_first();
         OpPha: do_op_pha_first();
         OpRti: do_op_rti_first();
+        OpSta: do_op_sta_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
     endcase
@@ -329,6 +331,7 @@ begin
         OpBrk: do_op_brk();
         OpPha: do_op_pha();
         OpRti: do_op_rti();
+        OpSta: do_op_sta();
         default: set_invalid_state();
     endcase
 end
@@ -570,6 +573,19 @@ begin
         end
         default: set_invalid_state();
     endcase
+end
+endtask
+
+task do_op_sta_first();
+begin
+    rW_next = 0;
+    data_bus_source_next = bus_sources::DataBusSrc_A;
+end
+endtask
+
+task do_op_sta();
+begin
+    next_instruction();
 end
 endtask
 

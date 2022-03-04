@@ -165,8 +165,12 @@ begin
     end
 
     plan_line = test_plan[cycle_num];
-    case( plan_line[35:32] )
+    casex( plan_line[35:32] )
         4'h1: verify_cycle(plan_line);
+        default: begin
+            $display("Unknown instruction type at cycle %d", cycle_num);
+            $finish();
+        end
     endcase
 
     cycle_num++;

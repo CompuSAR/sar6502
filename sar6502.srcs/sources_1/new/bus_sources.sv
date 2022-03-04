@@ -38,6 +38,7 @@ typedef enum logic[31:0] {
 
     AddrBusHighSrc_Zero = 0,
     AddrBusHighSrc_One,
+    AddrBusHighSrc_Mem,
     AddrBusHighSrc_PC,
     AddrBusHighSrc_DataLatch,
 

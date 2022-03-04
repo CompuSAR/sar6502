@@ -156,7 +156,7 @@ wire [15:0]pc_value;
 program_counter register_pc(
     .address_in({pc_high_inputs[pc_high_source], pc_low_inputs[pc_low_source]}),
     .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
-    .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2), .RESET(RESET_L),
+    .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2),
     .address_out(pc_value));
 
 // Control

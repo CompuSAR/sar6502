@@ -42,7 +42,6 @@ module program_counter(
         input ctl_advance,
         input ctl_load,
         input clock,
-        input RESET,
 
         output logic [15:0] address_out
     );

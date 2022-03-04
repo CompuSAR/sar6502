@@ -95,6 +95,17 @@ typedef enum logic[31:0] {
 localparam DataLatchHighSourceCtlLast = DataLatchHighSource_End_Marker - 1;
 
 typedef enum logic[31:0] {
+    StackPointerSource_Invalid = 'X,
+
+    StackPointerSource_Alu = 0,
+    StackPointerSource_DataBus,
+
+    StackPointerSource_End_Marker
+} StackPointerSourceCtl;
+
+localparam StackPointerSourceCtlLast = StackPointerSource_End_Marker -1;
+
+typedef enum logic[31:0] {
     AluASourceCtl_Invalid = 'X,
 
     AluASourceCtl_A = 0,
@@ -111,7 +122,6 @@ typedef enum logic[31:0] {
     AluBSourceCtl_Invalid = 'X,
 
     AluBSourceCtl_Zero = 0,
-    AluBSourceCtl_One,
     AluBSourceCtl_DataBus,
     AluBSourceCtl_Mem,
 

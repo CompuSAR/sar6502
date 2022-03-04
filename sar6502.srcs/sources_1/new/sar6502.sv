@@ -111,7 +111,13 @@ register register_x(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[contro
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_X]));
 register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_Y]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_Y]));
-register register_stack(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_SP]),
+
+logic [7:0]stack_pointer_inputs[bus_sources::StackPointerSourceCtlLast : 0];
+bus_sources::StackPointerSourceCtl stack_pointer_source;
+register register_stack(
+    .data_in(stack_pointer_inputs[stack_pointer_source]),
+    .clock(phi2),
+    .latch(ctrl_signals[control_signals::LOAD_SP]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
 status_register restier_p(.data_in(data_bus), .data_out(data_bus_inputs[bus_sources::DataBusSrc_Status]), .clock(phi2),
@@ -168,6 +174,7 @@ decoder decoder(
     .pc_high_source( pc_high_source ),
     .data_latch_low_source( data_latch_low_source ),
     .data_latch_high_source( data_latch_high_source ),
+    .stack_pointer_source( stack_pointer_source ),
     .alu_op(alu_control),
     .alu_a_source(alu_a_source),
     .alu_b_source(alu_b_source),
@@ -209,13 +216,15 @@ assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FE] = 8'hfe;
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Mem] = data_in_l;
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_FF] = 8'hff;
 
+assign stack_pointer_inputs[bus_sources::StackPointerSource_Alu] = alu_result;
+assign stack_pointer_inputs[bus_sources::StackPointerSource_DataBus] = data_bus;
+
 assign alu_a_inputs[bus_sources::AluASourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchLow] = data_latch_value[7:0];
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchHigh] = data_latch_value[15:8];
 assign alu_a_inputs[bus_sources::AluASourceCtl_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
-assign alu_b_inputs[bus_sources::AluBSourceCtl_One] = 8'b1;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_DataBus] = data_bus;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
 

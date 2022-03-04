@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="359.583 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,128.084 ns"></ZoomEndTime>
-      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="477.916 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,248.417 ns"></ZoomEndTime>
+      <Cursor1Time time="984.916 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="126"></ValueColumnWidth>
+      <ValueColumnWidth column_width="122"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="42" />
+   <WVObjectSize size="43" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -67,6 +67,12 @@
       <obj_property name="ElementShortName">data_out[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
       <obj_property name="label">Y</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/address_bus_low_inputs[1]">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">[1][7:0]</obj_property>
+      <obj_property name="ObjectShortName">[1][7:0]</obj_property>
+      <obj_property name="label">SP</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/restier_p/negative">
       <obj_property name="ElementShortName">negative</obj_property>
@@ -208,7 +214,7 @@
       <obj_property name="ObjectShortName">ctrl_signals[16:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals_next">
-      <obj_property name="ElementShortName">ctrl_signals_next[16:0]</obj_property>
-      <obj_property name="ObjectShortName">ctrl_signals_next[16:0]</obj_property>
+      <obj_property name="ElementShortName">ctrl_signals_next[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_signals_next[15:0]</obj_property>
    </wvobject>
 </wave_config>

@@ -109,7 +109,8 @@ typedef enum logic[31:0] {
     OpClc,
     OpLda,
     OpLdx,
-    OpNop
+    OpNop,
+    OpTxs
 } operations;
 operations active_op, active_op_next;
 
@@ -162,7 +163,8 @@ begin
     alu_b_source_next = bus_sources::AluBSourceCtl_Invalid;
     alu_op_next = control_signals::AluOp_INVALID;
     alu_carry_source_next = bus_sources::AluCarrySource_Invalid;
-    ctrl_signals_next = { control_signals::ctrl_signals_last+1 {1'bx} };
+    ctrl_signals_next = { control_signals::ctrl_signals_last_latched+1 {1'bx} };
+    ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched] = 'X;
 
     active_op_next = OpInvalid;
     active_addr_mode_next = AddrInvalid;
@@ -173,6 +175,7 @@ always_comb begin
     set_invalid_state();
 
     ctrl_signals_next = 0;
+    ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched] = 0;
     rW_next = 1;
     sync_next = 0;
     ML_next = 1;
@@ -206,6 +209,7 @@ task do_decode();
     case( memory_in )
         8'h18: set_addr_mode_implicit( OpClc );
         8'h6d: set_addr_mode_absolute( OpAdc );
+        8'h9a: set_addr_mode_implicit( OpTxs );
         8'ha2: set_addr_mode_immediate( OpLdx );
         8'ha9: set_addr_mode_immediate( OpLda );
         8'ha5: set_addr_mode_zp( OpLda );
@@ -300,6 +304,7 @@ task set_operation(operations current_op);
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
         OpNop: do_op_nop_first();
+        OpTxs: do_op_txs_first();
         default: set_invalid_state();
     endcase
 endtask
@@ -449,6 +454,15 @@ endtask
 task do_op_nop_first();
 begin
     next_instruction();
+end
+endtask
+
+task do_op_txs_first();
+begin
+    next_instruction();
+
+    data_bus_source_next = bus_sources::DataBusSrc_X;
+    ctrl_signals_next[control_signals::LOAD_SP] = 1;
 end
 endtask
 

@@ -197,7 +197,7 @@ begin
 end
 endtask
 
-task assert_state( input actual, input expected, input string name );
+task assert_state( input logic [15:0]actual, input logic [15:0]expected, input string name );
     if( actual === expected )
         return;
 

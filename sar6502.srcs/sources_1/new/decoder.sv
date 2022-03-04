@@ -72,7 +72,7 @@ bus_sources::AluASourceCtl alu_a_source_next;
 bus_sources::AluBSourceCtl alu_b_source_next;
 control_signals::alu_control alu_op_next;
 bus_sources::AluCarrySourceCtl alu_carry_source_next;
-logic [control_signals::ctrl_signals_last:0] ctrl_signals_next;
+logic [control_signals::ctrl_signals_last_latched : 0] ctrl_signals_next;
 
 logic rW_next, sync_next, ML_next, VP_next;
 
@@ -108,6 +108,7 @@ typedef enum logic[31:0] {
     OpBrk,
     OpClc,
     OpLda,
+    OpLdx,
     OpNop
 } operations;
 operations active_op, active_op_next;
@@ -137,7 +138,8 @@ always_ff@(negedge clock) begin
         alu_b_source <= alu_b_source_next;
         alu_carry_source <= alu_carry_source_next;
         alu_op <= alu_op_next;
-        ctrl_signals <= ctrl_signals_next;
+        ctrl_signals[control_signals::ctrl_signals_last_latched : 0] <=
+            ctrl_signals_next[control_signals::ctrl_signals_last_latched : 0];
 
         rW <= rW_next;
         sync <= sync_next;
@@ -189,7 +191,7 @@ always_comb begin
         address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
 
         if( int_state==IntStateNone )
-            ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
         else
             set_operation(OpBrk);
     end else if( op_cycle==CycleDecode )
@@ -204,6 +206,7 @@ task do_decode();
     case( memory_in )
         8'h18: set_addr_mode_implicit( OpClc );
         8'h6d: set_addr_mode_absolute( OpAdc );
+        8'ha2: set_addr_mode_immediate( OpLdx );
         8'ha9: set_addr_mode_immediate( OpLda );
         8'ha5: set_addr_mode_zp( OpLda );
         8'had: set_addr_mode_absolute( OpLda );
@@ -227,7 +230,7 @@ task set_addr_mode_absolute(operations current_op);
 
     data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
     ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
 
     address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
     address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
@@ -239,7 +242,7 @@ begin
         CycleAddr1: begin
             data_latch_high_source_next = bus_sources::DataLatchHighSource_Mem;
             ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
-            ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
 
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_DataLatch;
@@ -254,7 +257,7 @@ endtask
 
 task set_addr_mode_immediate(operations current_op);
 begin
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
 
     set_operation(current_op);
 end
@@ -274,7 +277,7 @@ begin
 
     data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
     ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
     address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
     address_bus_high_source_next = bus_sources::AddrBusHighSrc_Zero;
 end
@@ -295,6 +298,7 @@ task set_operation(operations current_op);
         OpBrk: do_op_brk_first();
         OpClc: do_op_clc_first();
         OpLda: do_op_lda_first();
+        OpLdx: do_op_ldx_first();
         OpNop: do_op_nop_first();
         default: set_invalid_state();
     endcase
@@ -422,6 +426,18 @@ task do_op_lda_first();
 begin
     next_instruction();
     ctrl_signals_next[control_signals::LOAD_A] = 1;
+    data_bus_source_next = bus_sources::DataBusSrc_Mem;
+
+    ctrl_signals_next[control_signals::UpdateFlagN] = 1;
+    ctrl_signals_next[control_signals::UpdateFlagZ] = 1;
+    ctrl_signals_next[control_signals::CalculateFlagZ] = 1;
+end
+endtask
+
+task do_op_ldx_first();
+begin
+    next_instruction();
+    ctrl_signals_next[control_signals::LOAD_X] = 1;
     data_bus_source_next = bus_sources::DataBusSrc_Mem;
 
     ctrl_signals_next[control_signals::UpdateFlagN] = 1;

@@ -12,7 +12,6 @@ typedef enum logic[31:0] {
     LOAD_DataLow,
     LOAD_DataHigh,
     PC_LOAD,
-    PC_ADVANCE,
 
     UpdateFlagC,
     UpdateFlagZ,
@@ -26,10 +25,12 @@ typedef enum logic[31:0] {
     CalculateFlagZ,
 
     // Early signals
+    PC_ADVANCE,
+
     EndMarker
 } ctrl_signals;
 
-localparam ctrl_signals_last_latched = EndMarker-1;
+localparam ctrl_signals_last_latched = CalculateFlagZ;
 localparam ctrl_signals_last = EndMarker-1;
 
 typedef enum logic[31:0] {

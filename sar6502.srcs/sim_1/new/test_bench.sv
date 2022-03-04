@@ -173,6 +173,9 @@ begin
         end
     endcase
 
+    if( address_bus[15:8]===8'h02 && read_Write===1'b0 )
+        perform_io();
+
     cycle_num++;
 end
 endtask
@@ -208,6 +211,17 @@ task assert_state( input logic [15:0]actual, input logic [15:0]expected, input s
     $display("Verification failed on cycle %d time %t pin %s: expected %x, received %x on address %04x",
         cycle_num, $time, name, expected, actual, address_bus);
     $finish();
+endtask
+
+task perform_io();
+    $display("IO writing %x to %x", data_out, address_bus);
+
+    casex( address_bus[7:0] )
+        8'h00: begin
+            $display("Test finished successfully");
+            $finish();
+        end
+    endcase
 endtask
 
 endmodule

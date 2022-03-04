@@ -225,7 +225,14 @@ task do_decode();
         8'ha5: set_addr_mode_zp( OpLda );
         8'had: set_addr_mode_absolute( OpLda );
         8'hea: set_addr_mode_implicit( OpNop );
+        default: do_unknown_command();
     endcase
+endtask
+
+task do_unknown_command();
+begin
+    set_invalid_state();
+end
 endtask
 
 task do_addr_lookup();

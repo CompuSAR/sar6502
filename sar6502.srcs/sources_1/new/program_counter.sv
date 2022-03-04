@@ -49,17 +49,12 @@ module program_counter(
 
 logic [15:0] address_stored;
 
-always_comb begin
-    address_out <=
-        ( ctl_load ? address_in : address_stored ) +
-        ( ctl_advance ? 1 : 0 );
-end
-
 always_ff@(negedge clock) begin
-    if( !RESET )
-        address_stored <= 0;
-    else
-        address_stored <= address_out;
+    if( ctl_load ) begin
+        address_out <= address_in;
+    end else if( ctl_advance ) begin
+        address_out <= address_out+1;
+    end
 end
 
 endmodule

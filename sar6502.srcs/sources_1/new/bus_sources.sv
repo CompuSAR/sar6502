@@ -25,7 +25,6 @@ typedef enum logic[31:0] {
 
     AddrBusLowSrc_PC = 0,
     AddrBusLowSrc_SP,
-    AddrBusLowSrc_Internal,
     AddrBusLowSrc_DataLatch,
 
     AddrBusLowSrc_End_Marker
@@ -39,7 +38,7 @@ typedef enum logic[31:0] {
     AddrBusHighSrc_Zero = 0,
     AddrBusHighSrc_One,
     AddrBusHighSrc_PC,
-    AddrBusHighSrc_Internal,
+    AddrBusHighSrc_DataLatch,
 
     AddrBusHighSrc_End_Marker
 } AddressBusHighSourceCtl;
@@ -47,26 +46,72 @@ typedef enum logic[31:0] {
 localparam AddressBusHighSourceCtlLast = AddrBusHighSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
-    InternalBusSrc_Invalid = 'X,
+    PcLowSource_Invalid = 'X,
 
-    InternalBusSrc_Mem = 0,
-    InternalBusSrc_PcLow,
-    InternalBusSrc_PcHigh,
-    InternalBusSrc_DataLatchLow,
-    InternalBusSrc_DataLatchHigh,
+    PcLowSource_CurrentValue = 0,
+    PcLowSource_Mem,
 
-    InternalBusSrc_A,
-    InternalBusSrc_Alu,
+    PcLowSource_End_Marker
+} PcLowSourceCtl;
 
-    InternalBusSrc_End_Marker
-} InternalBusSourceCtl;
+localparam PcLowSourceCtlLast = PcLowSource_End_Marker - 1;
 
-localparam InternalBusSourceCtlLast = InternalBusSrc_End_Marker - 1;
+typedef enum logic[31:0] {
+    PcHighSource_Invalid = 'X,
+
+    PcHighSource_CurrentValue = 0,
+    PcHighSource_Mem,
+
+    PcHighSource_End_Marker
+} PcHighSourceCtl;
+
+localparam PcHighSourceCtlLast = PcHighSource_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    DataLatchLowSource_Invalid = 'X,
+
+    DataLatchLowSource_Mem = 0,
+    DataLatchLowSource_Alu,
+
+    DataLatchLowSource_FA,
+    DataLatchLowSource_FC,
+    DataLatchLowSource_FE,
+
+    DataLatchLowSource_End_Marker
+} DataLatchLowSourceCtl;
+
+localparam DataLatchLowSourceCtlLast = DataLatchLowSource_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    DataLatchHighSource_Invalid = 'X,
+
+    DataLatchHighSource_Mem = 0,
+
+    DataLatchHighSource_FF,
+
+    DataLatchHighSource_End_Marker
+} DataLatchHighSourceCtl;
+
+localparam DataLatchHighSourceCtlLast = DataLatchHighSource_End_Marker - 1;
+
+typedef enum logic[31:0] {
+    AluASourceCtl_Invalid = 'X,
+
+    AluASourceCtl_A = 0,
+    AluASourceCtl_DataLatchLow,
+    AluASourceCtl_DataLatchHigh,
+
+    AluASourceCtl_End_Marker
+} AluASourceCtl;
+
+localparam AluASourceCtlLast = AluASourceCtl_End_Marker - 1;
 
 typedef enum logic[31:0] {
     AluBSourceCtl_Invalid = 'X,
 
-    AluBSourceCtl_DataBus = 0,
+    AluBSourceCtl_Zero = 0,
+    AluBSourceCtl_One,
+    AluBSourceCtl_DataBus,
     AluBSourceCtl_Mem,
 
     AluBSourceCtl_End_Marker

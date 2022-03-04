@@ -41,6 +41,7 @@ module alu(
         input [7:0]a,
         input [7:0]b,
         input carry_in,
+        input inverse_b,
         input control_signals::alu_control control,
 
         output logic [7:0]result,
@@ -48,21 +49,28 @@ module alu(
         output logic overflow_out
     );
 
+logic [7:0]effective_b;
+
 always_comb
 begin
     result = 8'bX;
     carry_out = 1'bX;
     overflow_out = 'X;
 
+    if( inverse_b )
+        effective_b = ~b;
+    else
+        effective_b = b;
+
     case(control)
         control_signals::AluOp_pass:                     result = a;
         control_signals::AluOp_add:                      do_plus();
-        control_signals::AluOp_and:                      result = a & b;
-        control_signals::AluOp_or:                       result = a | b;
-        control_signals::AluOp_xor:                      result = a ^ b;
-        control_signals::AluOp_shift_left:               { carry_out, result } = { b, carry_in };
-        control_signals::AluOp_shift_right_logical:      { result, carry_out } = { carry_in, b };
-        control_signals::AluOp_shift_right_arithmetic:   { result, carry_out } = { b[7], b };
+        control_signals::AluOp_and:                      result = a & effective_b;
+        control_signals::AluOp_or:                       result = a | effective_b;
+        control_signals::AluOp_xor:                      result = a ^ effective_b;
+        control_signals::AluOp_shift_left:               { carry_out, result } = { effective_b, carry_in };
+        control_signals::AluOp_shift_right_logical:      { result, carry_out } = { carry_in, effective_b };
+        control_signals::AluOp_shift_right_arithmetic:   { result, carry_out } = { effective_b[7], effective_b };
     endcase
 end
 
@@ -70,12 +78,12 @@ logic [8:0]intermediate_result;
 
 task do_plus();
 begin
-    intermediate_result = a+b+carry_in;
+    intermediate_result = a+effective_b+carry_in;
     result = intermediate_result[7:0];
 
     carry_out = intermediate_result[8];
 
-    if( a[7]==b[7] && a[7]!=result[7] )
+    if( a[7]==effective_b[7] && a[7]!=result[7] )
         // Adding same sign integer resulted in opposite sign integer: must be an overflow
         overflow_out = 1;
     else

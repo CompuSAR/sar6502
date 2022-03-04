@@ -110,6 +110,7 @@ typedef enum logic[31:0] {
     OpLda,
     OpLdx,
     OpNop,
+    OpPha,
     OpTxs
 } operations;
 operations active_op, active_op_next;
@@ -208,6 +209,7 @@ end
 task do_decode();
     case( memory_in )
         8'h18: set_addr_mode_implicit( OpClc );
+        8'h48: set_addr_mode_implicit( OpPha );
         8'h6d: set_addr_mode_absolute( OpAdc );
         8'h9a: set_addr_mode_implicit( OpTxs );
         8'ha2: set_addr_mode_immediate( OpLdx );
@@ -304,9 +306,20 @@ task set_operation(operations current_op);
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
         OpNop: do_op_nop_first();
+        OpPha: do_op_pha_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
     endcase
+endtask
+
+task do_operation();
+begin
+    case( active_op )
+        OpBrk: do_op_brk();
+        OpPha: do_op_pha();
+        default: set_invalid_state();
+    endcase
+end
 endtask
 
 task next_instruction();
@@ -316,15 +329,6 @@ begin
     op_cycle_next = CycleFetch;
     sync_next = 1;
     active_op_next = OpNone;
-end
-endtask
-
-task do_operation();
-begin
-    case( active_op )
-        OpBrk: do_op_brk();
-        default: set_invalid_state();
-    endcase
 end
 endtask
 
@@ -454,6 +458,31 @@ endtask
 task do_op_nop_first();
 begin
     next_instruction();
+end
+endtask
+
+task do_op_pha_first();
+begin
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
+    address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
+
+    data_bus_source_next = bus_sources::DataBusSrc_A;
+    rW_next = 0;
+end
+endtask
+
+task do_op_pha();
+begin
+    next_instruction();
+
+    alu_op_next = control_signals::AluOp_add;
+    alu_a_source_next = bus_sources::AluASourceCtl_SP;
+    alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
+    alu_carry_source_next = bus_sources::AluCarrySource_Zero;
+    ctrl_signals_next[control_signals::AluBInverse] = 1;
+
+    data_bus_source_next = bus_sources::DataBusSrc_Alu;
+    ctrl_signals_next[control_signals::LOAD_SP] = 1;
 end
 endtask
 

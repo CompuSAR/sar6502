@@ -99,7 +99,9 @@ control_signals::alu_control alu_control;
 logic alu_carry, alu_overflow;
 logic [7:0]alu_result;
 
-alu alu( .a(alu_a_inputs[alu_a_source]), .b(alu_b_inputs[alu_b_source]), .carry_in(alu_carry_inputs[alu_carry_source]),
+alu alu( .a(alu_a_inputs[alu_a_source]), .b(alu_b_inputs[alu_b_source]),
+    .carry_in(alu_carry_inputs[alu_carry_source]),
+    .inverse_b(ctrl_signals[control_signals::AluBInverse]),
     .control(alu_control), .result(alu_result), .carry_out(alu_carry), .overflow_out(alu_overflow) );
 
 // Registers
@@ -210,6 +212,7 @@ assign data_latch_high_inputs[bus_sources::DataLatchHighSource_FF] = 8'hff;
 assign alu_a_inputs[bus_sources::AluASourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchLow] = data_latch_value[7:0];
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchHigh] = data_latch_value[15:8];
+assign alu_a_inputs[bus_sources::AluASourceCtl_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_One] = 8'b1;

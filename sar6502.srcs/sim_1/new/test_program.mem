@@ -1,0 +1,20 @@
+@00a9 07                                // test_program.s:19 lda_zp_test: .byte $07
+@0300 ea                                // test_program.s:24 nop
+@0301 ea                                // test_program.s:25 nop
+@0302 ea                                // test_program.s:26 nop
+@0303 a9 03                             // test_program.s:27 lda #$03
+@0305 a5 a9                             // test_program.s:28 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
+@0307 8d 00 02                          // test_program.s:30 sta FINISHED_TRIGGER
+@030a a2 ff                             // test_program.s:33 ldx #$ff
+@030c 9a                                // test_program.s:34 txs
+@030d a9 03                             // test_program.s:35 lda #start/256
+@030f 48                                // test_program.s:36 pha
+@0310 a9 00                             // test_program.s:37 lda #start%256
+@0312 48                                // test_program.s:38 pha
+@0313 a9 44                             // test_program.s:39 lda #INTMASK+OVERFLOW
+@0315 48                                // test_program.s:40 pha
+@0316 40                                // test_program.s:41 rti
+@0317 00                                // test_program.s:45 brk
+@fffa 17 03                             // test_program.s:48 .word nmi_handler
+@fffc 0a 03                             // test_program.s:49 .word reset_handler
+@fffe 17 03                             // test_program.s:50 .word int_handler

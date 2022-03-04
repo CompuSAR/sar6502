@@ -373,6 +373,8 @@ begin
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
         end
         CycleOp4: begin
+            int_state_next = IntStateNone;
+
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_DataLatch;
 
@@ -386,6 +388,8 @@ begin
 
             ctrl_signals_next[control_signals::PC_LOAD] = 1;
             pc_low_source_next = bus_sources::PcLowSource_Mem;
+
+            VP_next = 0;
         end
         CycleOp5: begin
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
@@ -394,6 +398,8 @@ begin
             ctrl_signals_next[control_signals::PC_LOAD] = 1;
             pc_low_source_next = bus_sources::PcLowSource_CurrentValue;
             pc_high_source_next = bus_sources::PcHighSource_Mem;
+
+            VP_next = 0;
         end
         CycleOp6: begin
             next_instruction();

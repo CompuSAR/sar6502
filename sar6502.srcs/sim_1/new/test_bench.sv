@@ -103,6 +103,7 @@ sar6502 cpu(
 );
 
 logic [7:0]memory[65536];
+logic [35:0]test_plan[30000];
 
 struct {
     int delay;
@@ -112,7 +113,8 @@ struct {
 initial begin
     // Clock and memory read handling
     clock = 0;
-    $readmemh("memory.mem", memory);
+    $readmemh("test_program.mem", memory);
+    $readmemh("test_plan.mem", test_plan);
 
     foreach( signals[i] ) begin
         pending_signals[i].delay = 0;
@@ -133,8 +135,12 @@ initial begin
     end
 end
 
+int cycle_num = 0;
+
 task clock_low();
+    automatic logic [35:0]plan_line;
 begin
+    // Signal control
     foreach( signals[i] ) begin
         if( pending_signals[i].delay>0 ) begin
             pending_signals[i].delay--;
@@ -148,12 +154,56 @@ begin
                 signals[i] = 1;
         end
     end
+
+    // Verification
+    if( cycle_num==0 ) begin
+        if( address_bus !== 16'hfffc )
+            // Waiting to begin
+            return;
+        else
+            cycle_num=1;
+    end
+
+    plan_line = test_plan[cycle_num];
+    case( plan_line[35:32] )
+        4'h1: verify_cycle(plan_line);
+    endcase
+
+    cycle_num++;
 end
 endtask
 
 task clock_high();
 begin
 end
+endtask
+
+task verify_cycle( input logic [35:0]plan_line );
+begin
+    assert_state( read_Write, plan_line[0], "Read/write" );
+    assert_state( sync, plan_line[1], "Sync" );
+    assert_state( memory_lock, !plan_line[2], "Memory lock" );
+    assert_state( vector_pull, !plan_line[3], "Vector pull" );
+    assert_state( address_bus, plan_line[31:16], "Address bus" );
+
+    if( read_Write ) begin
+        // Read
+        assert_state( data_in, plan_line[15:8], "Data in" );
+    end else begin
+        // Write
+        memory[address_bus] = data_out;
+        assert_state( data_out, plan_line[15:8], "Data out" );
+    end
+end
+endtask
+
+task assert_state( input actual, input expected, input string name );
+    if( actual === expected )
+        return;
+
+    $display("Verification failed on cycle %d time %t pin %s: expected %x, received %x on address %04x",
+        cycle_num, $time, name, expected, actual, address_bus);
+    $finish();
 endtask
 
 endmodule

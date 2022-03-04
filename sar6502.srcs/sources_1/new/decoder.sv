@@ -289,8 +289,12 @@ begin
 
     data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
     ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+    data_latch_high_source_next = bus_sources::DataLatchHighSource_Zero;
+    ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
+
     ctrl_signals[control_signals::PC_ADVANCE] = 1;
-    address_bus_low_source_next = bus_sources::AddrBusLowSrc_DataLatch;
+
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_Mem;
     address_bus_high_source_next = bus_sources::AddrBusHighSrc_Zero;
 end
 endtask

@@ -192,6 +192,7 @@ assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
 assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
 assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result;
 
+assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_Mem] = data_in_l;
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_PC] = pc_value[7:0];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_DataLatch] = data_latch_value[7:0];
@@ -213,6 +214,7 @@ assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FA] = 8'hfa;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FC] = 8'hfc;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FE] = 8'hfe;
 
+assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Zero] = 8'h00;
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Mem] = data_in_l;
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_FF] = 8'hff;
 

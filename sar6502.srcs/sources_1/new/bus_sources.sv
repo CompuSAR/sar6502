@@ -23,7 +23,8 @@ localparam DataBusSourceCtlLast = DataBusSrc_End_Marker - 1;
 typedef enum logic[31:0] {
     AddrBusLowSrc_Invalid = 'X,
 
-    AddrBusLowSrc_PC = 0,
+    AddrBusLowSrc_Mem = 0,
+    AddrBusLowSrc_PC,
     AddrBusLowSrc_SP,
     AddrBusLowSrc_DataLatch,
 
@@ -85,7 +86,8 @@ localparam DataLatchLowSourceCtlLast = DataLatchLowSource_End_Marker - 1;
 typedef enum logic[31:0] {
     DataLatchHighSource_Invalid = 'X,
 
-    DataLatchHighSource_Mem = 0,
+    DataLatchHighSource_Zero = 0,
+    DataLatchHighSource_Mem,
 
     DataLatchHighSource_FF,
 

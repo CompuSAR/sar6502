@@ -274,18 +274,18 @@ endtask
 task set_addr_mode_absolute(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsolute;
-
-    data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
-    ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
-
-    address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
-    address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
 endtask
 
 task do_addr_mode_absolute();
     case( op_cycle )
         CycleAddr1: begin
+            data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
+            ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+            ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+
+            addr_bus_pc();
+        end
+        CycleAddr2: begin
             data_latch_high_source_next = bus_sources::DataLatchHighSource_Mem;
             ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
             ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
@@ -403,7 +403,6 @@ task do_operation();
         OpPlp: do_op_plp();
         OpRti: do_op_rti();
         OpRts: do_op_rts();
-        OpSta: do_op_sta();
         default: set_invalid_state();
     endcase
 endtask
@@ -733,9 +732,7 @@ endtask
 task do_op_sta_first();
     rW_next = 0;
     data_bus_source_next = bus_sources::DataBusSrc_A;
-endtask
 
-task do_op_sta();
     next_instruction();
 endtask
 

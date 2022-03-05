@@ -10,5 +10,8 @@ test_program_wdc.mem: test_program.s
 test_plan.mem: test_program.mem
 	PYTHONPATH=$(TEST_HARNESS_PROJECT)/host $(TEST_HARNESS_PROJECT)/host/gen_test_plan $< $@ -p $(USBPORT)
 
+clean:
+	$(RM) *.mem *.lst *.out
+
 generate: test_plan.mem
-.PHONY: generate
+.PHONY: generate clean

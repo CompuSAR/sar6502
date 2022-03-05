@@ -124,6 +124,7 @@ typedef enum logic[31:0] {
     OpPhp,
     OpPlp,
     OpRti,
+    OpRts,
     OpSta,
     OpTxs
 } operations;
@@ -233,6 +234,7 @@ task do_decode();
         8'h28: set_addr_mode_stack( OpPlp );
         8'h40: set_addr_mode_stack( OpRti );
         8'h48: set_addr_mode_stack( OpPha );
+        8'h60: set_addr_mode_stack( OpRts );
         8'h6d: set_addr_mode_absolute( OpAdc );
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h9a: set_addr_mode_implicit( OpTxs );
@@ -377,6 +379,7 @@ task set_operation(operations current_op);
         OpPhp: do_op_php_first();
         OpPlp: do_op_plp_first();
         OpRti: do_op_rti_first();
+        OpRts: do_op_rts_first();
         OpSta: do_op_sta_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
@@ -389,6 +392,7 @@ task do_operation();
         OpJsr: do_op_jsr();
         OpPlp: do_op_plp();
         OpRti: do_op_rti();
+        OpRts: do_op_rts();
         OpSta: do_op_sta();
         default: set_invalid_state();
     endcase
@@ -404,6 +408,7 @@ task do_last_cycle();
         OpLdx: do_op_ldx_last();
         OpPlp: do_op_plp_last();
         OpRti: do_op_rti_last();
+        OpRts: do_op_rts_last();
     endcase
 endtask
 
@@ -676,6 +681,43 @@ task do_op_rti_last();
     pc_low_source_next = bus_sources::PcLowSource_CurrentValue;
     pc_high_source_next = bus_sources::PcHighSource_Mem;
     ctrl_signals_next[control_signals::PC_LOAD] = 1;
+endtask
+
+task do_op_rts_first();
+    // First stack cycle: dummy read
+    sp_inc();
+endtask
+
+task do_op_rts();
+    case(op_cycle)
+        FirstOpCycle: begin
+            // Read PC MSB
+            addr_bus_sp();
+
+            sp_inc();
+        end
+        CycleOp2: begin
+            // Store PC MSB
+            pc_low_source_next = bus_sources::PcLowSource_Mem;
+            ctrl_signals_next[control_signals::PC_LOAD] = 1;
+
+            // Read PC LSB
+            addr_bus_sp();
+        end
+        CycleOp3: begin
+            pc_low_source_next = bus_sources::PcLowSource_CurrentValue;
+            pc_high_source_next = bus_sources::PcHighSource_Mem;
+            ctrl_signals_next[control_signals::PC_LOAD] = 1;
+
+            addr_bus_pc();
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_rts_last();
+    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_op_sta_first();

@@ -228,9 +228,9 @@ task do_decode();
     case( memory_in )
         8'h08: set_addr_mode_stack( OpPhp );
         8'h18: set_addr_mode_implicit( OpClc );
-        8'h20: set_addr_mode_implicit( OpJsr );
-        8'h40: set_addr_mode_implicit( OpRti );
-        8'h48: set_addr_mode_implicit( OpPha );
+        8'h20: set_addr_mode_stack( OpJsr );
+        8'h40: set_addr_mode_stack( OpRti );
+        8'h48: set_addr_mode_stack( OpPha );
         8'h6d: set_addr_mode_absolute( OpAdc );
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h9a: set_addr_mode_implicit( OpTxs );
@@ -380,8 +380,6 @@ task do_operation();
     case( active_op )
         OpBrk: do_op_brk();
         OpJsr: do_op_jsr();
-        OpPha: do_op_pha();
-        OpPhp: do_op_php();
         OpRti: do_op_rti();
         OpSta: do_op_sta();
         default: set_invalid_state();
@@ -497,24 +495,17 @@ task do_op_clc_first();
 endtask
 
 task do_op_jsr_first();
-    // Addres to read jump destination LSB
-    addr_bus_pc();
+    // Store destination LSB in DL
+    ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+    data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
+
+    // Dummy stack cycle while we advance the PC
+    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_op_jsr();
     case(op_cycle)
         FirstOpCycle: begin
-            // Store destination LSB in DL
-            ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
-            data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
-
-            // Dummy stack cycle while we advance the PC
-            address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
-            address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
-
-            ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
-        end
-        CycleOp2: begin
             // Write PC MSB to stack
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
@@ -523,7 +514,7 @@ task do_op_jsr();
 
             sp_dec();
         end
-        CycleOp3: begin
+        CycleOp2: begin
             // Write PC LSB to stack
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
@@ -532,7 +523,7 @@ task do_op_jsr();
 
             sp_dec();
         end
-        CycleOp4: begin
+        CycleOp3: begin
             // Address to read destination MSB
             addr_bus_pc();
             next_instruction();
@@ -587,12 +578,6 @@ task do_op_nop_first();
 endtask
 
 task do_op_pha_first();
-endtask
-
-task do_op_pha();
-    address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
-    address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
-
     data_bus_source_next = bus_sources::DataBusSrc_A;
     rW_next = 0;
 
@@ -611,30 +596,21 @@ task do_op_php_first();
     next_instruction();
 endtask
 
-task do_op_php();
-endtask
-
 task do_op_rti_first();
-    addr_bus_pc();
+    // First stack cycle: dummy read
+    sp_inc();
 endtask
 
 task do_op_rti();
     case(op_cycle)
         FirstOpCycle: begin
-            // First stack cycle: dummy read
-            address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
-            address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
-
-            sp_inc();
-        end
-        CycleOp2: begin
             // Read status flags
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
 
             sp_inc();
         end
-        CycleOp3: begin
+        CycleOp2: begin
             // This is the data loaded by the previous address operation
             data_bus_source_next = bus_sources::DataBusSrc_Mem;
             ctrl_signals_next[control_signals::UseAluFlags] = 0;
@@ -651,7 +627,7 @@ task do_op_rti();
 
             sp_inc();
         end
-        CycleOp4: begin
+        CycleOp3: begin
             // Store PC MSB
             pc_low_source_next = bus_sources::PcLowSource_Mem;
             ctrl_signals_next[control_signals::PC_LOAD] = 1;

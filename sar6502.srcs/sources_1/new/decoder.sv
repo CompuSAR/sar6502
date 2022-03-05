@@ -74,7 +74,7 @@ bus_sources::AluASourceCtl alu_a_source_next;
 bus_sources::AluBSourceCtl alu_b_source_next;
 control_signals::alu_control alu_op_next;
 bus_sources::AluCarrySourceCtl alu_carry_source_next;
-logic [control_signals::ctrl_signals_last_latched : 0] ctrl_signals_next;
+logic [control_signals::ctrl_signals_last : 0] ctrl_signals_next;
 
 logic rW_next, sync_next, ML_next, VP_next;
 
@@ -157,8 +157,7 @@ always_comb begin
     alu_b_source = alu_b_source_next;
     alu_carry_source = alu_carry_source_next;
     alu_op = alu_op_next;
-    ctrl_signals[control_signals::ctrl_signals_last_latched : 0] =
-        ctrl_signals_next[control_signals::ctrl_signals_last_latched : 0];
+    ctrl_signals = ctrl_signals_next;
 
     rW = rW_next;
     sync = sync_next;
@@ -180,8 +179,7 @@ task set_invalid_state();
     alu_b_source_next = bus_sources::AluBSourceCtl_Invalid;
     alu_op_next = control_signals::AluOp_INVALID;
     alu_carry_source_next = bus_sources::AluCarrySource_Invalid;
-    ctrl_signals_next = { control_signals::ctrl_signals_last_latched+1 {1'bx} };
-    ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched] = 'X;
+    ctrl_signals_next = { control_signals::ctrl_signals_last {1'bx} };
 
     active_op_next = OpInvalid;
     active_addr_mode_next = AddrInvalid;
@@ -192,7 +190,6 @@ always_comb begin
     set_invalid_state();
 
     ctrl_signals_next = 0;
-    ctrl_signals[control_signals::ctrl_signals_last : control_signals::ctrl_signals_last_latched] = 0;
     rW_next = 1;
     sync_next = 0;
     ML_next = 1;

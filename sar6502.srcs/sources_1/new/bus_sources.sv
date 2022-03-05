@@ -55,6 +55,7 @@ typedef enum logic[31:0] {
 
     PcLowSource_CurrentValue = 0,
     PcLowSource_Mem,
+    PcLowSource_Dl,
 
     PcLowSource_End_Marker
 } PcLowSourceCtl;

@@ -206,10 +206,11 @@ assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_PC] = pc_value[15:8];
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_DataLatch] = data_latch_value[15:8];
 
 assign pc_low_inputs[bus_sources::PcLowSource_CurrentValue] = pc_value[7:0];
-assign pc_low_inputs[bus_sources::PcLowSource_Mem] = data_in;
+assign pc_low_inputs[bus_sources::PcLowSource_Mem] = data_in_l;
+assign pc_low_inputs[bus_sources::PcLowSource_Dl] = data_latch_value[7:0];
 
 assign pc_high_inputs[bus_sources::PcHighSource_CurrentValue] = pc_value[15:8];
-assign pc_high_inputs[bus_sources::PcHighSource_Mem] = data_in;
+assign pc_high_inputs[bus_sources::PcHighSource_Mem] = data_in_l;
 
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Mem] = data_in_l;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Alu] = alu_result;

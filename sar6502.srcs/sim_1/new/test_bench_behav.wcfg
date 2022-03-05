@@ -13,13 +13,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="2,898.968 ns"></ZoomStartTime>
-      <ZoomEndTime time="3,245.969 ns"></ZoomEndTime>
-      <Cursor1Time time="3,640.000 ns"></Cursor1Time>
+      <ZoomStartTime time="334.583 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,109.084 ns"></ZoomEndTime>
+      <Cursor1Time time="980.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="118"></ValueColumnWidth>
+      <ValueColumnWidth column_width="114"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="44" />
    <wvobject type="logic" fp_name="/test_bench/clock">
@@ -45,6 +45,12 @@
    <wvobject type="logic" fp_name="/test_bench/read_Write">
       <obj_property name="ElementShortName">read_Write</obj_property>
       <obj_property name="ObjectShortName">read_Write</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/pc_value">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">pc_value[15:0]</obj_property>
+      <obj_property name="ObjectShortName">pc_value[15:0]</obj_property>
+      <obj_property name="label">pc_value</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/op_cycle">
       <obj_property name="ElementShortName">op_cycle[15:0]</obj_property>
@@ -98,11 +104,17 @@
       <obj_property name="ElementShortName">carry</obj_property>
       <obj_property name="ObjectShortName">carry</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/test_bench/cpu/register_pc/address_out">
+   <wvobject type="array" fp_name="/test_bench/cpu/data_latch_high/data_out">
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="ElementShortName">address_out[15:0]</obj_property>
-      <obj_property name="ObjectShortName">address_out[15:0]</obj_property>
-      <obj_property name="label">PC</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Data latch high</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/data_latch_low/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Data latch Low</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/alu_result">
       <obj_property name="ElementShortName">alu_result[7:0]</obj_property>
@@ -137,20 +149,10 @@
       <obj_property name="label">alu op</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/data_in_l">
+      <obj_property name="DisplayName">label</obj_property>
       <obj_property name="ElementShortName">data_in_l[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_in_l[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/test_bench/cpu/data_latch_low/data_out">
-      <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
-      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
-      <obj_property name="label">Data latch Low</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/test_bench/cpu/data_latch_high/data_out">
-      <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
-      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
-      <obj_property name="label">Data latch high</obj_property>
+      <obj_property name="label">data_in latched</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/RES">
       <obj_property name="ElementShortName">RES</obj_property>
@@ -214,8 +216,8 @@
       <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals">
-      <obj_property name="ElementShortName">ctrl_signals[18:0]</obj_property>
-      <obj_property name="ObjectShortName">ctrl_signals[18:0]</obj_property>
+      <obj_property name="ElementShortName">ctrl_signals[17:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_signals[17:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals_next">
       <obj_property name="ElementShortName">ctrl_signals_next[17:0]</obj_property>

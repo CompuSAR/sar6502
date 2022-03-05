@@ -48,12 +48,22 @@ module program_counter(
 
 logic [15:0] address_stored;
 
+logic [15:0] intermediate1;
+
+always_comb begin
+    if( ctl_load )
+        intermediate1 = address_in;
+    else
+        intermediate1 = address_stored;
+
+    if( ctl_advance )
+        address_out = intermediate1 + 1;
+    else
+        address_out = intermediate1;
+end
+
 always_ff@(negedge clock) begin
-    if( ctl_load ) begin
-        address_out <= address_in;
-    end else if( ctl_advance ) begin
-        address_out <= address_out+1;
-    end
+    address_stored <= address_out;
 end
 
 endmodule

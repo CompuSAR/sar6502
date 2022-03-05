@@ -26,7 +26,7 @@ typedef enum logic[31:0] {
     CalculateFlagZ,
     AluBInverse,
 
-    ctrl_signals_last_latched,
+//    ctrl_signals_last_latched,
 
     // Early signals
     PC_ADVANCE,
@@ -35,6 +35,7 @@ typedef enum logic[31:0] {
 } ctrl_signals;
 
 localparam ctrl_signals_last = EndMarker-1;
+localparam ctrl_signals_last_latched = ctrl_signals_last;
 
 typedef enum logic[31:0] {
     AluOp_INVALID = 'X,

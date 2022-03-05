@@ -6,18 +6,23 @@
 @0301 ea                                // test_program.s:29 nop
 @0302 ea                                // test_program.s:30 nop
 @0303 a9 03                             // test_program.s:31 lda #$03
-@0305 a5 a9                             // test_program.s:32 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
-@0307 8d 00 02                          // test_program.s:34 sta FINISHED_TRIGGER
-@030a a2 ff                             // test_program.s:37 ldx #$ff
-@030c 9a                                // test_program.s:38 txs
-@030d a9 03                             // test_program.s:39 lda #start/256
-@030f 48                                // test_program.s:40 pha
-@0310 a9 00                             // test_program.s:41 lda #start%256
-@0312 48                                // test_program.s:42 pha
-@0313 a9 44                             // test_program.s:43 lda #INTMASK+OVERFLOW
-@0315 48                                // test_program.s:44 pha
-@0316 40                                // test_program.s:45 rti
-@0317 00                                // test_program.s:49 brk
-@fffa 17 03                             // test_program.s:52 .word nmi_handler
-@fffc 0a 03                             // test_program.s:53 .word reset_handler
-@fffe 17 03                             // test_program.s:54 .word int_handler
+@0305 20 10 03                          // test_program.s:32 jsr flags_dump
+@0308 a5 a9                             // test_program.s:33 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
+@030a 20 10 03                          // test_program.s:34 jsr flags_dump
+@030d 8d 00 02                          // test_program.s:36 sta FINISHED_TRIGGER
+@0310 08                                // test_program.s:39 php
+@0311 28                                // test_program.s:40 plp
+@0312 60                                // test_program.s:41 rts
+@0313 a2 ff                             // test_program.s:44 ldx #$ff
+@0315 9a                                // test_program.s:45 txs
+@0316 a9 03                             // test_program.s:46 lda #start/256
+@0318 48                                // test_program.s:47 pha
+@0319 a9 00                             // test_program.s:48 lda #start%256
+@031b 48                                // test_program.s:49 pha
+@031c a9 44                             // test_program.s:50 lda #INTMASK+OVERFLOW
+@031e 48                                // test_program.s:51 pha
+@031f 40                                // test_program.s:52 rti
+@0320 00                                // test_program.s:56 brk
+@fffa 20 03                             // test_program.s:61 nmi_vector:     .word nmi_handler
+@fffc 13 03                             // test_program.s:62 reset_vector:   .word reset_handler
+@fffe 20 03                             // test_program.s:63 irq_vector:     .word int_handler

@@ -1,0 +1,4 @@
+*.dep
+*.lst
+*_wdc.mem
+*.out

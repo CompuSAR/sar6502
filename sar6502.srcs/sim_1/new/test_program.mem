@@ -6,23 +6,26 @@
 @0301 ea                                // test_program.s:29 nop
 @0302 ea                                // test_program.s:30 nop
 @0303 a9 03                             // test_program.s:31 lda #$03
-@0305 20 10 03                          // test_program.s:32 jsr flags_dump
+@0305 20 16 03                          // test_program.s:32 jsr flags_dump
 @0308 a5 a9                             // test_program.s:33 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
-@030a 20 10 03                          // test_program.s:34 jsr flags_dump
-@030d 8d 00 02                          // test_program.s:36 sta FINISHED_TRIGGER
-@0310 08                                // test_program.s:39 php
-@0311 28                                // test_program.s:40 plp
-@0312 60                                // test_program.s:41 rts
-@0313 a2 ff                             // test_program.s:44 ldx #$ff
-@0315 9a                                // test_program.s:45 txs
-@0316 a9 03                             // test_program.s:46 lda #start/256
-@0318 48                                // test_program.s:47 pha
-@0319 a9 00                             // test_program.s:48 lda #start%256
-@031b 48                                // test_program.s:49 pha
-@031c a9 44                             // test_program.s:50 lda #INTMASK+OVERFLOW
-@031e 48                                // test_program.s:51 pha
-@031f 40                                // test_program.s:52 rti
-@0320 00                                // test_program.s:56 brk
-@fffa 20 03                             // test_program.s:61 nmi_vector:     .word nmi_handler
-@fffc 13 03                             // test_program.s:62 reset_vector:   .word reset_handler
-@fffe 20 03                             // test_program.s:63 irq_vector:     .word int_handler
+@030a 20 16 03                          // test_program.s:34 jsr flags_dump
+@030d ad 21 6d                          // test_program.s:36 lda lda_abs_test
+@0310 20 16 03                          // test_program.s:37 jsr flags_dump
+@0313 8d 00 02                          // test_program.s:39 sta FINISHED_TRIGGER
+@0316 08                                // test_program.s:42 php
+@0317 28                                // test_program.s:43 plp
+@0318 60                                // test_program.s:44 rts
+@0319 a2 ff                             // test_program.s:47 ldx #$ff
+@031b 9a                                // test_program.s:48 txs
+@031c a9 03                             // test_program.s:49 lda #start/256
+@031e 48                                // test_program.s:50 pha
+@031f a9 00                             // test_program.s:51 lda #start%256
+@0321 48                                // test_program.s:52 pha
+@0322 a9 44                             // test_program.s:53 lda #INTMASK+OVERFLOW
+@0324 48                                // test_program.s:54 pha
+@0325 40                                // test_program.s:55 rti
+@0326 00                                // test_program.s:59 brk
+@6d21 74 00                             // test_program.s:62 lda_abs_test    .word $74
+@fffa 26 03                             // test_program.s:65 nmi_vector:     .word nmi_handler
+@fffc 19 03                             // test_program.s:66 reset_vector:   .word reset_handler
+@fffe 26 03                             // test_program.s:67 irq_vector:     .word int_handler

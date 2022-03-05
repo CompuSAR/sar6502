@@ -33,6 +33,9 @@ start:
     lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
     jsr flags_dump
 
+    lda lda_abs_test
+    jsr flags_dump
+
     sta FINISHED_TRIGGER
 
 flags_dump:
@@ -55,7 +58,8 @@ int_handler:
 nmi_handler:
     brk
 
-
+    .org $6d21
+lda_abs_test    .word $74
 
     .org $fffa
 nmi_vector:     .word nmi_handler

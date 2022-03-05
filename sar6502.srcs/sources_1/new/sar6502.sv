@@ -189,8 +189,10 @@ decoder decoder(
 
 // Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
-assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
 assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result;
+assign data_bus_inputs[bus_sources::DataBusSrc_Pc_Low] = pc_value[7:0];
+assign data_bus_inputs[bus_sources::DataBusSrc_Pc_High] = pc_value[15:8];
+assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
 
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_Mem] = data_in_l;
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];

@@ -109,6 +109,7 @@ typedef enum logic[31:0] {
     OpAdc,
     OpBrk,
     OpClc,
+    OpJsr,
     OpLda,
     OpLdx,
     OpNop,
@@ -215,6 +216,7 @@ end
 task do_decode();
     case( memory_in )
         8'h18: set_addr_mode_implicit( OpClc );
+        8'h20: set_addr_mode_implicit( OpJsr );
         8'h40: set_addr_mode_implicit( OpRti );
         8'h48: set_addr_mode_implicit( OpPha );
         8'h6d: set_addr_mode_absolute( OpAdc );
@@ -321,6 +323,7 @@ task set_operation(operations current_op);
         OpAdc: do_op_adc_first();
         OpBrk: do_op_brk_first();
         OpClc: do_op_clc_first();
+        OpJsr: do_op_jsr_first();
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
         OpNop: do_op_nop_first();
@@ -336,6 +339,7 @@ task do_operation();
 begin
     case( active_op )
         OpBrk: do_op_brk();
+        OpJsr: do_op_jsr();
         OpPha: do_op_pha();
         OpRti: do_op_rti();
         OpSta: do_op_sta();
@@ -444,17 +448,55 @@ end
 endtask
 
 task do_op_clc_first();
-begin
     next_instruction();
 
     data_bus_source_next = bus_sources::DataBusSrc_Zero;
     ctrl_signals_next[control_signals::UpdateFlagC] = 1;
     ctrl_signals_next[control_signals::UseAluFlags] = 0;
-end
+endtask
+
+task do_op_jsr_first();
+    ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+    data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
+
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
+    address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
+
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+endtask
+
+task do_op_jsr();
+    case(op_cycle)
+        FirstOpCycle: begin
+            address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
+            data_bus_source_next = bus_sources::DataBusSrc_Pc_High;
+            rW_next = 0;
+
+            alu_a_source_next = bus_sources::AluASourceCtl_SP;
+            alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
+            alu_carry_source_next = bus_sources::AluCarrySource_Zero;
+            ctrl_signals_next[control_signals::AluBInverse] = 1;
+            alu_op_next = control_signals::AluOp_add;
+            stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
+            ctrl_signals_next[control_signals::LOAD_SP] = 1;
+        end
+        CycleOp2: begin
+            address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
+            data_bus_source_next = bus_sources::DataBusSrc_Pc_Low;
+            rW_next = 0;
+        end
+        CycleOp3: begin
+            address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
+
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task do_op_lda_first();
-begin
     next_instruction();
     ctrl_signals_next[control_signals::LOAD_A] = 1;
     data_bus_source_next = bus_sources::DataBusSrc_Mem;
@@ -462,11 +504,9 @@ begin
     ctrl_signals_next[control_signals::UpdateFlagN] = 1;
     ctrl_signals_next[control_signals::UpdateFlagZ] = 1;
     ctrl_signals_next[control_signals::CalculateFlagZ] = 1;
-end
 endtask
 
 task do_op_ldx_first();
-begin
     next_instruction();
     ctrl_signals_next[control_signals::LOAD_X] = 1;
     data_bus_source_next = bus_sources::DataBusSrc_Mem;
@@ -474,7 +514,6 @@ begin
     ctrl_signals_next[control_signals::UpdateFlagN] = 1;
     ctrl_signals_next[control_signals::UpdateFlagZ] = 1;
     ctrl_signals_next[control_signals::CalculateFlagZ] = 1;
-end
 endtask
 
 task do_op_nop_first();

@@ -101,7 +101,14 @@ localparam
     CycleOp8     = 16'b10000000_00000000;
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = CycleFetch, op_cycle_next;
 
-enum logic[31:0] { AddrInvalid = 'X, AddrImplicit=0, AddrAbsolute, AddrZeroPage } active_addr_mode, active_addr_mode_next;
+enum logic[31:0] {
+    AddrInvalid = 'X,
+    AddrImplicit=0,
+    AddrAbsolute,
+    AddrZeroPage,
+    AddrStack
+} active_addr_mode, active_addr_mode_next;
+
 typedef enum logic[31:0] {
     OpInvalid = 'X,
 
@@ -114,6 +121,7 @@ typedef enum logic[31:0] {
     OpLdx,
     OpNop,
     OpPha,
+    OpPhp,
     OpRti,
     OpSta,
     OpTxs
@@ -205,8 +213,7 @@ always_comb begin
 
         do_last_cycle();
     end else if( op_cycle==CycleDecode ) begin
-        address_bus_low_source_next = bus_sources::AddrBusLowSrc_PC;
-        address_bus_high_source_next = bus_sources::AddrBusHighSrc_PC;
+        addr_bus_pc();
 
         if( int_state==IntStateNone ) begin
             ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
@@ -222,6 +229,7 @@ end
 
 task do_decode();
     case( memory_in )
+        8'h08: set_addr_mode_stack( OpPhp );
         8'h18: set_addr_mode_implicit( OpClc );
         8'h20: set_addr_mode_implicit( OpJsr );
         8'h40: set_addr_mode_implicit( OpRti );
@@ -246,6 +254,7 @@ task do_addr_lookup();
     case( active_addr_mode )
         AddrAbsolute: do_addr_mode_absolute();
         AddrZeroPage: do_addr_mode_zp();
+        AddrStack: do_addr_mode_stack();
         default: set_invalid_state();
     endcase
 endtask
@@ -294,6 +303,42 @@ task set_addr_mode_implicit(operations current_op);
     set_operation(current_op);
 endtask
 
+task set_addr_mode_stack(operations current_op);
+    active_addr_mode_next = AddrStack;
+    active_op_next = current_op;
+endtask
+
+task do_addr_mode_stack();
+    address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
+    address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
+
+    set_operation(active_op);
+endtask
+
+task sp_dec();
+    // Subtract 1 from stack pointer
+    alu_a_source_next = bus_sources::AluASourceCtl_SP;
+    alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
+    alu_carry_source_next = bus_sources::AluCarrySource_Zero;
+    ctrl_signals_next[control_signals::AluBInverse] = 1;
+    alu_op_next = control_signals::AluOp_add;
+
+    stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
+    ctrl_signals_next[control_signals::LOAD_SP] = 1;
+endtask
+
+task sp_inc();
+    // Add 1 to stack pointer
+    alu_op_next = control_signals::AluOp_add;
+    alu_a_source_next = bus_sources::AluASourceCtl_SP;
+    alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
+    alu_carry_source_next = bus_sources::AluCarrySource_One;
+    ctrl_signals_next[control_signals::AluBInverse] = 0;
+
+    stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
+    ctrl_signals_next[control_signals::LOAD_SP] = 1;
+endtask
+
 task set_addr_mode_zp(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrZeroPage;
@@ -326,6 +371,7 @@ task set_operation(operations current_op);
         OpLdx: do_op_ldx_first();
         OpNop: do_op_nop_first();
         OpPha: do_op_pha_first();
+        OpPhp: do_op_php_first();
         OpRti: do_op_rti_first();
         OpSta: do_op_sta_first();
         OpTxs: do_op_txs_first();
@@ -338,6 +384,7 @@ task do_operation();
         OpBrk: do_op_brk();
         OpJsr: do_op_jsr();
         OpPha: do_op_pha();
+        OpPhp: do_op_php();
         OpRti: do_op_rti();
         OpSta: do_op_sta();
         default: set_invalid_state();
@@ -477,14 +524,7 @@ task do_op_jsr();
             data_bus_source_next = bus_sources::DataBusSrc_Pc_High;
             rW_next = 0;
 
-            // Subtract 1 from SP
-            alu_a_source_next = bus_sources::AluASourceCtl_SP;
-            alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
-            alu_carry_source_next = bus_sources::AluCarrySource_Zero;
-            ctrl_signals_next[control_signals::AluBInverse] = 1;
-            alu_op_next = control_signals::AluOp_add;
-            stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
-            ctrl_signals_next[control_signals::LOAD_SP] = 1;
+            sp_dec();
         end
         CycleOp3: begin
             // Write PC LSB to stack
@@ -492,6 +532,8 @@ task do_op_jsr();
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
             data_bus_source_next = bus_sources::DataBusSrc_Pc_Low;
             rW_next = 0;
+
+            sp_dec();
         end
         CycleOp4: begin
             // Address to read destination MSB
@@ -557,16 +599,22 @@ task do_op_pha();
     data_bus_source_next = bus_sources::DataBusSrc_A;
     rW_next = 0;
 
-    alu_op_next = control_signals::AluOp_add;
-    alu_a_source_next = bus_sources::AluASourceCtl_SP;
-    alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
-    alu_carry_source_next = bus_sources::AluCarrySource_Zero;
-    ctrl_signals_next[control_signals::AluBInverse] = 1;
-
-    stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
-    ctrl_signals_next[control_signals::LOAD_SP] = 1;
+    sp_dec();
 
     next_instruction();
+endtask
+
+task do_op_php_first();
+    rW_next = 0;
+
+    data_bus_source_next = bus_sources::DataBusSrc_Status;
+    ctrl_signals_next[control_signals::OutputFlagB] = 1;
+    sp_dec();
+
+    next_instruction();
+endtask
+
+task do_op_php();
 endtask
 
 task do_op_rti_first();
@@ -580,28 +628,14 @@ task do_op_rti();
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
 
-            alu_op_next = control_signals::AluOp_add;
-            alu_a_source_next = bus_sources::AluASourceCtl_SP;
-            alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
-            alu_carry_source_next = bus_sources::AluCarrySource_One;
-            ctrl_signals_next[control_signals::AluBInverse] = 0;
-
-            stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
-            ctrl_signals_next[control_signals::LOAD_SP] = 1;
+            sp_inc();
         end
         CycleOp2: begin
             // Read status flags
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
 
-            alu_op_next = control_signals::AluOp_add;
-            alu_a_source_next = bus_sources::AluASourceCtl_SP;
-            alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
-            alu_carry_source_next = bus_sources::AluCarrySource_One;
-            ctrl_signals_next[control_signals::AluBInverse] = 0;
-
-            stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
-            ctrl_signals_next[control_signals::LOAD_SP] = 1;
+            sp_inc();
         end
         CycleOp3: begin
             // This is the data loaded by the previous address operation
@@ -618,14 +652,7 @@ task do_op_rti();
             address_bus_low_source_next = bus_sources::AddrBusLowSrc_SP;
             address_bus_high_source_next = bus_sources::AddrBusHighSrc_One;
 
-            alu_op_next = control_signals::AluOp_add;
-            alu_a_source_next = bus_sources::AluASourceCtl_SP;
-            alu_b_source_next = bus_sources::AluBSourceCtl_Zero;
-            alu_carry_source_next = bus_sources::AluCarrySource_One;
-            ctrl_signals_next[control_signals::AluBInverse] = 0;
-
-            stack_pointer_source_next = bus_sources::StackPointerSource_Alu;
-            ctrl_signals_next[control_signals::LOAD_SP] = 1;
+            sp_inc();
         end
         CycleOp4: begin
             // Store PC MSB

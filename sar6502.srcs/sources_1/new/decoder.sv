@@ -104,6 +104,7 @@ logic [MAX_OPCODE_CYCLES-1:0] op_cycle = CycleFetch, op_cycle_next;
 enum logic[31:0] {
     AddrInvalid = 'X,
     AddrImplicit=0,
+    AddrImmediate,
     AddrAbsolute,
     AddrZeroPage,
     AddrStack
@@ -299,9 +300,13 @@ task do_addr_mode_absolute();
 endtask
 
 task set_addr_mode_immediate(operations current_op);
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+    active_addr_mode_next = AddrImmediate;
 
     set_operation(current_op);
+endtask
+
+task do_addr_mode_immediate_last();
+    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
 endtask
 
 task set_addr_mode_implicit(operations current_op);
@@ -347,20 +352,25 @@ endtask
 task set_addr_mode_zp(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrZeroPage;
-
-    data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
-    ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
-    data_latch_high_source_next = bus_sources::DataLatchHighSource_Zero;
-    ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
-
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
-
-    address_bus_low_source_next = bus_sources::AddrBusLowSrc_Mem;
-    address_bus_high_source_next = bus_sources::AddrBusHighSrc_Zero;
 endtask
 
 task do_addr_mode_zp();
-    set_operation(active_op);
+    case( op_cycle )
+        CycleAddr1: begin
+            ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
+
+            address_bus_low_source_next = bus_sources::AddrBusLowSrc_Mem;
+            address_bus_high_source_next = bus_sources::AddrBusHighSrc_Zero;
+
+            data_latch_low_source_next = bus_sources::DataLatchLowSource_Mem;
+            ctrl_signals_next[control_signals::LOAD_DataLow] = 1;
+            data_latch_high_source_next = bus_sources::DataLatchHighSource_Zero;
+            ctrl_signals_next[control_signals::LOAD_DataHigh] = 1;
+
+            set_operation(active_op);
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task set_operation(operations current_op);
@@ -400,6 +410,10 @@ endtask
 
 task do_last_cycle();
     active_op_next = OpInvalid;
+
+    case( active_addr_mode )
+        AddrImmediate: do_addr_mode_immediate_last();
+    endcase
 
     case( active_op )
         OpBrk: do_op_brk_last();
@@ -552,13 +566,9 @@ endtask
 
 task do_op_lda_first();
     next_instruction();
-
-    addr_bus_pc();
 endtask
 
 task do_op_lda_last();
-    ctrl_signals_next[control_signals::PC_ADVANCE] = 1;
-
     ctrl_signals_next[control_signals::LOAD_A] = 1;
     data_bus_source_next = bus_sources::DataBusSrc_Mem;
 

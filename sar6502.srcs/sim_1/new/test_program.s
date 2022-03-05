@@ -16,7 +16,7 @@ INT_TRIGGER_DELAY       = $2ff
 
 
     .org $00a9
-lda_zp_test: .byte $07
+lda_zp_test: .byte $97
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state

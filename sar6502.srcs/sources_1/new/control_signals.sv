@@ -42,8 +42,7 @@ typedef enum logic[31:0] {
     AluOp_or,
     AluOp_xor,
     AluOp_shift_left,
-    AluOp_shift_right_logical,
-    AluOp_shift_right_arithmetic
+    AluOp_shift_right_logical
 } alu_control;
 
 typedef enum {

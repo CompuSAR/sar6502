@@ -190,7 +190,8 @@ begin
     assert_state( address_bus, plan_line[31:16], "Address bus" );
     assert_state( read_Write, plan_line[0], "Read/write" );
     assert_state( sync, plan_line[1], "Sync" );
-    assert_state( memory_lock, !plan_line[2], "Memory lock" );
+    if( plan_line[2]==1 ) // Due to bug in wd65c02, allow our ML to be active while theirs isn't.
+        assert_state( memory_lock, !plan_line[2], "Memory lock" );
     assert_state( vector_pull, !plan_line[3], "Vector pull" );
 
     if( read_Write ) begin

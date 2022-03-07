@@ -70,7 +70,6 @@ begin
         control_signals::AluOp_xor:                      result = a ^ effective_b;
         control_signals::AluOp_shift_left:               { carry_out, result } = { effective_b, carry_in };
         control_signals::AluOp_shift_right_logical:      { result, carry_out } = { carry_in, effective_b };
-        control_signals::AluOp_shift_right_arithmetic:   { result, carry_out } = { effective_b[7], effective_b };
     endcase
 end
 

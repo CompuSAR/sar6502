@@ -36,9 +36,29 @@ start:
     lda lda_abs_test
     jsr flags_dump
 
+    ; ASL test
+asl_abs_loop:
+    asl asl_abs_test
+    jsr flags_dump
+    bne asl_abs_loop
+
     sta FINISHED_TRIGGER
+    .byte 00
+
+reset_handler:
+    ldx #$ff
+    txs
+    lda #start/256
+    pha
+    lda #start%256
+    pha
+    lda #INTMASK+OVERFLOW
+    pha
+    rti
+    .byte 00
 
     .org $4ef
+
 flags_dump:
     php
     bcs .1
@@ -58,24 +78,17 @@ flags_dump:
 .5
     plp
     rts
-
-reset_handler:
-    ldx #$ff
-    txs
-    lda #start/256
-    pha
-    lda #start%256
-    pha
-    lda #INTMASK+OVERFLOW
-    pha
-    rti
+    .byte 00
 
 int_handler:
 nmi_handler:
     brk
 
     .org $6d21
-lda_abs_test    .word $74
+lda_abs_test    .byte $74
+
+    .org $8510
+asl_abs_test    .byte $1
 
     .org $fffa
 nmi_vector:     .word nmi_handler

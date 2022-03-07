@@ -38,8 +38,24 @@ start:
 
     sta FINISHED_TRIGGER
 
+    .org $4ef
 flags_dump:
     php
+    bcs .1
+    bcc .1
+
+.2  bvs .3
+    bvc .3
+
+.4  bra .5
+
+.3  bne .4
+    beq .4
+
+.1  bmi .2
+    bpl .2
+
+.5
     plp
     rts
 

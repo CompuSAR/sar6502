@@ -56,6 +56,7 @@ typedef enum logic[31:0] {
     PcLowSource_CurrentValue = 0,
     PcLowSource_Mem,
     PcLowSource_Dl,
+    PcLowSource_Alu,
 
     PcLowSource_End_Marker
 } PcLowSourceCtl;
@@ -67,6 +68,7 @@ typedef enum logic[31:0] {
 
     PcHighSource_CurrentValue = 0,
     PcHighSource_Mem,
+    PcHighSource_Dl,
 
     PcHighSource_End_Marker
 } PcHighSourceCtl;
@@ -78,6 +80,7 @@ typedef enum logic[31:0] {
 
     DataLatchLowSource_Mem = 0,
     DataLatchLowSource_Alu,
+    DataLatchLowSource_PC,
 
     DataLatchLowSource_FA,
     DataLatchLowSource_FC,
@@ -93,6 +96,8 @@ typedef enum logic[31:0] {
 
     DataLatchHighSource_Zero = 0,
     DataLatchHighSource_Mem,
+    DataLatchHighSource_Alu,
+    DataLatchHighSource_PC,
 
     DataLatchHighSource_FF,
 
@@ -119,6 +124,8 @@ typedef enum logic[31:0] {
     AluASourceCtl_DataLatchLow,
     AluASourceCtl_DataLatchHigh,
     AluASourceCtl_SP,
+    AluASourceCtl_PC_Low,
+    AluASourceCtl_PC_High,
 
     AluASourceCtl_End_Marker
 } AluASourceCtl;

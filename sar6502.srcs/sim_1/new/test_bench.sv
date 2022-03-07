@@ -187,11 +187,11 @@ endtask
 
 task verify_cycle( input logic [35:0]plan_line );
 begin
+    assert_state( address_bus, plan_line[31:16], "Address bus" );
     assert_state( read_Write, plan_line[0], "Read/write" );
     assert_state( sync, plan_line[1], "Sync" );
     assert_state( memory_lock, !plan_line[2], "Memory lock" );
     assert_state( vector_pull, !plan_line[3], "Vector pull" );
-    assert_state( address_bus, plan_line[31:16], "Address bus" );
 
     if( read_Write ) begin
         // Read

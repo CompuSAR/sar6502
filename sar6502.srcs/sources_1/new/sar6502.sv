@@ -50,7 +50,14 @@ module sar6502(
     output rW,
     output VP,
     output ML,
-    output sync
+    output sync,
+
+    output debug1,
+    output debug2,
+    output debug3,
+    output debug4,
+    output debug5,
+    output debug6
     );
 
 // Input latches
@@ -60,6 +67,7 @@ logic ready_l;
 logic IRQ_L;
 logic NMI_L;
 logic SO_L, previous_SO;
+logic [15:0]pc_value, prev_pc_value;
 
 always_ff@(negedge phi2) begin
     data_in_l <= data_in;
@@ -69,6 +77,7 @@ always_ff@(negedge phi2) begin
     NMI_L <= NMI;
     SO_L <= SO;
     previous_SO <= SO_L;
+    prev_pc_value <= pc_value;
 end
 
 // Buses
@@ -120,7 +129,8 @@ register register_stack(
     .latch(ctrl_signals[control_signals::LOAD_SP]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
-status_register restier_p(.data_in(data_bus), .data_out(data_bus_inputs[bus_sources::DataBusSrc_Status]), .clock(phi2),
+logic [7:0]status_value;
+status_register restier_p(.data_in(data_bus), .data_out(status_value), .clock(phi2),
     .alu_carry(alu_carry),
     .alu_overflow(alu_overflow),
     .use_alu_flags(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
@@ -152,7 +162,6 @@ logic [7:0]pc_low_inputs[bus_sources::PcLowSourceCtlLast : 0];
 bus_sources::PcHighSourceCtl pc_high_source;
 logic [7:0]pc_high_inputs[bus_sources::PcHighSourceCtlLast : 0];
 
-wire [15:0]pc_value;
 program_counter register_pc(
     .address_in({pc_high_inputs[pc_high_source], pc_low_inputs[pc_low_source]}),
     .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
@@ -164,6 +173,8 @@ logic [control_signals::ctrl_signals_last:0] ctrl_signals;
 
 decoder decoder(
     .memory_in(data_in_l),
+    .status( status_value ),
+    .alu_carry( alu_carry ),
     .clock(phi2),
     .RESET(RESET_L),
 
@@ -189,6 +200,7 @@ decoder decoder(
 
 // Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
+assign data_bus_inputs[bus_sources::DataBusSrc_Status] = status_value;
 assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result;
 assign data_bus_inputs[bus_sources::DataBusSrc_Pc_Low] = pc_value[7:0];
 assign data_bus_inputs[bus_sources::DataBusSrc_Pc_High] = pc_value[15:8];
@@ -205,21 +217,26 @@ assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Mem] = data_in_l;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_PC] = pc_value[15:8];
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_DataLatch] = data_latch_value[15:8];
 
-assign pc_low_inputs[bus_sources::PcLowSource_CurrentValue] = pc_value[7:0];
+assign pc_low_inputs[bus_sources::PcLowSource_CurrentValue] = prev_pc_value[7:0];
 assign pc_low_inputs[bus_sources::PcLowSource_Mem] = data_in_l;
 assign pc_low_inputs[bus_sources::PcLowSource_Dl] = data_latch_value[7:0];
+assign pc_low_inputs[bus_sources::PcLowSource_Alu] = alu_result;
 
-assign pc_high_inputs[bus_sources::PcHighSource_CurrentValue] = pc_value[15:8];
+assign pc_high_inputs[bus_sources::PcHighSource_CurrentValue] = prev_pc_value[15:8];
 assign pc_high_inputs[bus_sources::PcHighSource_Mem] = data_in_l;
+assign pc_high_inputs[bus_sources::PcHighSource_Dl] = data_latch_value[15:8];
 
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Mem] = data_in_l;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Alu] = alu_result;
+assign data_latch_low_inputs[bus_sources::DataLatchLowSource_PC] = pc_value[7:0];
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FA] = 8'hfa;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FC] = 8'hfc;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_FE] = 8'hfe;
 
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Zero] = 8'h00;
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Mem] = data_in_l;
+assign data_latch_high_inputs[bus_sources::DataLatchHighSource_Alu] = alu_result;
+assign data_latch_high_inputs[bus_sources::DataLatchHighSource_PC] = pc_value[15:8];
 assign data_latch_high_inputs[bus_sources::DataLatchHighSource_FF] = 8'hff;
 
 assign stack_pointer_inputs[bus_sources::StackPointerSource_Alu] = alu_result;
@@ -229,6 +246,8 @@ assign alu_a_inputs[bus_sources::AluASourceCtl_A] = data_bus_inputs[bus_sources:
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchLow] = data_latch_value[7:0];
 assign alu_a_inputs[bus_sources::AluASourceCtl_DataLatchHigh] = data_latch_value[15:8];
 assign alu_a_inputs[bus_sources::AluASourceCtl_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
+assign alu_a_inputs[bus_sources::AluASourceCtl_PC_Low] = pc_value[7:0];
+assign alu_a_inputs[bus_sources::AluASourceCtl_PC_High] = pc_value[15:8];
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_DataBus] = data_bus;
@@ -236,6 +255,7 @@ assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
 
 assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
 assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;
-assign alu_carry_inputs[bus_sources::AluCarrySource_Carry] = data_bus_inputs[bus_sources::DataBusSrc_Status][control_signals::FlagsCarry];
+assign alu_carry_inputs[bus_sources::AluCarrySource_Carry] =
+    data_bus_inputs[bus_sources::DataBusSrc_Status][control_signals::FlagsCarry];
 
 endmodule

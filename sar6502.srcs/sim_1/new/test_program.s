@@ -15,8 +15,10 @@ INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
 
+    .org $0069
+                .byte $d3 ; asl zp,x test
     .org $00a9
-lda_zp_test: .byte $97
+lda_zp_test:    .byte $97
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state
@@ -36,11 +38,23 @@ start:
     lda lda_abs_test
     jsr flags_dump
 
+    ldx #$c0
+    ldy #$30
+
     ; ASL test
-asl_abs_loop:
+    lda #1
+asl_loop:
     asl asl_abs_test
     jsr flags_dump
-    bne asl_abs_loop
+    asl asl_abs_test,x
+    jsr flags_dump
+    asl asl_zp_test
+    jsr flags_dump
+    asl asl_zp_test,x
+    jsr flags_dump
+    asl
+    jsr flags_dump
+    bne asl_loop
 
     sta FINISHED_TRIGGER
     .byte 00
@@ -57,7 +71,7 @@ reset_handler:
     rti
     .byte 00
 
-    .org $4ef
+    .org $40ef
 
 flags_dump:
     php
@@ -88,7 +102,9 @@ nmi_handler:
 lda_abs_test    .byte $74
 
     .org $8510
-asl_abs_test    .byte $1
+asl_abs_test    .byte $56
+    .org $85d0
+                .byte $40       ; asl abs,x test
 
     .org $fffa
 nmi_vector:     .word nmi_handler

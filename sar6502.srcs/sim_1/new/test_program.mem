@@ -1,47 +1,60 @@
-@00a9 97                                // test_program.s:19 lda_zp_test: .byte $97
-@0100 7a                                // test_program.s:22 .dc $ff,$7a         ; Put stack in known state
+@0069 d3                                // test_program.s:19 .byte $d3 ; asl zp,x test
+@00a9 97                                // test_program.s:21 lda_zp_test:    .byte $97
+@0100 7a                                // test_program.s:24 .dc $ff,$7a         ; Put stack in known state
 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a 7a   // Array
-@01ff 7a                                // test_program.s:23 .byte $7a           ; Due to a limitation of our lst parser, need to mark the end point
-@0300 ea                                // test_program.s:28 nop
-@0301 ea                                // test_program.s:29 nop
-@0302 ea                                // test_program.s:30 nop
-@0303 a9 03                             // test_program.s:31 lda #$03
-@0305 20 ef 04                          // test_program.s:32 jsr flags_dump
-@0308 a5 a9                             // test_program.s:33 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
-@030a 20 ef 04                          // test_program.s:34 jsr flags_dump
-@030d ad 21 6d                          // test_program.s:36 lda lda_abs_test
-@0310 20 ef 04                          // test_program.s:37 jsr flags_dump
-@0313 0e 10 85                          // test_program.s:41 asl asl_abs_test
-@0316 20 ef 04                          // test_program.s:42 jsr flags_dump
-@0319 d0 f8                             // test_program.s:43 bne asl_abs_loop
-@031b 8d 00 02                          // test_program.s:45 sta FINISHED_TRIGGER
-@031e 00                                // test_program.s:46 .byte 00
-@031f a2 ff                             // test_program.s:49 ldx #$ff
-@0321 9a                                // test_program.s:50 txs
-@0322 a9 03                             // test_program.s:51 lda #start/256
-@0324 48                                // test_program.s:52 pha
-@0325 a9 00                             // test_program.s:53 lda #start%256
-@0327 48                                // test_program.s:54 pha
-@0328 a9 44                             // test_program.s:55 lda #INTMASK+OVERFLOW
-@032a 48                                // test_program.s:56 pha
-@032b 40                                // test_program.s:57 rti
-@032c 00                                // test_program.s:58 .byte 00
-@04ef 08                                // test_program.s:63 php
-@04f0 b0 0c                             // test_program.s:64 bcs .1
-@04f2 90 0a                             // test_program.s:65 bcc .1
-@04f4 70 04                             // test_program.s:67 .2  bvs .3
-@04f6 50 02                             // test_program.s:68 bvc .3
-@04f8 80 08                             // test_program.s:70 .4  bra .5
-@04fa d0 fc                             // test_program.s:72 .3  bne .4
-@04fc f0 fa                             // test_program.s:73 beq .4
-@04fe 30 f4                             // test_program.s:75 .1  bmi .2
-@0500 10 f2                             // test_program.s:76 bpl .2
-@0502 28                                // test_program.s:79 plp
-@0503 60                                // test_program.s:80 rts
-@0504 00                                // test_program.s:81 .byte 00
-@0505 00                                // test_program.s:85 brk
-@6d21 74                                // test_program.s:88 lda_abs_test    .byte $74
-@8510 01                                // test_program.s:91 asl_abs_test    .byte $1
-@fffa 05 05                             // test_program.s:94 nmi_vector:     .word nmi_handler
-@fffc 1f 03                             // test_program.s:95 reset_vector:   .word reset_handler
-@fffe 05 05                             // test_program.s:96 irq_vector:     .word int_handler
+@01ff 7a                                // test_program.s:25 .byte $7a           ; Due to a limitation of our lst parser, need to mark the end point
+@0300 ea                                // test_program.s:30 nop
+@0301 ea                                // test_program.s:31 nop
+@0302 ea                                // test_program.s:32 nop
+@0303 a9 03                             // test_program.s:33 lda #$03
+@0305 20 ef 40                          // test_program.s:34 jsr flags_dump
+@0308 a5 a9                             // test_program.s:35 lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
+@030a 20 ef 40                          // test_program.s:36 jsr flags_dump
+@030d ad 21 6d                          // test_program.s:38 lda lda_abs_test
+@0310 20 ef 40                          // test_program.s:39 jsr flags_dump
+@0313 a2 c0                             // test_program.s:41 ldx #$c0
+@0315 a0 30                             // test_program.s:42 ldy #$30
+@0317 a9 01                             // test_program.s:45 lda #1
+@0319 0e 10 85                          // test_program.s:47 asl asl_abs_test
+@031c 20 ef 40                          // test_program.s:48 jsr flags_dump
+@031f 1e 10 85                          // test_program.s:49 asl asl_abs_test,x
+@0322 20 ef 40                          // test_program.s:50 jsr flags_dump
+@0325 0e 00 00                          // test_program.s:51 asl asl_zp_test
+@0328 20 ef 40                          // test_program.s:52 jsr flags_dump
+@032b 1e 00 00                          // test_program.s:53 asl asl_zp_test,x
+@032e 20 ef 40                          // test_program.s:54 jsr flags_dump
+@0331 0a                                // test_program.s:55 asl
+@0332 20 ef 40                          // test_program.s:56 jsr flags_dump
+@0335 d0 e2                             // test_program.s:57 bne asl_loop
+@0337 8d 00 02                          // test_program.s:59 sta FINISHED_TRIGGER
+@033a 00                                // test_program.s:60 .byte 00
+@033b a2 ff                             // test_program.s:63 ldx #$ff
+@033d 9a                                // test_program.s:64 txs
+@033e a9 03                             // test_program.s:65 lda #start/256
+@0340 48                                // test_program.s:66 pha
+@0341 a9 00                             // test_program.s:67 lda #start%256
+@0343 48                                // test_program.s:68 pha
+@0344 a9 44                             // test_program.s:69 lda #INTMASK+OVERFLOW
+@0346 48                                // test_program.s:70 pha
+@0347 40                                // test_program.s:71 rti
+@0348 00                                // test_program.s:72 .byte 00
+@40ef 08                                // test_program.s:77 php
+@40f0 b0 0c                             // test_program.s:78 bcs .1
+@40f2 90 0a                             // test_program.s:79 bcc .1
+@40f4 70 04                             // test_program.s:81 .2  bvs .3
+@40f6 50 02                             // test_program.s:82 bvc .3
+@40f8 80 08                             // test_program.s:84 .4  bra .5
+@40fa d0 fc                             // test_program.s:86 .3  bne .4
+@40fc f0 fa                             // test_program.s:87 beq .4
+@40fe 30 f4                             // test_program.s:89 .1  bmi .2
+@4100 10 f2                             // test_program.s:90 bpl .2
+@4102 28                                // test_program.s:93 plp
+@4103 60                                // test_program.s:94 rts
+@4104 00                                // test_program.s:95 .byte 00
+@4105 00                                // test_program.s:99 brk
+@6d21 74                                // test_program.s:102 lda_abs_test    .byte $74
+@8510 56                                // test_program.s:105 asl_abs_test    .byte $56
+@85d0 40                                // test_program.s:107 .byte $40       ; asl abs,x test
+@fffa 05 41                             // test_program.s:110 nmi_vector:     .word nmi_handler
+@fffc 3b 03                             // test_program.s:111 reset_vector:   .word reset_handler
+@fffe 05 41                             // test_program.s:112 irq_vector:     .word int_handler

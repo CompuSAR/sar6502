@@ -116,6 +116,7 @@ typedef enum logic[31:0] {
     OpJsr,
     OpLda,
     OpLdx,
+    OpLdy,
     OpNop,
     OpPha,
     OpPhp,
@@ -230,6 +231,7 @@ task do_decode();
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
+        8'ha0: set_addr_mode_immediate( OpLdy );
         8'ha2: set_addr_mode_immediate( OpLdx );
         8'ha9: set_addr_mode_immediate( OpLda );
         8'ha5: set_addr_mode_zp( OpLda );
@@ -390,6 +392,7 @@ task set_operation(operations current_op);
         OpJsr: do_op_jsr_first();
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
+        OpLdy: do_op_ldy_first();
         OpNop: do_op_nop_first();
         OpPha: do_op_pha_first();
         OpPhp: do_op_php_first();
@@ -418,6 +421,7 @@ task do_operation();
         OpJsr: do_op_jsr();
         OpLda: do_op_lda();
         OpLdx: do_op_ldx();
+        OpLdy: do_op_ldy();
         OpPlp: do_op_plp();
         OpRti: do_op_rti();
         OpRts: do_op_rts();
@@ -720,6 +724,27 @@ task do_op_ldx();
             ctrl_signals[control_signals::PC_ADVANCE] = 1;
 
             ctrl_signals[control_signals::LOAD_X] = 1;
+            data_bus_source = bus_sources::DataBusSrc_Mem;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_ldy_first();
+endtask
+
+task do_op_ldy();
+    case( op_cycle )
+        FirstOpCycle: begin
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+
+            ctrl_signals[control_signals::LOAD_Y] = 1;
             data_bus_source = bus_sources::DataBusSrc_Mem;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;

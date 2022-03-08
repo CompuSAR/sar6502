@@ -15,10 +15,12 @@ INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
 
+    .org $0029
+                .byte $6e       ; asl zp,x test
     .org $0069
-                .byte $d3 ; asl zp,x test
+asl_zp_test:    .byte $d3
     .org $00a9
-lda_zp_test:    .byte $97
+lda_zp_test:    .word lda_indirect_test
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state
@@ -40,6 +42,25 @@ start:
 
     ldx #$c0
     ldy #$30
+
+    ; Test addressing modes
+    lda lda_abs_test
+    lda lda_abs_test,x          ; No page transition
+    lda lda_abs_test-$c0,x      ; With page transition
+    lda lda_abs_test,y          ; No page transition
+    lda lda_abs_test-$30,y      ; With page transition
+    lda lda_zp_test
+    .if c02
+    lda (lda_zp_test+$100-$c0,x)
+    .endif
+    lda lda_zp_test+$100-$c0
+    .if c02
+    lda (lda_zp_test)
+    .endif
+    lda (lda_zp_test),y         ; No page transition
+    ldy #$f0
+    lda (lda_zp_test),y         ; With page transition
+
 
     ; ASL test
     lda #1
@@ -100,11 +121,18 @@ nmi_handler:
 
     .org $6d21
 lda_abs_test    .byte $74
+    .org $6d51
+                .byte $c7       ; lda abs,y
+    .org $6de1
+                .byte $08       ; lda abs,x
 
     .org $8510
 asl_abs_test    .byte $56
     .org $85d0
                 .byte $40       ; asl abs,x test
+
+    .org $ae38
+lda_indirect_test .byte $bf
 
     .org $fffa
 nmi_vector:     .word nmi_handler

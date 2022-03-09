@@ -108,6 +108,7 @@ typedef enum logic[31:0] {
     OpNone = 0,
     OpAdc,
     OpAsl,
+    OpAslA,
     OpBcc,
     OpBcs,
     OpBeq,
@@ -222,6 +223,7 @@ task do_decode();
     case( memory_in )
         8'h06: set_addr_mode_zp( OpAsl );
         8'h08: set_addr_mode_stack( OpPhp );
+        8'h0a: set_addr_mode_implicit( OpAslA );
         8'h0e: set_addr_mode_absolute( OpAsl );
         8'h10: set_addr_mode_implicit( OpBpl );
         8'h16: set_addr_mode_zp_x( OpAsl );
@@ -691,6 +693,7 @@ task set_operation(operations current_op);
     case( current_op )
         OpAdc: do_op_adc_first();
         OpAsl: do_op_asl_first();
+        OpAslA: do_op_asl_acc_first();
         OpBcc: do_op_bcc_first();
         OpBcs: do_op_bcs_first();
         OpBeq: do_op_beq_first();
@@ -721,6 +724,7 @@ endtask
 task do_operation();
     case( active_op )
         OpAsl: do_op_asl();
+        OpAslA: do_op_asl_acc();
         OpBcc: do_branch();
         OpBcs: do_branch();
         OpBeq: do_branch();
@@ -887,6 +891,35 @@ task do_op_asl();
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
 
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_asl_acc_first();
+    alu_op = control_signals::AluOp_shift_left;
+    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
+    data_bus_source = bus_sources::DataBusSrc_A;
+    alu_carry_source = bus_sources::AluCarrySource_Zero;
+
+    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ctrl_signals[control_signals::UseAluFlags] = 1;
+
+    data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
+    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+endtask
+
+task do_op_asl_acc();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Dl_Low;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+
+            do_fetch_cycle();
         end
         default: set_invalid_state();
     endcase

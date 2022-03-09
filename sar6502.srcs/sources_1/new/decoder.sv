@@ -95,6 +95,7 @@ enum logic[31:0] {
     AddrAbsoluteX,
     AddrAbsoluteY,
     AddrZeroPage,
+    AddrZeroPageX,
     AddrZeroPageInd,
     AddrZeroPageXInd,
     AddrZeroPageIndZ,
@@ -223,6 +224,7 @@ task do_decode();
         8'h08: set_addr_mode_stack( OpPhp );
         8'h0e: set_addr_mode_absolute( OpAsl );
         8'h10: set_addr_mode_implicit( OpBpl );
+        8'h16: set_addr_mode_zp_x( OpAsl );
         8'h18: set_addr_mode_implicit( OpClc );
         8'h1e: set_addr_mode_abs_x( OpAsl );
         8'h20: set_addr_mode_stack( OpJsr );
@@ -266,6 +268,7 @@ task do_addr_lookup();
         AddrAbsoluteX: do_addr_mode_abs_x();
         AddrAbsoluteY: do_addr_mode_abs_y();
         AddrZeroPage: do_addr_mode_zp();
+        AddrZeroPageX: do_addr_mode_zp_x();
         AddrZeroPageInd: do_addr_mode_zp_ind();
         AddrZeroPageXInd: do_addr_mode_zp_x_ind();
         AddrZeroPageIndZ: do_addr_mode_zp_ind_y();
@@ -605,6 +608,39 @@ task do_addr_mode_zp();
             ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
             set_operation(active_op);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task set_addr_mode_zp_x(operations current_op);
+    active_op_next = current_op;
+    active_addr_mode_next = AddrZeroPageX;
+endtask
+
+task do_addr_mode_zp_x();
+    case( op_cycle )
+        CycleAddr1: begin
+            addr_bus_pc();
+
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
+            data_bus_source = bus_sources::DataBusSrc_X;
+            alu_carry_source = bus_sources::AluCarrySource_Zero;
+
+            data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
+            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+
+            data_latch_high_source = bus_sources::DataLatchHighSource_Zero;
+            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+        end
+        CycleAddr2: begin
+            addr_bus_dl();
+
+            set_operation( active_op );
         end
         default: set_invalid_state();
     endcase

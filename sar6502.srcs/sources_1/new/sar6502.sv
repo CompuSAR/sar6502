@@ -211,6 +211,7 @@ assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_Mem] = data_in_l;
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_PC] = pc_value[7:0];
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_DataLatch] = data_latch_value[7:0];
+assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_DataLatch_High] = data_latch_value[15:8];
 
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_Zero] = 8'b0;
 assign address_bus_high_inputs[bus_sources::AddrBusHighSrc_One] = 8'b1;

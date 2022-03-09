@@ -30,6 +30,7 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_PC,
     AddrBusLowSrc_SP,
     AddrBusLowSrc_DataLatch,
+    AddrBusLowSrc_DataLatch_High,
 
     AddrBusLowSrc_End_Marker
 } AddressBusLowSourceCtl;

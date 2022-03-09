@@ -22,7 +22,7 @@
 @0323 b9 f1 6c                          // test_program.s:51 lda lda_abs_test-$30,y      ; With page transition
 @0326 a5 a9                             // test_program.s:52 lda lda_zp_test
 @0328 a1 e9                             // test_program.s:54 lda (lda_zp_test+$100-$c0,x)
-@032a a5 a9                             // test_program.s:56 lda lda_zp_test
+@032a b5 e9                             // test_program.s:56 lda lda_zp_test+$100-$c0,x
 @032c b2 a9                             // test_program.s:58 lda (lda_zp_test)
 @032e b1 a9                             // test_program.s:60 lda (lda_zp_test),y         ; No page transition
 @0330 a0 f0                             // test_program.s:61 ldy #$f0

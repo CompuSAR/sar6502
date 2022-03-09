@@ -249,6 +249,7 @@ task do_decode();
         8'hb0: set_addr_mode_implicit( OpBcs );
         8'hb1: set_addr_mode_zp_ind_y( OpLda );
         8'hb2: set_addr_mode_zp_ind( OpLda );
+        8'hb5: set_addr_mode_zp_x( OpLda );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
         8'hd0: set_addr_mode_implicit( OpBne );

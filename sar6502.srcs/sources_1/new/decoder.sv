@@ -219,6 +219,7 @@ endtask
 
 task do_decode();
     case( memory_in )
+        8'h06: set_addr_mode_zp( OpAsl );
         8'h08: set_addr_mode_stack( OpPhp );
         8'h0e: set_addr_mode_absolute( OpAsl );
         8'h10: set_addr_mode_implicit( OpBpl );

@@ -95,6 +95,7 @@ enum logic[31:0] {
     AddrAbsoluteX,
     AddrAbsoluteY,
     AddrZeroPage,
+    AddrZeroPageInd,
     AddrZeroPageXInd,
     AddrStack
 } active_addr_mode = AddrImplicit, active_addr_mode_next;
@@ -242,6 +243,7 @@ task do_decode();
         8'ha5: set_addr_mode_zp( OpLda );
         8'had: set_addr_mode_absolute( OpLda );
         8'hb0: set_addr_mode_implicit( OpBcs );
+        8'hb2: set_addr_mode_zp_ind( OpLda );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
         8'hd0: set_addr_mode_implicit( OpBne );
@@ -261,6 +263,7 @@ task do_addr_lookup();
         AddrAbsoluteX: do_addr_mode_abs_x();
         AddrAbsoluteY: do_addr_mode_abs_y();
         AddrZeroPage: do_addr_mode_zp();
+        AddrZeroPageInd: do_addr_mode_zp_ind();
         AddrZeroPageXInd: do_addr_mode_zp_x_ind();
         AddrStack: do_addr_mode_stack();
         default: set_invalid_state();
@@ -282,6 +285,11 @@ task addr_bus_dl();
     address_bus_high_source = bus_sources::AddrBusHighSrc_DataLatch;
 endtask
 
+task addr_bus_dl_mem();
+    address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
+    address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+endtask
+
 task set_addr_mode_absolute(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsolute;
@@ -301,8 +309,7 @@ task do_addr_mode_absolute();
             data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
             ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
-            address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
-            address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+            addr_bus_dl_mem();
 
             set_operation( active_op );
         end
@@ -345,8 +352,7 @@ task do_addr_mode_abs_x();
                 data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
                 ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
-                address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
-                address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+                addr_bus_dl_mem();
 
                 ctrl_signals[control_signals::PC_ADVANCE] = 1;
                 set_operation( active_op );
@@ -397,8 +403,7 @@ task do_addr_mode_abs_y();
                 data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
                 ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
-                address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
-                address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+                addr_bus_dl_mem();
 
                 ctrl_signals[control_signals::PC_ADVANCE] = 1;
                 set_operation( active_op );
@@ -458,8 +463,7 @@ task do_addr_mode_zp_x_ind();
             data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
             ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
-            address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
-            address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+            addr_bus_dl_mem();
 
             set_operation(active_op);
         end
@@ -533,6 +537,45 @@ task do_addr_mode_zp();
             ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 
             set_operation(active_op);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task set_addr_mode_zp_ind(operations current_op);
+    active_op_next = current_op;
+    active_addr_mode_next = AddrZeroPageInd;
+
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+endtask
+
+task do_addr_mode_zp_ind();
+    case( op_cycle )
+        CycleAddr1: begin
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            alu_carry_source = bus_sources::AluCarrySource_One;
+
+            data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
+            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+
+            address_bus_low_source = bus_sources::AddrBusLowSrc_Mem;
+            address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
+        end
+        CycleAddr2: begin
+            address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch_High;
+            address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
+
+            data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
+            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+        end
+        CycleAddr3: begin
+            addr_bus_dl_mem();
+
+            set_operation( active_op );
         end
         default: set_invalid_state();
     endcase

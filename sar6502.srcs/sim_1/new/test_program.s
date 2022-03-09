@@ -53,7 +53,7 @@ start:
     .if c02
     lda (lda_zp_test+$100-$c0,x)
     .endif
-    lda lda_zp_test+$100-$c0
+    lda lda_zp_test
     .if c02
     lda (lda_zp_test)
     .endif

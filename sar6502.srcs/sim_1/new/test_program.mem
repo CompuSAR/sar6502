@@ -71,6 +71,8 @@
 @8510 56                                // test_program.s:130 asl_abs_test    .byte $56
 @85d0 40                                // test_program.s:132 .byte $40       ; asl abs,x test
 @ae38 bf                                // test_program.s:135 lda_indirect_test .byte $bf
-@fffa 05 41                             // test_program.s:138 nmi_vector:     .word nmi_handler
-@fffc 56 03                             // test_program.s:139 reset_vector:   .word reset_handler
-@fffe 05 41                             // test_program.s:140 irq_vector:     .word int_handler
+@ae68 20                                // test_program.s:137 .byte $20       ; lda (zp),y test
+@af28 22                                // test_program.s:139 .byte $22       ; lda (zp),y test
+@fffa 05 41                             // test_program.s:142 nmi_vector:     .word nmi_handler
+@fffc 56 03                             // test_program.s:143 reset_vector:   .word reset_handler
+@fffe 05 41                             // test_program.s:144 irq_vector:     .word int_handler

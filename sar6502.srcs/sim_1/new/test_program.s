@@ -133,6 +133,10 @@ asl_abs_test    .byte $56
 
     .org $ae38
 lda_indirect_test .byte $bf
+    .org $ae68
+                .byte $20       ; lda (zp),y test
+    .org $af28
+                .byte $22       ; lda (zp),y test
 
     .org $fffa
 nmi_vector:     .word nmi_handler

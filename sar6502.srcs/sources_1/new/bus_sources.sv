@@ -130,6 +130,7 @@ typedef enum logic[31:0] {
     AluASourceCtl_PC_Low,
     AluASourceCtl_PC_High,
     AluASourceCtl_Mem,
+    AluASourceCtl_Ones,
 
     AluASourceCtl_End_Marker
 } AluASourceCtl;

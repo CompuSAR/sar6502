@@ -120,6 +120,7 @@ typedef enum logic[31:0] {
     OpBvc,
     OpBvs,
     OpClc,
+    OpDex,
     OpJsr,
     OpLda,
     OpLdx,
@@ -262,6 +263,7 @@ task do_decode();
         8'hb5: set_addr_mode_zp_x( OpLda );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
+        8'hca: set_addr_mode_implicit( OpDex );
         8'hd0: set_addr_mode_implicit( OpBne );
         8'hea: set_addr_mode_implicit( OpNop );
         8'hf0: set_addr_mode_implicit( OpBeq );
@@ -713,6 +715,7 @@ task set_operation(operations current_op);
         OpBvs: do_op_bvs_first();
         OpBrk: do_op_brk_first();
         OpClc: do_op_clc_first();
+        OpDex: do_op_dex_first();
         OpJsr: do_op_jsr_first();
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
@@ -744,6 +747,7 @@ task do_operation();
         OpBrk: do_op_brk();
         OpBvc: do_branch();
         OpBvs: do_branch();
+        OpDex: do_op_dex();
         OpJsr: do_op_jsr();
         OpLda: do_op_lda();
         OpLdx: do_op_ldx();
@@ -1013,6 +1017,30 @@ task do_op_clc_first();
     data_bus_source = bus_sources::DataBusSrc_Zero;
     ctrl_signals[control_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 0;
+endtask
+
+task do_op_dex_first();
+    alu_a_source = bus_sources::AluASourceCtl_Ones;
+    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
+    data_bus_source = bus_sources::DataBusSrc_X;
+    alu_carry_source = bus_sources::AluCarrySource_Zero;
+    alu_op = control_signals::AluOp_add;
+endtask
+
+task do_op_dex();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::LOAD_X] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task do_op_jsr_first();

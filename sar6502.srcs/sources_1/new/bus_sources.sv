@@ -12,6 +12,7 @@ typedef enum logic[31:0] {
     DataBusSrc_SP,
     DataBusSrc_Status,
     DataBusSrc_Alu,
+    DataBusSrc_Alu_Latched,
 
     DataBusSrc_Pc_Low,
     DataBusSrc_Pc_High,

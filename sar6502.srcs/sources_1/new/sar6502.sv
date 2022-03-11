@@ -202,7 +202,8 @@ decoder decoder(
 // Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
 assign data_bus_inputs[bus_sources::DataBusSrc_Status] = status_value;
-assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result_latched;
+assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result;
+assign data_bus_inputs[bus_sources::DataBusSrc_Alu_Latched] = alu_result_latched;
 assign data_bus_inputs[bus_sources::DataBusSrc_Pc_Low] = pc_value[7:0];
 assign data_bus_inputs[bus_sources::DataBusSrc_Pc_High] = pc_value[15:8];
 assign data_bus_inputs[bus_sources::DataBusSrc_Dl_Low] = data_latch_value[7:0];

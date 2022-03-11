@@ -21,6 +21,9 @@ INT_TRIGGER_DELAY       = $2ff
 asl_zp_test:    .byte $d3
     .org $00a9
 lda_zp_test:    .word lda_indirect_test
+    .org $ec
+adc_zp_test:
+    .byte $88, $d5, $13, $c2
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state
@@ -77,6 +80,39 @@ asl_loop:
     jsr flags_dump
     bne asl_loop
 
+    ; ADC tests
+    ldx #2
+adc_loop:
+    adc adc_abs_test
+    pha
+    php
+    adc adc_abs_test,x
+    pha
+    php
+    adc adc_abs_test,y
+    pha
+    php
+    adc #$cd
+    pha
+    php
+    adc adc_zp_test
+    pha
+    php
+    adc (adc_zp_test,x)
+    pha
+    php
+    adc adc_zp_test,x
+    pha
+    php
+    adc (adc_zp_test)
+    pha
+    php
+    adc (adc_zp_test),y
+    pha
+    php
+    dex
+    bne adc_loop
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -91,6 +127,9 @@ reset_handler:
     pha
     rti
     .byte 00
+
+    .org $13d5
+    .byte $dd           ; adc (zp,x) test
 
     .org $40ef
 
@@ -126,6 +165,12 @@ lda_abs_test    .byte $74
     .org $6de1
                 .byte $08       ; lda abs,x
 
+    .org $7ace
+adc_abs_test:
+    .byte $65, $ca, $26
+    .org $7bbe
+    .byte $05
+
     .org $8510
 asl_abs_test    .byte $56
     .org $85d0
@@ -137,6 +182,15 @@ lda_indirect_test .byte $bf
                 .byte $20       ; lda (zp),y test
     .org $af28
                 .byte $22       ; lda (zp),y test
+
+    .org $c213
+    .byte $25                   ; adc (zp,x) test
+
+    .org $d588
+    .byte $15                   ; adc (zp,x) test
+
+    .org $d678
+    .byte $8e                   ; adc (zp),y test
 
     .org $fffa
 nmi_vector:     .word nmi_handler

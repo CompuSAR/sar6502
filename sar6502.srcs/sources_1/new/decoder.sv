@@ -121,6 +121,7 @@ typedef enum logic[31:0] {
     OpBvs,
     OpClc,
     OpDex,
+    OpInx,
     OpIny,
     OpJsr,
     OpLda,
@@ -270,6 +271,7 @@ task do_decode();
         8'hd0: set_addr_mode_implicit( OpBne );
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he5: set_addr_mode_zp( OpSbc );
+        8'he8: set_addr_mode_implicit( OpInx );
         8'he9: set_addr_mode_immediate( OpSbc );
         8'hea: set_addr_mode_implicit( OpNop );
         8'hed: set_addr_mode_absolute( OpSbc );
@@ -728,6 +730,7 @@ task set_operation(operations current_op);
         OpBvs: do_op_bvs_first();
         OpClc: do_op_clc_first();
         OpDex: do_op_dex_first();
+        OpInx: do_op_inx_first();
         OpIny: do_op_iny_first();
         OpJsr: do_op_jsr_first();
         OpLda: do_op_lda_first();
@@ -762,6 +765,7 @@ task do_operation();
         OpBvc: do_branch();
         OpBvs: do_branch();
         OpDex: do_op_dex();
+        OpInx: do_op_inx();
         OpIny: do_op_iny();
         OpJsr: do_op_jsr();
         OpLda: do_op_lda();
@@ -1072,6 +1076,30 @@ task do_op_dex_first();
 endtask
 
 task do_op_dex();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::LOAD_X] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_inx_first();
+    alu_a_source = bus_sources::AluASourceCtl_Zero;
+    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
+    data_bus_source = bus_sources::DataBusSrc_X;
+    alu_carry_source = bus_sources::AluCarrySource_One;
+    alu_op = control_signals::AluOp_add;
+endtask
+
+task do_op_inx();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;

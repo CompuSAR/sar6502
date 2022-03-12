@@ -82,6 +82,7 @@ asl_loop:
 
     ; ADC tests
     ldx #2
+    ldy #1
 adc_loop:
     adc adc_abs_test
     pha
@@ -110,8 +111,41 @@ adc_loop:
     adc (adc_zp_test),y
     pha
     php
+    iny
     dex
     bne adc_loop
+
+sbc_loop:
+    sbc adc_abs_test
+    pha
+    php
+    sbc adc_abs_test,x
+    pha
+    php
+    sbc adc_abs_test,y
+    pha
+    php
+    sbc #$cd
+    pha
+    php
+    sbc adc_zp_test
+    pha
+    php
+    sbc (adc_zp_test,x)
+    pha
+    php
+    sbc adc_zp_test,x
+    pha
+    php
+    sbc (adc_zp_test)
+    pha
+    php
+    sbc (adc_zp_test),y
+    pha
+    php
+    inx
+    dey
+    bne sbc_loop
 
     sta FINISHED_TRIGGER
     .byte 00
@@ -167,9 +201,7 @@ lda_abs_test    .byte $74
 
     .org $7ace
 adc_abs_test:
-    .byte $65, $ca, $26
-    .org $7bbe
-    .byte $05
+    .byte $65, $ca, $26, $6b
 
     .org $8510
 asl_abs_test    .byte $56
@@ -188,9 +220,7 @@ lda_indirect_test .byte $bf
 
     .org $d588
     .byte $15                   ; adc (zp,x) test
-
-    .org $d678
-    .byte $8e                   ; adc (zp),y test
+    .byte $8e, $9b, $f5         ; adc (zp),y test
 
     .org $fffa
 nmi_vector:     .word nmi_handler

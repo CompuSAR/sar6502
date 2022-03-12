@@ -121,6 +121,7 @@ typedef enum logic[31:0] {
     OpBvs,
     OpClc,
     OpDex,
+    OpDey,
     OpInx,
     OpIny,
     OpJsr,
@@ -251,6 +252,7 @@ task do_decode();
         8'h79: set_addr_mode_abs_y( OpAdc );
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h80: set_addr_mode_implicit( OpBra );
+        8'h88: set_addr_mode_implicit( OpDey );
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
@@ -730,6 +732,7 @@ task set_operation(operations current_op);
         OpBvs: do_op_bvs_first();
         OpClc: do_op_clc_first();
         OpDex: do_op_dex_first();
+        OpDey: do_op_dey_first();
         OpInx: do_op_inx_first();
         OpIny: do_op_iny_first();
         OpJsr: do_op_jsr_first();
@@ -765,6 +768,7 @@ task do_operation();
         OpBvc: do_branch();
         OpBvs: do_branch();
         OpDex: do_op_dex();
+        OpDey: do_op_dey();
         OpInx: do_op_inx();
         OpIny: do_op_iny();
         OpJsr: do_op_jsr();
@@ -1080,6 +1084,30 @@ task do_op_dex();
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
             ctrl_signals[control_signals::LOAD_X] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_dey_first();
+    alu_a_source = bus_sources::AluASourceCtl_Ones;
+    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
+    data_bus_source = bus_sources::DataBusSrc_Y;
+    alu_carry_source = bus_sources::AluCarrySource_Zero;
+    alu_op = control_signals::AluOp_add;
+endtask
+
+task do_op_dey();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::LOAD_Y] = 1;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;

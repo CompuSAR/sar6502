@@ -14,8 +14,11 @@ RESET_TRIGGER_DELAY     = $2fd
 INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
+    .org $000e
+bit_zp_test:    .byte $f3
 
-    .org $0029
+    .org $0028
+                .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
     .org $0069
 asl_zp_test:    .byte $d3
@@ -87,28 +90,55 @@ adc_loop:
     adc adc_abs_test
     pha
     php
+    and adc_abs_test
+    pha
+    php
     adc adc_abs_test,x
+    pha
+    php
+    and adc_abs_test,x
     pha
     php
     adc adc_abs_test,y
     pha
     php
+    and adc_abs_test,y
+    pha
+    php
     adc #$cd
+    pha
+    php
+    and #$a7
     pha
     php
     adc adc_zp_test
     pha
     php
+    and adc_zp_test
+    pha
+    php
     adc (adc_zp_test,x)
+    pha
+    php
+    and (adc_zp_test,x)
     pha
     php
     adc adc_zp_test,x
     pha
     php
+    and adc_zp_test,x
+    pha
+    php
     adc (adc_zp_test)
     pha
     php
+    and (adc_zp_test)
+    pha
+    php
     adc (adc_zp_test),y
+    pha
+    php
+    and (adc_zp_test),y
     pha
     php
     iny
@@ -147,6 +177,25 @@ sbc_loop:
     dey
     bne sbc_loop
 
+    ; BIT test
+    lda #$4f
+    php
+    ldx #$1a
+    php
+    ldy #$22
+    php
+
+    bit bit_abs_test
+    php
+    bit bit_abs_test,x
+    php
+    bit #$b0
+    php
+    bit bit_zp_test
+    php
+    bit bit_zp_test,x
+    php
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -164,6 +213,13 @@ reset_handler:
 
     .org $13d5
     .byte $dd           ; adc (zp,x) test
+
+    .org $1690
+bit_abs_test:
+    .byte $6b
+
+    .org $16aa
+    .byte $03           ; bit abs,x
 
     .org $40ef
 

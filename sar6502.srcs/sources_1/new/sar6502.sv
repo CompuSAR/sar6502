@@ -208,6 +208,7 @@ assign data_bus_inputs[bus_sources::DataBusSrc_Pc_Low] = pc_value[7:0];
 assign data_bus_inputs[bus_sources::DataBusSrc_Pc_High] = pc_value[15:8];
 assign data_bus_inputs[bus_sources::DataBusSrc_Dl_Low] = data_latch_value[7:0];
 assign data_bus_inputs[bus_sources::DataBusSrc_Mem] = data_in_l;
+assign data_bus_inputs[bus_sources::DataBusSrc_Mem_Unlatched] = data_in;
 
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_Mem] = data_in_l;
 assign address_bus_low_inputs[bus_sources::AddrBusLowSrc_SP] = data_bus_inputs[bus_sources::DataBusSrc_SP];

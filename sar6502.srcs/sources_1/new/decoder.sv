@@ -107,11 +107,13 @@ typedef enum logic[31:0] {
 
     OpNone = 0,
     OpAdc,
+    OpAnd,
     OpAsl,
     OpAslA,
     OpBcc,
     OpBcs,
     OpBeq,
+    OpBit,
     OpBmi,
     OpBne,
     OpBpl,
@@ -235,8 +237,21 @@ task do_decode();
         8'h18: set_addr_mode_implicit( OpClc );
         8'h1e: set_addr_mode_abs_x( OpAsl );
         8'h20: set_addr_mode_stack( OpJsr );
+        8'h21: set_addr_mode_zp_x_ind( OpAnd );
+        8'h24: set_addr_mode_zp( OpBit );
+        8'h25: set_addr_mode_zp( OpAnd );
         8'h28: set_addr_mode_stack( OpPlp );
+        8'h29: set_addr_mode_immediate( OpAnd );
+        8'h2c: set_addr_mode_absolute( OpBit );
+        8'h2d: set_addr_mode_absolute( OpAnd );
         8'h30: set_addr_mode_implicit( OpBmi );
+        8'h31: set_addr_mode_zp_ind_y( OpAnd );
+        8'h32: set_addr_mode_zp_ind( OpAnd );
+        8'h34: set_addr_mode_zp_x( OpBit );
+        8'h35: set_addr_mode_zp_x( OpAnd );
+        8'h39: set_addr_mode_abs_y( OpAnd );
+        8'h3c: set_addr_mode_abs_x( OpBit );
+        8'h3d: set_addr_mode_abs_x( OpAnd );
         8'h40: set_addr_mode_stack( OpRti );
         8'h48: set_addr_mode_stack( OpPha );
         8'h50: set_addr_mode_implicit( OpBvc );
@@ -253,6 +268,7 @@ task do_decode();
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h80: set_addr_mode_implicit( OpBra );
         8'h88: set_addr_mode_implicit( OpDey );
+        8'h89: set_addr_mode_immediate( OpBit );
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
@@ -718,11 +734,13 @@ task set_operation(operations current_op);
 
     case( current_op )
         OpAdc: do_op_adc_first();
+        OpAnd: do_op_and_first();
         OpAsl: do_op_asl_first();
         OpAslA: do_op_asl_acc_first();
         OpBcc: do_op_bcc_first();
         OpBcs: do_op_bcs_first();
         OpBeq: do_op_beq_first();
+        OpBit: do_op_bit_first();
         OpBmi: do_op_bmi_first();
         OpBne: do_op_bne_first();
         OpBpl: do_op_bpl_first();
@@ -755,11 +773,13 @@ endtask
 task do_operation();
     case( active_op )
         OpAdc: do_op_adc();
+        OpAnd: do_op_and();
         OpAsl: do_op_asl();
         OpAslA: do_op_asl_acc();
         OpBcc: do_branch();
         OpBcs: do_branch();
         OpBeq: do_branch();
+        OpBit: do_op_bit();
         OpBmi: do_branch();
         OpBne: do_branch();
         OpBpl: do_branch();
@@ -832,6 +852,78 @@ task do_op_sbc();
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_and_first();
+endtask
+
+task do_op_and();
+    case( op_cycle )
+        FirstOpCycle: begin
+            alu_a_source = bus_sources::AluASourceCtl_A;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            alu_carry_source = bus_sources::AluCarrySource_Carry;
+            alu_op = control_signals::AluOp_and;
+            data_bus_source = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_ora_first();
+endtask
+
+task do_op_ora();
+    case( op_cycle )
+        FirstOpCycle: begin
+            alu_a_source = bus_sources::AluASourceCtl_A;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            alu_carry_source = bus_sources::AluCarrySource_Carry;
+            alu_op = control_signals::AluOp_or;
+            data_bus_source = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_eor_first();
+endtask
+
+task do_op_eor();
+    case( op_cycle )
+        FirstOpCycle: begin
+            alu_a_source = bus_sources::AluASourceCtl_A;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            alu_carry_source = bus_sources::AluCarrySource_Carry;
+            alu_op = control_signals::AluOp_xor;
+            data_bus_source = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::LOAD_A] = 1;
 
@@ -992,6 +1084,33 @@ task do_op_asl_acc();
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_bit_first();
+    if( active_addr_mode_next != AddrImmediate ) begin
+        data_bus_source = bus_sources::DataBusSrc_Mem_Unlatched;
+        ctrl_signals[control_signals::UpdateFlagN] = 1;
+        ctrl_signals[control_signals::UpdateFlagV] = 1;
+        ctrl_signals[control_signals::UseAluFlags] = 0;
+    end
+endtask
+
+task do_op_bit();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_op = control_signals::AluOp_and;
+            alu_a_source = bus_sources::AluASourceCtl_A;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+
+            data_bus_source = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
         end

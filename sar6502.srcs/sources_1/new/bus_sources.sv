@@ -20,6 +20,7 @@ typedef enum logic[31:0] {
     DataBusSrc_Dl_Low,
 
     DataBusSrc_Mem,
+    DataBusSrc_Mem_Unlatched,
 
     DataBusSrc_End_Marker
 } DataBusSourceCtl;

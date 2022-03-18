@@ -123,6 +123,7 @@ typedef enum logic[31:0] {
     OpBvc,
     OpBvs,
     OpClc,
+    OpCld,
     OpCli,
     OpDex,
     OpDey,
@@ -140,6 +141,7 @@ typedef enum logic[31:0] {
     OpRts,
     OpSbc,
     OpSed,
+    OpSei,
     OpSta,
     OpTxs
 } operations;
@@ -269,6 +271,7 @@ task do_decode();
         8'h71: set_addr_mode_zp_ind_y( OpAdc );
         8'h72: set_addr_mode_zp_ind( OpAdc );
         8'h75: set_addr_mode_zp_x( OpAdc );
+        8'h78: set_addr_mode_implicit( OpSei );
         8'h79: set_addr_mode_abs_y( OpAdc );
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h80: set_addr_mode_implicit( OpBra );
@@ -292,6 +295,7 @@ task do_decode();
         8'hc8: set_addr_mode_implicit( OpIny );
         8'hca: set_addr_mode_implicit( OpDex );
         8'hd0: set_addr_mode_implicit( OpBne );
+        8'hd8: set_addr_mode_implicit( OpCld );
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he5: set_addr_mode_zp( OpSbc );
         8'he8: set_addr_mode_implicit( OpInx );
@@ -750,6 +754,7 @@ task set_operation(operations current_op);
         OpBvc: do_op_bvc_first();
         OpBvs: do_op_bvs_first();
         OpClc: do_op_clc_first();
+        OpCld: do_op_cld_first();
         OpCli: do_op_cli_first();
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
@@ -767,6 +772,7 @@ task set_operation(operations current_op);
         OpRts: do_op_rts_first();
         OpSbc: do_op_sbc_first();
         OpSed: do_op_sed_first();
+        OpSei: do_op_sei_first();
         OpSta: do_op_sta_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
@@ -1211,6 +1217,13 @@ task do_op_clc_first();
     ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
+task do_op_cld_first();
+    next_instruction();
+
+    data_bus_source = bus_sources::DataBusSrc_Zero;
+    ctrl_signals[control_signals::UpdateFlagD] = 1;
+endtask
+
 task do_op_cli_first();
     next_instruction();
 
@@ -1554,6 +1567,13 @@ task do_op_sed_first();
 
     data_bus_source = bus_sources::DataBusSrc_Ones;
     ctrl_signals[control_signals::UpdateFlagD] = 1;
+endtask
+
+task do_op_sei_first();
+    next_instruction();
+
+    data_bus_source = bus_sources::DataBusSrc_Ones;
+    ctrl_signals[control_signals::UpdateFlagI] = 1;
 endtask
 
 task do_op_sta_first();

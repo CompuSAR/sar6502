@@ -37,7 +37,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module decoder(
+module decoder#(parameter CPU_VARIANT = 2)
+(
         input [7:0]memory_in,
         input [7:0]status,
         input alu_carry,
@@ -230,6 +231,7 @@ endtask
 
 task do_decode();
     case( memory_in )
+        8'h00: set_addr_mode_implicit( OpBrk );
         8'h06: set_addr_mode_zp( OpAsl );
         8'h08: set_addr_mode_stack( OpPhp );
         8'h0a: set_addr_mode_implicit( OpAslA );
@@ -1136,6 +1138,7 @@ task do_op_brk_first();
         default: set_invalid_state();
     endcase
     ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ctrl_signals[control_signals::PC_ADVANCE] = (int_state==IntStateNone ? 1 : 0);
 
     address_bus_high_source = bus_sources::AddrBusHighSrc_PC;
     address_bus_low_source = bus_sources::AddrBusLowSrc_PC;
@@ -1145,18 +1148,31 @@ task do_op_brk();
     case(op_cycle)
         FirstOpCycle: begin
             addr_bus_sp();
+            rW = (int_state == IntStateReset) ? 1 : 0;
+            data_bus_source = bus_sources::DataBusSrc_Pc_High;
+
+            sp_dec();
         end
         CycleOp2: begin
             addr_bus_sp();
+            rW = (int_state == IntStateReset) ? 1 : 0;
+            data_bus_source = bus_sources::DataBusSrc_Pc_Low;
+
+            sp_dec();
         end
         CycleOp3: begin
             addr_bus_sp();
+            rW = (int_state == IntStateReset) ? 1 : 0;
+            data_bus_source = bus_sources::DataBusSrc_Status;
+            ctrl_signals[control_signals::OutputFlagB] = (int_state==IntStateNone ? 1 : 0);
+
+            sp_dec();
         end
         CycleOp4: begin
-            int_state_next = IntStateNone;
-        end
-        CycleOp5: begin
             addr_bus_dl();
+            VP = 0;
+
+            int_state_next = IntStateNone;
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_DataLatchLow;
@@ -1166,18 +1182,23 @@ task do_op_brk();
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
             ctrl_signals[control_signals::LOAD_DataLow] = 1;
 
-            VP = 0;
+            if( CPU_VARIANT>0 ) begin
+                data_bus_source = bus_sources::DataBusSrc_Zero;
+                ctrl_signals[control_signals::UpdateFlagD] = 1;
+            end
         end
-        CycleOp6: begin
+        CycleOp5: begin
+            addr_bus_dl();
+            VP = 0;
+
             ctrl_signals[control_signals::PC_LOAD] = 1;
             pc_high_source = bus_sources::PcHighSource_Mem;
             pc_low_source = bus_sources::PcLowSource_Mem;
 
-            addr_bus_dl();
-
-            VP = 0;
+            data_bus_source = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::UpdateFlagI] = 1;
         end
-        CycleOp7: begin
+        CycleOp6: begin
             ctrl_signals[control_signals::PC_LOAD] = 1;
             pc_low_source = bus_sources::PcLowSource_CurrentValue;
             pc_high_source = bus_sources::PcHighSource_Mem;

@@ -137,6 +137,7 @@ typedef enum logic[31:0] {
     OpRti,
     OpRts,
     OpSbc,
+    OpSed,
     OpSta,
     OpTxs
 } operations;
@@ -297,6 +298,7 @@ task do_decode();
         8'hf1: set_addr_mode_zp_ind_y( OpSbc );
         8'hf2: set_addr_mode_zp_ind( OpSbc );
         8'hf5: set_addr_mode_zp_x( OpSbc );
+        8'hf8: set_addr_mode_implicit( OpSed );
         8'hf9: set_addr_mode_abs_y( OpSbc );
         8'hfd: set_addr_mode_abs_x( OpSbc );
         default: do_unknown_command();
@@ -764,6 +766,7 @@ task set_operation(operations current_op);
         OpRti: do_op_rti_first();
         OpRts: do_op_rts_first();
         OpSbc: do_op_sbc_first();
+        OpSed: do_op_sed_first();
         OpSta: do_op_sta_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
@@ -1523,6 +1526,13 @@ task do_op_rts();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task do_op_sed_first();
+    data_bus_source = bus_sources::DataBusSrc_Ones;
+    ctrl_signals[control_signals::UpdateFlagD] = 1;
+
+    next_instruction();
 endtask
 
 task do_op_sta_first();

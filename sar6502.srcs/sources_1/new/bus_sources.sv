@@ -5,6 +5,7 @@ package bus_sources;
 typedef enum logic[31:0] {
     DataBusSrc_Invalid = 'X,
     DataBusSrc_Zero = 0,
+    DataBusSrc_Ones,
 
     DataBusSrc_A,
     DataBusSrc_X,

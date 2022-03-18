@@ -201,6 +201,7 @@ decoder decoder(
 
 // Assign the rest of the bus inputs
 assign data_bus_inputs[bus_sources::DataBusSrc_Zero] = 8'b0;
+assign data_bus_inputs[bus_sources::DataBusSrc_Ones] = 8'hff;
 assign data_bus_inputs[bus_sources::DataBusSrc_Status] = status_value;
 assign data_bus_inputs[bus_sources::DataBusSrc_Alu] = alu_result;
 assign data_bus_inputs[bus_sources::DataBusSrc_Alu_Latched] = alu_result_latched;

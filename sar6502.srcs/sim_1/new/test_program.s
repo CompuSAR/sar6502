@@ -196,6 +196,16 @@ sbc_loop:
     bit bit_zp_test,x
     php
 
+    ; BRK test
+    sed
+    cli
+    brk
+    .byte $1
+    cld
+    sei
+    brk
+    .byte $2
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -245,8 +255,12 @@ flags_dump:
     .byte 00
 
 int_handler:
+    php
+    plp
+    rti
+
 nmi_handler:
-    brk
+    jmp int_handler
 
     .org $6d21
 lda_abs_test    .byte $74

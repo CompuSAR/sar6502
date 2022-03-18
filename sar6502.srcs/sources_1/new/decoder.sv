@@ -388,8 +388,7 @@ task do_addr_mode_abs_x();
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-            data_bus_source = bus_sources::DataBusSrc_X;
+            alu_b_source = bus_sources::AluBSourceCtl_X;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -439,8 +438,7 @@ task do_addr_mode_abs_y();
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-            data_bus_source = bus_sources::DataBusSrc_Y;
+            alu_b_source = bus_sources::AluBSourceCtl_Y;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -489,8 +487,7 @@ task do_addr_mode_zp_x_ind();
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-            data_bus_source = bus_sources::DataBusSrc_X;
+            alu_b_source = bus_sources::AluBSourceCtl_X;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -556,8 +553,7 @@ task do_addr_mode_zp_ind_y();
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-            data_bus_source = bus_sources::DataBusSrc_Y;
+            alu_b_source = bus_sources::AluBSourceCtl_Y;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -676,8 +672,7 @@ task do_addr_mode_zp_x();
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-            data_bus_source = bus_sources::DataBusSrc_X;
+            alu_b_source = bus_sources::AluBSourceCtl_X;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -1072,8 +1067,7 @@ endtask
 
 task do_op_asl_acc_first();
     alu_op = control_signals::AluOp_shift_left;
-    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-    data_bus_source = bus_sources::DataBusSrc_A;
+    alu_b_source = bus_sources::AluBSourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
 
     ctrl_signals[control_signals::UpdateFlagC] = 1;
@@ -1226,8 +1220,7 @@ endtask
 
 task do_op_dex_first();
     alu_a_source = bus_sources::AluASourceCtl_Ones;
-    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-    data_bus_source = bus_sources::DataBusSrc_X;
+    alu_b_source = bus_sources::AluBSourceCtl_X;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1250,8 +1243,7 @@ endtask
 
 task do_op_dey_first();
     alu_a_source = bus_sources::AluASourceCtl_Ones;
-    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-    data_bus_source = bus_sources::DataBusSrc_Y;
+    alu_b_source = bus_sources::AluBSourceCtl_Y;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1274,8 +1266,7 @@ endtask
 
 task do_op_inx_first();
     alu_a_source = bus_sources::AluASourceCtl_Zero;
-    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-    data_bus_source = bus_sources::DataBusSrc_X;
+    alu_b_source = bus_sources::AluBSourceCtl_X;
     alu_carry_source = bus_sources::AluCarrySource_One;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1298,8 +1289,7 @@ endtask
 
 task do_op_iny_first();
     alu_a_source = bus_sources::AluASourceCtl_Zero;
-    alu_b_source = bus_sources::AluBSourceCtl_DataBus;
-    data_bus_source = bus_sources::DataBusSrc_Y;
+    alu_b_source = bus_sources::AluBSourceCtl_Y;
     alu_carry_source = bus_sources::AluCarrySource_One;
     alu_op = control_signals::AluOp_add;
 endtask

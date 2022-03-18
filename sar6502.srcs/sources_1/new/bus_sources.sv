@@ -144,8 +144,11 @@ typedef enum logic[31:0] {
     AluBSourceCtl_Invalid = 'X,
 
     AluBSourceCtl_Zero = 0,
-    AluBSourceCtl_DataBus,
     AluBSourceCtl_Mem,
+
+    AluBSourceCtl_A,
+    AluBSourceCtl_X,
+    AluBSourceCtl_Y,
 
     AluBSourceCtl_End_Marker
 } AluBSourceCtl;

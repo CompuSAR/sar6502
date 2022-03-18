@@ -258,8 +258,10 @@ assign alu_a_inputs[bus_sources::AluASourceCtl_PC_High] = pc_value[15:8];
 assign alu_a_inputs[bus_sources::AluASourceCtl_Mem] = data_in_l;
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
-assign alu_b_inputs[bus_sources::AluBSourceCtl_DataBus] = data_bus;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
+assign alu_b_inputs[bus_sources::AluBSourceCtl_X] = data_bus_inputs[bus_sources::DataBusSrc_X];
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Y] = data_bus_inputs[bus_sources::DataBusSrc_Y];
 
 assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
 assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;

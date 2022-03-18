@@ -122,6 +122,7 @@ typedef enum logic[31:0] {
     OpBvc,
     OpBvs,
     OpClc,
+    OpCli,
     OpDex,
     OpDey,
     OpInx,
@@ -256,6 +257,7 @@ task do_decode();
         8'h40: set_addr_mode_stack( OpRti );
         8'h48: set_addr_mode_stack( OpPha );
         8'h50: set_addr_mode_implicit( OpBvc );
+        8'h58: set_addr_mode_implicit( OpCli );
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
         8'h65: set_addr_mode_zp( OpAdc );
@@ -751,6 +753,7 @@ task set_operation(operations current_op);
         OpBvc: do_op_bvc_first();
         OpBvs: do_op_bvs_first();
         OpClc: do_op_clc_first();
+        OpCli: do_op_cli_first();
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
         OpInx: do_op_inx_first();
@@ -1193,6 +1196,13 @@ task do_op_clc_first();
     ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
+task do_op_cli_first();
+    next_instruction();
+
+    data_bus_source = bus_sources::DataBusSrc_Zero;
+    ctrl_signals[control_signals::UpdateFlagI] = 1;
+endtask
+
 task do_op_dex_first();
     alu_a_source = bus_sources::AluASourceCtl_Ones;
     alu_b_source = bus_sources::AluBSourceCtl_DataBus;
@@ -1529,10 +1539,10 @@ task do_op_rts();
 endtask
 
 task do_op_sed_first();
+    next_instruction();
+
     data_bus_source = bus_sources::DataBusSrc_Ones;
     ctrl_signals[control_signals::UpdateFlagD] = 1;
-
-    next_instruction();
 endtask
 
 task do_op_sta_first();

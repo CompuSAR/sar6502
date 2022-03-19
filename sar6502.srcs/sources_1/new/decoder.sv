@@ -125,6 +125,7 @@ typedef enum logic[31:0] {
     OpClc,
     OpCld,
     OpCli,
+    OpClv,
     OpDex,
     OpDey,
     OpInx,
@@ -142,6 +143,7 @@ typedef enum logic[31:0] {
     OpRti,
     OpRts,
     OpSbc,
+    OpSec,
     OpSed,
     OpSei,
     OpSta,
@@ -260,6 +262,7 @@ task do_decode();
         8'h32: set_addr_mode_zp_ind( OpAnd );
         8'h34: set_addr_mode_zp_x( OpBit );
         8'h35: set_addr_mode_zp_x( OpAnd );
+        8'h38: set_addr_mode_implicit( OpSec );
         8'h39: set_addr_mode_abs_y( OpAnd );
         8'h3c: set_addr_mode_abs_x( OpBit );
         8'h3d: set_addr_mode_abs_x( OpAnd );
@@ -297,6 +300,7 @@ task do_decode();
         8'hb1: set_addr_mode_zp_ind_y( OpLda );
         8'hb2: set_addr_mode_zp_ind( OpLda );
         8'hb5: set_addr_mode_zp_x( OpLda );
+        8'hb8: set_addr_mode_implicit( OpClv );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
         8'hc8: set_addr_mode_implicit( OpIny );
@@ -764,6 +768,7 @@ task set_operation(operations current_op);
         OpClc: do_op_clc_first();
         OpCld: do_op_cld_first();
         OpCli: do_op_cli_first();
+        OpClv: do_op_clv_first();
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
         OpInx: do_op_inx_first();
@@ -781,6 +786,7 @@ task set_operation(operations current_op);
         OpRti: do_op_rti_first();
         OpRts: do_op_rts_first();
         OpSbc: do_op_sbc_first();
+        OpSec: do_op_sec_first();
         OpSed: do_op_sed_first();
         OpSei: do_op_sei_first();
         OpSta: do_op_sta_first();
@@ -1244,6 +1250,14 @@ task do_op_cli_first();
     ctrl_signals[control_signals::UpdateFlagI] = 1;
 endtask
 
+task do_op_clv_first();
+    next_instruction();
+
+    data_bus_source = bus_sources::DataBusSrc_Zero;
+    ctrl_signals[control_signals::UpdateFlagV] = 1;
+    ctrl_signals[control_signals::UseAluFlags] = 0;
+endtask
+
 task do_op_dex_first();
     alu_a_source = bus_sources::AluASourceCtl_Ones;
     alu_b_source = bus_sources::AluBSourceCtl_X;
@@ -1591,6 +1605,14 @@ task do_op_rts();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task do_op_sec_first();
+    next_instruction();
+
+    data_bus_source = bus_sources::DataBusSrc_Ones;
+    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
 task do_op_sed_first();

@@ -145,6 +145,9 @@ typedef enum logic[31:0] {
     OpSed,
     OpSei,
     OpSta,
+    OpStx,
+    OpSty,
+    OpStz,
     OpTxs
 } operations;
 operations active_op = OpNone, active_op_next;
@@ -283,6 +286,7 @@ task do_decode();
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
+        8'h9c: set_addr_mode_absolute( OpStz );
         8'ha0: set_addr_mode_immediate( OpLdy );
         8'ha1: set_addr_mode_zp_x_ind( OpLda );
         8'ha2: set_addr_mode_immediate( OpLdx );
@@ -780,6 +784,9 @@ task set_operation(operations current_op);
         OpSed: do_op_sed_first();
         OpSei: do_op_sei_first();
         OpSta: do_op_sta_first();
+        OpStx: do_op_stx_first();
+        OpSty: do_op_sty_first();
+        OpStz: do_op_stz_first();
         OpTxs: do_op_txs_first();
         default: set_invalid_state();
     endcase
@@ -1603,6 +1610,27 @@ endtask
 task do_op_sta_first();
     rW = 0;
     data_bus_source = bus_sources::DataBusSrc_A;
+
+    next_instruction();
+endtask
+
+task do_op_stx_first();
+    rW = 0;
+    data_bus_source = bus_sources::DataBusSrc_X;
+
+    next_instruction();
+endtask
+
+task do_op_sty_first();
+    rW = 0;
+    data_bus_source = bus_sources::DataBusSrc_Y;
+
+    next_instruction();
+endtask
+
+task do_op_stz_first();
+    rW = 0;
+    data_bus_source = bus_sources::DataBusSrc_Zero;
 
     next_instruction();
 endtask

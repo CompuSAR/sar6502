@@ -136,6 +136,8 @@ typedef enum logic[31:0] {
     OpNop,
     OpPha,
     OpPhp,
+    OpPhx,
+    OpPhy,
     OpPlp,
     OpRti,
     OpRts,
@@ -262,6 +264,7 @@ task do_decode();
         8'h48: set_addr_mode_stack( OpPha );
         8'h50: set_addr_mode_implicit( OpBvc );
         8'h58: set_addr_mode_implicit( OpCli );
+        8'h5a: set_addr_mode_stack( OpPhy );
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
         8'h65: set_addr_mode_zp( OpAdc );
@@ -296,6 +299,7 @@ task do_decode();
         8'hca: set_addr_mode_implicit( OpDex );
         8'hd0: set_addr_mode_implicit( OpBne );
         8'hd8: set_addr_mode_implicit( OpCld );
+        8'hda: set_addr_mode_stack( OpPhx );
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he5: set_addr_mode_zp( OpSbc );
         8'he8: set_addr_mode_implicit( OpInx );
@@ -767,6 +771,8 @@ task set_operation(operations current_op);
         OpNop: do_op_nop_first();
         OpPha: do_op_pha_first();
         OpPhp: do_op_php_first();
+        OpPhx: do_op_phx_first();
+        OpPhy: do_op_phy_first();
         OpPlp: do_op_plp_first();
         OpRti: do_op_rti_first();
         OpRts: do_op_rts_first();
@@ -1447,6 +1453,24 @@ task do_op_php_first();
 
     data_bus_source = bus_sources::DataBusSrc_Status;
     ctrl_signals[control_signals::OutputFlagB] = 1;
+    sp_dec();
+
+    next_instruction();
+endtask
+
+task do_op_phx_first();
+    rW = 0;
+
+    data_bus_source = bus_sources::DataBusSrc_X;
+    sp_dec();
+
+    next_instruction();
+endtask
+
+task do_op_phy_first();
+    rW = 0;
+
+    data_bus_source = bus_sources::DataBusSrc_Y;
     sp_dec();
 
     next_instruction();

@@ -38,6 +38,8 @@ start:
     nop
     nop
     nop
+    jsr flags_dump
+
     lda #$03
     jsr flags_dump
     lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
@@ -48,6 +50,32 @@ start:
 
     ldx #$c0
     ldy #$30
+    phx
+    phy
+
+    ; Direct flags manipulation
+    lda #$ff
+    sta $1fe
+    stz $1ff
+
+    plp
+    jsr flags_dump
+    plp
+    jsr flags_dump
+    sec
+    jsr flags_dump
+    sed
+    jsr flags_dump
+    sei
+    jsr flags_dump
+    clc
+    jsr flags_dump
+    cld
+    jsr flags_dump
+    cli
+    jsr flags_dump
+    clv
+    jsr flags_dump
 
     ; Test addressing modes
     lda lda_abs_test

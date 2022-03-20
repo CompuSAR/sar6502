@@ -247,8 +247,6 @@ assign data_latch_high_inputs[bus_sources::DataLatchHighSource_FF] = 8'hff;
 assign stack_pointer_inputs[bus_sources::StackPointerSource_Alu] = alu_result;
 assign stack_pointer_inputs[bus_sources::StackPointerSource_DataBus] = data_bus;
 
-assign alu_a_inputs[bus_sources::AluASourceCtl_Zero] = 8'h00;
-assign alu_a_inputs[bus_sources::AluASourceCtl_Ones] = 8'hff;
 assign alu_a_inputs[bus_sources::AluASourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
 assign alu_a_inputs[bus_sources::AluASourceCtl_X] = data_bus_inputs[bus_sources::DataBusSrc_X];
 assign alu_a_inputs[bus_sources::AluASourceCtl_Y] = data_bus_inputs[bus_sources::DataBusSrc_Y];
@@ -261,9 +259,6 @@ assign alu_a_inputs[bus_sources::AluASourceCtl_Mem] = data_in_l;
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
-assign alu_b_inputs[bus_sources::AluBSourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
-assign alu_b_inputs[bus_sources::AluBSourceCtl_X] = data_bus_inputs[bus_sources::DataBusSrc_X];
-assign alu_b_inputs[bus_sources::AluBSourceCtl_Y] = data_bus_inputs[bus_sources::DataBusSrc_Y];
 
 assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
 assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;

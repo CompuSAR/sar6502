@@ -418,8 +418,9 @@ task do_addr_mode_abs_x();
             addr_bus_pc();
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_X;
+            alu_a_source = bus_sources::AluASourceCtl_X;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -432,6 +433,7 @@ task do_addr_mode_abs_x();
                 alu_op = control_signals::AluOp_add;
                 alu_a_source = bus_sources::AluASourceCtl_Mem;
                 alu_b_source = bus_sources::AluBSourceCtl_Zero;
+                ctrl_signals[control_signals::AluBInverse] = 0;
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -468,8 +470,9 @@ task do_addr_mode_abs_y();
             addr_bus_pc();
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_Y;
+            alu_a_source = bus_sources::AluASourceCtl_Y;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -482,6 +485,7 @@ task do_addr_mode_abs_y();
                 alu_op = control_signals::AluOp_add;
                 alu_a_source = bus_sources::AluASourceCtl_Mem;
                 alu_b_source = bus_sources::AluBSourceCtl_Zero;
+                ctrl_signals[control_signals::AluBInverse] = 0;
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -517,8 +521,9 @@ task do_addr_mode_zp_x_ind();
             addr_bus_pc();
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_X;
+            alu_a_source = bus_sources::AluASourceCtl_X;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -531,6 +536,7 @@ task do_addr_mode_zp_x_ind();
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_DataLatchHigh;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -573,6 +579,7 @@ task do_addr_mode_zp_ind_y();
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -583,8 +590,9 @@ task do_addr_mode_zp_ind_y();
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_Y;
+            alu_a_source = bus_sources::AluASourceCtl_Y;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -605,6 +613,7 @@ task do_addr_mode_zp_ind_y();
                 alu_op = control_signals::AluOp_add;
                 alu_a_source = bus_sources::AluASourceCtl_Mem;
                 alu_b_source = bus_sources::AluBSourceCtl_Zero;
+                ctrl_signals[control_signals::AluBInverse] = 0;
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -647,8 +656,8 @@ task sp_dec();
     // Subtract 1 from stack pointer
     alu_a_source = bus_sources::AluASourceCtl_SP;
     alu_b_source = bus_sources::AluBSourceCtl_Zero;
-    alu_carry_source = bus_sources::AluCarrySource_Zero;
     ctrl_signals[control_signals::AluBInverse] = 1;
+    alu_carry_source = bus_sources::AluCarrySource_Zero;
     alu_op = control_signals::AluOp_add;
 
     stack_pointer_source = bus_sources::StackPointerSource_Alu;
@@ -660,8 +669,8 @@ task sp_inc();
     alu_op = control_signals::AluOp_add;
     alu_a_source = bus_sources::AluASourceCtl_SP;
     alu_b_source = bus_sources::AluBSourceCtl_Zero;
-    alu_carry_source = bus_sources::AluCarrySource_One;
     ctrl_signals[control_signals::AluBInverse] = 0;
+    alu_carry_source = bus_sources::AluCarrySource_One;
 
     stack_pointer_source = bus_sources::StackPointerSource_Alu;
     ctrl_signals[control_signals::LOAD_SP] = 1;
@@ -702,8 +711,9 @@ task do_addr_mode_zp_x();
             addr_bus_pc();
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_Mem;
-            alu_b_source = bus_sources::AluBSourceCtl_X;
+            alu_a_source = bus_sources::AluASourceCtl_X;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -736,6 +746,7 @@ task do_addr_mode_zp_ind();
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
@@ -864,10 +875,11 @@ task do_op_adc();
         FirstOpCycle: begin
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
             alu_op = control_signals::AluOp_add;
+
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluBInverse] = 0;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagV] = 1;
@@ -891,10 +903,11 @@ task do_op_sbc();
         FirstOpCycle: begin
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 1;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
             alu_op = control_signals::AluOp_add;
+
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluBInverse] = 1;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagV] = 1;
@@ -918,10 +931,11 @@ task do_op_and();
         FirstOpCycle: begin
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
             alu_op = control_signals::AluOp_and;
+
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluBInverse] = 0;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
@@ -942,10 +956,11 @@ task do_op_ora();
         FirstOpCycle: begin
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
             alu_op = control_signals::AluOp_or;
+
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluBInverse] = 0;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
@@ -966,10 +981,11 @@ task do_op_eor();
         FirstOpCycle: begin
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
             alu_op = control_signals::AluOp_xor;
+
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluBInverse] = 0;
 
             ctrl_signals[control_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
@@ -1037,6 +1053,7 @@ task do_branch();
 
             alu_a_source = bus_sources::AluASourceCtl_PC_Low;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_op = control_signals::AluOp_add;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
         end
@@ -1052,6 +1069,7 @@ task do_branch();
 
                 alu_a_source = bus_sources::AluASourceCtl_DataLatchHigh;
                 alu_b_source = bus_sources::AluBSourceCtl_Zero;
+                ctrl_signals[control_signals::AluBInverse] = 0;
                 alu_op = control_signals::AluOp_add;
 
                 if( branch_offset_negative ) begin
@@ -1088,7 +1106,7 @@ task do_op_asl();
             addr_bus_dl();
 
             alu_op = control_signals::AluOp_shift_left;
-            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             ctrl_signals[control_signals::UpdateFlagC] = 1;
@@ -1113,7 +1131,7 @@ endtask
 
 task do_op_asl_acc_first();
     alu_op = control_signals::AluOp_shift_left;
-    alu_b_source = bus_sources::AluBSourceCtl_A;
+    alu_a_source = bus_sources::AluASourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
 
     ctrl_signals[control_signals::UpdateFlagC] = 1;
@@ -1217,6 +1235,7 @@ task do_op_brk();
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_DataLatchLow;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
@@ -1358,8 +1377,9 @@ task do_op_cpy();
 endtask
 
 task do_op_dex_first();
-    alu_a_source = bus_sources::AluASourceCtl_Ones;
-    alu_b_source = bus_sources::AluBSourceCtl_X;
+    alu_a_source = bus_sources::AluASourceCtl_X;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 1;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1381,8 +1401,9 @@ task do_op_dex();
 endtask
 
 task do_op_dey_first();
-    alu_a_source = bus_sources::AluASourceCtl_Ones;
-    alu_b_source = bus_sources::AluBSourceCtl_Y;
+    alu_a_source = bus_sources::AluASourceCtl_Y;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 1;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1404,8 +1425,9 @@ task do_op_dey();
 endtask
 
 task do_op_inx_first();
-    alu_a_source = bus_sources::AluASourceCtl_Zero;
-    alu_b_source = bus_sources::AluBSourceCtl_X;
+    alu_a_source = bus_sources::AluASourceCtl_X;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 0;
     alu_carry_source = bus_sources::AluCarrySource_One;
     alu_op = control_signals::AluOp_add;
 endtask
@@ -1427,8 +1449,9 @@ task do_op_inx();
 endtask
 
 task do_op_iny_first();
-    alu_a_source = bus_sources::AluASourceCtl_Zero;
-    alu_b_source = bus_sources::AluBSourceCtl_Y;
+    alu_a_source = bus_sources::AluASourceCtl_Y;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 0;
     alu_carry_source = bus_sources::AluCarrySource_One;
     alu_op = control_signals::AluOp_add;
 endtask

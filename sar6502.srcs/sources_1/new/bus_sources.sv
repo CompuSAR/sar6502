@@ -125,9 +125,7 @@ localparam StackPointerSourceCtlLast = StackPointerSource_End_Marker -1;
 typedef enum logic[31:0] {
     AluASourceCtl_Invalid = 'X,
 
-    AluASourceCtl_Zero = 0,
-    AluASourceCtl_Ones,
-    AluASourceCtl_A,
+    AluASourceCtl_A = 0,
     AluASourceCtl_X,
     AluASourceCtl_Y,
     AluASourceCtl_DataLatchLow,
@@ -147,10 +145,6 @@ typedef enum logic[31:0] {
 
     AluBSourceCtl_Zero = 0,
     AluBSourceCtl_Mem,
-
-    AluBSourceCtl_A,
-    AluBSourceCtl_X,
-    AluBSourceCtl_Y,
 
     AluBSourceCtl_End_Marker
 } AluBSourceCtl;

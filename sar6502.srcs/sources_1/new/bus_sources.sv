@@ -128,6 +128,8 @@ typedef enum logic[31:0] {
     AluASourceCtl_Zero = 0,
     AluASourceCtl_Ones,
     AluASourceCtl_A,
+    AluASourceCtl_X,
+    AluASourceCtl_Y,
     AluASourceCtl_DataLatchLow,
     AluASourceCtl_DataLatchHigh,
     AluASourceCtl_SP,

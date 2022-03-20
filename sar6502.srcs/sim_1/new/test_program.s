@@ -20,11 +20,17 @@ INT_TRIGGER_DELAY       = $2ff
     .org $000e
 bit_zp_test:    .byte $f3
 
+    .org $0014
+                .byte $01       ; dec zp,x test
+
     .org $0028
                 .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
     .org $0069
 asl_zp_test:    .byte $d3
+    .org $0074
+dec_zp_test:    .byte $f8
+
     .org $00a9
 lda_zp_test:    .word lda_indirect_test
     .org $ec
@@ -300,6 +306,23 @@ sbc_loop:
     cpy #$0
     php
 
+    ; DEC test
+    dec dec_abs_test
+    php
+    dec dec_abs_test,x
+    php
+    dec dec_zp_test
+    php
+    dec dec_zp_test,x
+    php
+
+dec_loop:
+    dec
+    php
+    bne dec_loop
+    dec
+    php
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -371,6 +394,12 @@ int_handler:
 
 nmi_handler:
     jmp int_handler
+
+    .org $61da
+dec_abs_test    .byte $7b
+
+    .org $627a
+                .byte $01 ; dec abs,x test
 
     .org $6d21
 lda_abs_test    .byte $74

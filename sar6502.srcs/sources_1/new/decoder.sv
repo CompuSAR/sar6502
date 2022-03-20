@@ -129,6 +129,8 @@ typedef enum logic[31:0] {
     OpCmp,
     OpCpx,
     OpCpy,
+    OpDec,
+    OpDecA,
     OpDex,
     OpDey,
     OpInx,
@@ -267,6 +269,7 @@ task do_decode();
         8'h35: set_addr_mode_zp_x( OpAnd );
         8'h38: set_addr_mode_implicit( OpSec );
         8'h39: set_addr_mode_abs_y( OpAnd );
+        8'h3a: set_addr_mode_implicit( OpDecA );
         8'h3c: set_addr_mode_abs_x( OpBit );
         8'h3d: set_addr_mode_abs_x( OpAnd );
         8'h40: set_addr_mode_stack( OpRti );
@@ -310,19 +313,23 @@ task do_decode();
         8'hc1: set_addr_mode_zp_x_ind( OpCmp );
         8'hc4: set_addr_mode_zp( OpCpy );
         8'hc5: set_addr_mode_zp( OpCmp );
+        8'hc6: set_addr_mode_zp( OpDec );
         8'hc8: set_addr_mode_implicit( OpIny );
         8'hc9: set_addr_mode_immediate( OpCmp );
         8'hca: set_addr_mode_implicit( OpDex );
         8'hcc: set_addr_mode_absolute( OpCpy );
         8'hcd: set_addr_mode_absolute( OpCmp );
+        8'hce: set_addr_mode_absolute( OpDec );
         8'hd0: set_addr_mode_implicit( OpBne );
         8'hd1: set_addr_mode_zp_ind_y( OpCmp );
         8'hd2: set_addr_mode_zp_ind( OpCmp );
         8'hd5: set_addr_mode_zp_x( OpCmp );
+        8'hd6: set_addr_mode_zp_x( OpDec );
         8'hd8: set_addr_mode_implicit( OpCld );
         8'hd9: set_addr_mode_abs_y( OpCmp );
         8'hda: set_addr_mode_stack( OpPhx );
         8'hdd: set_addr_mode_abs_x( OpCmp );
+        8'hde: set_addr_mode_abs_x( OpDec );
         8'he0: set_addr_mode_immediate( OpCpx );
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he4: set_addr_mode_zp( OpCpx );
@@ -801,6 +808,8 @@ task set_operation(operations current_op);
         OpCmp: do_op_cmp_first();
         OpCpx: do_op_cpx_first();
         OpCpy: do_op_cpy_first();
+        OpDec: do_op_dec_first();
+        OpDecA: do_op_dec_acc_first();
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
         OpInx: do_op_inx_first();
@@ -850,6 +859,8 @@ task do_operation();
         OpCmp: do_op_cmp();
         OpCpx: do_op_cpx();
         OpCpy: do_op_cpy();
+        OpDec: do_op_dec();
+        OpDecA: do_op_dec_acc();
         OpDex: do_op_dex();
         OpDey: do_op_dey();
         OpInx: do_op_inx();
@@ -1372,6 +1383,64 @@ task do_op_cpy();
             ctrl_signals[control_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_dec_first();
+    ML = 0;
+endtask
+
+task do_op_dec();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 1;
+            alu_carry_source = bus_sources::AluCarrySource_Zero;
+
+            ML = 0;
+        end
+        CycleOp2: begin
+            addr_bus_dl();
+
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            rW = 0;
+            ML = 0;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_dec_acc_first();
+    alu_op = control_signals::AluOp_add;
+    alu_a_source = bus_sources::AluASourceCtl_A;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 1;
+    alu_carry_source = bus_sources::AluCarrySource_Zero;
+endtask
+
+task do_op_dec_acc();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
         end

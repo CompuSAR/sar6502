@@ -283,6 +283,23 @@ sbc_loop:
     cpx #$0
     php
 
+    ; CPY test
+    cpy cmp_abs_test
+    php
+    cpy #$db
+    php
+    cpy cmp_zp_test
+    php
+    cpy #$19
+    php
+    cpy #$1a
+    php
+    cpy #$1b
+    php
+    ldx #$a0
+    cpy #$0
+    php
+
     sta FINISHED_TRIGGER
     .byte 00
 

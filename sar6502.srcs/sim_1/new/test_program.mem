@@ -225,61 +225,76 @@
 @0460 a2 a0                             // test_program.s:282 ldx #$a0
 @0462 e0 00                             // test_program.s:283 cpx #$0
 @0464 08                                // test_program.s:284 php
-@0465 8d 00 02                          // test_program.s:286 sta FINISHED_TRIGGER
-@0468 00                                // test_program.s:287 .byte 00
-@0469 a2 ff                             // test_program.s:290 ldx #$ff
-@046b 9a                                // test_program.s:291 txs
-@046c a9 03                             // test_program.s:292 lda #start/256
-@046e 48                                // test_program.s:293 pha
-@046f a9 00                             // test_program.s:294 lda #start%256
-@0471 48                                // test_program.s:295 pha
-@0472 a9 44                             // test_program.s:296 lda #INTMASK+OVERFLOW
-@0474 48                                // test_program.s:297 pha
-@0475 40                                // test_program.s:298 rti
-@0476 00                                // test_program.s:299 .byte 00
-@0a4f 8f                                // test_program.s:302 .byte $8f           ; cmp (zp) test
-@0a71 25                                // test_program.s:305 .byte $25           ; cmp (zp),y test
-@13d5 dd                                // test_program.s:308 .byte $dd           ; adc (zp,x) test
-@1690 6b                                // test_program.s:312 .byte $6b
-@16aa 03                                // test_program.s:315 .byte $03           ; bit abs,x
-@3787 00                                // test_program.s:319 .byte b8
-@37a1 06                                // test_program.s:322 .byte 6f
-@37a9 0e                                // test_program.s:325 .byte $0e
-@40ef 08                                // test_program.s:330 php
-@40f0 b0 0c                             // test_program.s:331 bcs .1
-@40f2 90 0a                             // test_program.s:332 bcc .1
-@40f4 70 04                             // test_program.s:334 .2  bvs .3
-@40f6 50 02                             // test_program.s:335 bvc .3
-@40f8 80 08                             // test_program.s:337 .4  bra .5
-@40fa d0 fc                             // test_program.s:339 .3  bne .4
-@40fc f0 fa                             // test_program.s:340 beq .4
-@40fe 30 f4                             // test_program.s:342 .1  bmi .2
-@4100 10 f2                             // test_program.s:343 bpl .2
-@4102 28                                // test_program.s:346 plp
-@4103 60                                // test_program.s:347 rts
-@4104 00                                // test_program.s:348 .byte 00
-@4105 08                                // test_program.s:351 php
-@4106 28                                // test_program.s:352 plp
-@4107 40                                // test_program.s:353 rti
-@4108 4c 05 41                          // test_program.s:356 jmp int_handler
-@6d21 74                                // test_program.s:359 lda_abs_test    .byte $74
-@6d51 c7                                // test_program.s:361 .byte $c7       ; lda abs,y
-@6de1 08                                // test_program.s:363 .byte $08       ; lda abs,x
-@7ace 65                                // test_program.s:367 .byte $65, $ca, $26, $6b
+@0465 cc 87 37                          // test_program.s:287 cpy cmp_abs_test
+@0468 08                                // test_program.s:288 php
+@0469 c0 db                             // test_program.s:289 cpy #$db
+@046b 08                                // test_program.s:290 php
+@046c c4 f0                             // test_program.s:291 cpy cmp_zp_test
+@046e 08                                // test_program.s:292 php
+@046f c0 19                             // test_program.s:293 cpy #$19
+@0471 08                                // test_program.s:294 php
+@0472 c0 1a                             // test_program.s:295 cpy #$1a
+@0474 08                                // test_program.s:296 php
+@0475 c0 1b                             // test_program.s:297 cpy #$1b
+@0477 08                                // test_program.s:298 php
+@0478 a2 a0                             // test_program.s:299 ldx #$a0
+@047a c0 00                             // test_program.s:300 cpy #$0
+@047c 08                                // test_program.s:301 php
+@047d 8d 00 02                          // test_program.s:303 sta FINISHED_TRIGGER
+@0480 00                                // test_program.s:304 .byte 00
+@0481 a2 ff                             // test_program.s:307 ldx #$ff
+@0483 9a                                // test_program.s:308 txs
+@0484 a9 03                             // test_program.s:309 lda #start/256
+@0486 48                                // test_program.s:310 pha
+@0487 a9 00                             // test_program.s:311 lda #start%256
+@0489 48                                // test_program.s:312 pha
+@048a a9 44                             // test_program.s:313 lda #INTMASK+OVERFLOW
+@048c 48                                // test_program.s:314 pha
+@048d 40                                // test_program.s:315 rti
+@048e 00                                // test_program.s:316 .byte 00
+@0a4f 8f                                // test_program.s:319 .byte $8f           ; cmp (zp) test
+@0a71 25                                // test_program.s:322 .byte $25           ; cmp (zp),y test
+@13d5 dd                                // test_program.s:325 .byte $dd           ; adc (zp,x) test
+@1690 6b                                // test_program.s:329 .byte $6b
+@16aa 03                                // test_program.s:332 .byte $03           ; bit abs,x
+@3787 00                                // test_program.s:336 .byte b8
+@37a1 06                                // test_program.s:339 .byte 6f
+@37a9 0e                                // test_program.s:342 .byte $0e
+@40ef 08                                // test_program.s:347 php
+@40f0 b0 0c                             // test_program.s:348 bcs .1
+@40f2 90 0a                             // test_program.s:349 bcc .1
+@40f4 70 04                             // test_program.s:351 .2  bvs .3
+@40f6 50 02                             // test_program.s:352 bvc .3
+@40f8 80 08                             // test_program.s:354 .4  bra .5
+@40fa d0 fc                             // test_program.s:356 .3  bne .4
+@40fc f0 fa                             // test_program.s:357 beq .4
+@40fe 30 f4                             // test_program.s:359 .1  bmi .2
+@4100 10 f2                             // test_program.s:360 bpl .2
+@4102 28                                // test_program.s:363 plp
+@4103 60                                // test_program.s:364 rts
+@4104 00                                // test_program.s:365 .byte 00
+@4105 08                                // test_program.s:368 php
+@4106 28                                // test_program.s:369 plp
+@4107 40                                // test_program.s:370 rti
+@4108 4c 05 41                          // test_program.s:373 jmp int_handler
+@6d21 74                                // test_program.s:376 lda_abs_test    .byte $74
+@6d51 c7                                // test_program.s:378 .byte $c7       ; lda abs,y
+@6de1 08                                // test_program.s:380 .byte $08       ; lda abs,x
+@7ace 65                                // test_program.s:384 .byte $65, $ca, $26, $6b
 @7acf ca
 @7ad0 26
 @7ad1 6b
-@8510 56                                // test_program.s:370 asl_abs_test    .byte $56
-@85d0 40                                // test_program.s:372 .byte $40       ; asl abs,x test
-@ae38 bf                                // test_program.s:375 lda_indirect_test .byte $bf
-@ae68 20                                // test_program.s:377 .byte $20       ; lda (zp),y test
-@af28 22                                // test_program.s:379 .byte $22       ; lda (zp),y test
-@c213 25                                // test_program.s:382 .byte $25                   ; adc (zp,x) test
-@d2cc 38                                // test_program.s:385 .byte $38                   ; cmp (zp,x) test
-@d588 15                                // test_program.s:388 .byte $15                   ; adc (zp,x) test
-@d589 8e                                // test_program.s:389 .byte $8e, $9b, $f5         ; adc (zp),y test
+@8510 56                                // test_program.s:387 asl_abs_test    .byte $56
+@85d0 40                                // test_program.s:389 .byte $40       ; asl abs,x test
+@ae38 bf                                // test_program.s:392 lda_indirect_test .byte $bf
+@ae68 20                                // test_program.s:394 .byte $20       ; lda (zp),y test
+@af28 22                                // test_program.s:396 .byte $22       ; lda (zp),y test
+@c213 25                                // test_program.s:399 .byte $25                   ; adc (zp,x) test
+@d2cc 38                                // test_program.s:402 .byte $38                   ; cmp (zp,x) test
+@d588 15                                // test_program.s:405 .byte $15                   ; adc (zp,x) test
+@d589 8e                                // test_program.s:406 .byte $8e, $9b, $f5         ; adc (zp),y test
 @d58a 9b
 @d58b f5
-@fffa 08 41                             // test_program.s:392 nmi_vector:     .word nmi_handler
-@fffc 69 04                             // test_program.s:393 reset_vector:   .word reset_handler
-@fffe 05 41                             // test_program.s:394 irq_vector:     .word int_handler
+@fffa 08 41                             // test_program.s:409 nmi_vector:     .word nmi_handler
+@fffc 81 04                             // test_program.s:410 reset_vector:   .word reset_handler
+@fffe 05 41                             // test_program.s:411 irq_vector:     .word int_handler

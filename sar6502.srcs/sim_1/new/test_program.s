@@ -14,6 +14,9 @@ RESET_TRIGGER_DELAY     = $2fd
 INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
+    .org $000a
+    .byte $cc, $d2              ; cmp zp,x test
+
     .org $000e
 bit_zp_test:    .byte $f3
 
@@ -27,6 +30,9 @@ lda_zp_test:    .word lda_indirect_test
     .org $ec
 adc_zp_test:
     .byte $88, $d5, $13, $c2
+
+cmp_zp_test:
+    .byte $4f, $0a
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state
@@ -234,6 +240,32 @@ sbc_loop:
     brk
     .byte $2
 
+    ; CMP test
+    cmp cmp_abs_test
+    php
+    cmp cmp_abs_test,x
+    php
+    cmp cmp_abs_test,y
+    php
+    cmp #$db
+    php
+    cmp cmp_zp_test
+    php
+    cmp (cmp_zp_test,x)
+    php
+    cmp cmp_zp_test,x
+    php
+    cmp (cmp_zp_test)
+    php
+    cmp (cmp_zp_test),y
+    php
+    cmp #$4e
+    php
+    cmp #$4f
+    php
+    cmp #$50
+    php
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -249,6 +281,12 @@ reset_handler:
     rti
     .byte 00
 
+    .org $0a4f
+    .byte $8f           ; cmp (zp) test
+
+    .org $0a71
+    .byte $25           ; cmp (zp),y test
+
     .org $13d5
     .byte $dd           ; adc (zp,x) test
 
@@ -258,6 +296,16 @@ bit_abs_test:
 
     .org $16aa
     .byte $03           ; bit abs,x
+
+    .org $3787
+cmp_abs_test:
+    .byte b8
+
+    .org $37a1
+    .byte 6f
+
+    .org $37a9
+    .byte $0e
 
     .org $40ef
 
@@ -315,6 +363,9 @@ lda_indirect_test .byte $bf
 
     .org $c213
     .byte $25                   ; adc (zp,x) test
+
+    .org $d2cc
+    .byte $38                   ; cmp (zp,x) test
 
     .org $d588
     .byte $15                   ; adc (zp,x) test

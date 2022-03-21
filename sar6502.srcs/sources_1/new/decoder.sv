@@ -316,6 +316,7 @@ task do_decode();
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h7f: set_addr_mode_zp( OpBbr7 );
         8'h80: set_addr_mode_implicit( OpBra );
+        8'h85: set_addr_mode_zp( OpSta );
         8'h88: set_addr_mode_implicit( OpDey );
         8'h89: set_addr_mode_immediate( OpBit );
         8'h8d: set_addr_mode_absolute( OpSta );

@@ -111,6 +111,22 @@ typedef enum logic[31:0] {
     OpAnd,
     OpAsl,
     OpAslA,
+    OpBbr0,
+    OpBbr1,
+    OpBbr2,
+    OpBbr3,
+    OpBbr4,
+    OpBbr5,
+    OpBbr6,
+    OpBbr7,
+    OpBbs0,
+    OpBbs1,
+    OpBbs2,
+    OpBbs3,
+    OpBbs4,
+    OpBbs5,
+    OpBbs6,
+    OpBbs7,
     OpBcc,
     OpBcs,
     OpBeq,
@@ -250,10 +266,12 @@ task do_decode();
         8'h08: set_addr_mode_stack( OpPhp );
         8'h0a: set_addr_mode_implicit( OpAslA );
         8'h0e: set_addr_mode_absolute( OpAsl );
+        8'h0f: set_addr_mode_zp( OpBbr0 );
         8'h10: set_addr_mode_implicit( OpBpl );
         8'h16: set_addr_mode_zp_x( OpAsl );
         8'h18: set_addr_mode_implicit( OpClc );
         8'h1e: set_addr_mode_abs_x( OpAsl );
+        8'h1f: set_addr_mode_zp( OpBbr1 );
         8'h20: set_addr_mode_stack( OpJsr );
         8'h21: set_addr_mode_zp_x_ind( OpAnd );
         8'h24: set_addr_mode_zp( OpBit );
@@ -262,6 +280,7 @@ task do_decode();
         8'h29: set_addr_mode_immediate( OpAnd );
         8'h2c: set_addr_mode_absolute( OpBit );
         8'h2d: set_addr_mode_absolute( OpAnd );
+        8'h2f: set_addr_mode_zp( OpBbr2 );
         8'h30: set_addr_mode_implicit( OpBmi );
         8'h31: set_addr_mode_zp_ind_y( OpAnd );
         8'h32: set_addr_mode_zp_ind( OpAnd );
@@ -272,16 +291,20 @@ task do_decode();
         8'h3a: set_addr_mode_implicit( OpDecA );
         8'h3c: set_addr_mode_abs_x( OpBit );
         8'h3d: set_addr_mode_abs_x( OpAnd );
+        8'h3f: set_addr_mode_zp( OpBbr3 );
         8'h40: set_addr_mode_stack( OpRti );
         8'h48: set_addr_mode_stack( OpPha );
+        8'h4f: set_addr_mode_zp( OpBbr4 );
         8'h50: set_addr_mode_implicit( OpBvc );
         8'h58: set_addr_mode_implicit( OpCli );
         8'h5a: set_addr_mode_stack( OpPhy );
+        8'h5f: set_addr_mode_zp( OpBbr5 );
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
         8'h65: set_addr_mode_zp( OpAdc );
         8'h69: set_addr_mode_immediate( OpAdc );
         8'h6d: set_addr_mode_absolute( OpAdc );
+        8'h6f: set_addr_mode_zp( OpBbr6 );
         8'h70: set_addr_mode_implicit( OpBvs );
         8'h71: set_addr_mode_zp_ind_y( OpAdc );
         8'h72: set_addr_mode_zp_ind( OpAdc );
@@ -289,19 +312,23 @@ task do_decode();
         8'h78: set_addr_mode_implicit( OpSei );
         8'h79: set_addr_mode_abs_y( OpAdc );
         8'h7d: set_addr_mode_abs_x( OpAdc );
+        8'h7f: set_addr_mode_zp( OpBbr7 );
         8'h80: set_addr_mode_implicit( OpBra );
         8'h88: set_addr_mode_implicit( OpDey );
         8'h89: set_addr_mode_immediate( OpBit );
         8'h8d: set_addr_mode_absolute( OpSta );
+        8'h8f: set_addr_mode_zp( OpBbs0 );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
         8'h9c: set_addr_mode_absolute( OpStz );
+        8'h9f: set_addr_mode_zp( OpBbs1 );
         8'ha0: set_addr_mode_immediate( OpLdy );
         8'ha1: set_addr_mode_zp_x_ind( OpLda );
         8'ha2: set_addr_mode_immediate( OpLdx );
-        8'ha9: set_addr_mode_immediate( OpLda );
         8'ha5: set_addr_mode_zp( OpLda );
+        8'ha9: set_addr_mode_immediate( OpLda );
         8'had: set_addr_mode_absolute( OpLda );
+        8'haf: set_addr_mode_zp( OpBbs2 );
         8'hb0: set_addr_mode_implicit( OpBcs );
         8'hb1: set_addr_mode_zp_ind_y( OpLda );
         8'hb2: set_addr_mode_zp_ind( OpLda );
@@ -309,6 +336,7 @@ task do_decode();
         8'hb8: set_addr_mode_implicit( OpClv );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
+        8'hbf: set_addr_mode_zp( OpBbs3 );
         8'hc0: set_addr_mode_immediate( OpCpy );
         8'hc1: set_addr_mode_zp_x_ind( OpCmp );
         8'hc4: set_addr_mode_zp( OpCpy );
@@ -320,6 +348,7 @@ task do_decode();
         8'hcc: set_addr_mode_absolute( OpCpy );
         8'hcd: set_addr_mode_absolute( OpCmp );
         8'hce: set_addr_mode_absolute( OpDec );
+        8'hcf: set_addr_mode_zp( OpBbs4 );
         8'hd0: set_addr_mode_implicit( OpBne );
         8'hd1: set_addr_mode_zp_ind_y( OpCmp );
         8'hd2: set_addr_mode_zp_ind( OpCmp );
@@ -330,15 +359,17 @@ task do_decode();
         8'hda: set_addr_mode_stack( OpPhx );
         8'hdd: set_addr_mode_abs_x( OpCmp );
         8'hde: set_addr_mode_abs_x( OpDec );
+        8'hdf: set_addr_mode_zp( OpBbs5 );
         8'he0: set_addr_mode_immediate( OpCpx );
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he4: set_addr_mode_zp( OpCpx );
         8'he5: set_addr_mode_zp( OpSbc );
         8'he8: set_addr_mode_implicit( OpInx );
         8'he9: set_addr_mode_immediate( OpSbc );
-        8'hec: set_addr_mode_absolute( OpCpx );
         8'hea: set_addr_mode_implicit( OpNop );
+        8'hec: set_addr_mode_absolute( OpCpx );
         8'hed: set_addr_mode_absolute( OpSbc );
+        8'hef: set_addr_mode_zp( OpBbs6 );
         8'hf0: set_addr_mode_implicit( OpBeq );
         8'hf1: set_addr_mode_zp_ind_y( OpSbc );
         8'hf2: set_addr_mode_zp_ind( OpSbc );
@@ -346,6 +377,7 @@ task do_decode();
         8'hf8: set_addr_mode_implicit( OpSed );
         8'hf9: set_addr_mode_abs_y( OpSbc );
         8'hfd: set_addr_mode_abs_x( OpSbc );
+        8'hff: set_addr_mode_zp( OpBbs7 );
         default: do_unknown_command();
     endcase
 endtask
@@ -790,6 +822,22 @@ task set_operation(operations current_op);
         OpAnd: do_op_and_first();
         OpAsl: do_op_asl_first();
         OpAslA: do_op_asl_acc_first();
+        OpBbr0: do_op_branch_bit_first(0, 0);
+        OpBbr1: do_op_branch_bit_first(1, 0);
+        OpBbr2: do_op_branch_bit_first(2, 0);
+        OpBbr3: do_op_branch_bit_first(3, 0);
+        OpBbr4: do_op_branch_bit_first(4, 0);
+        OpBbr5: do_op_branch_bit_first(5, 0);
+        OpBbr6: do_op_branch_bit_first(6, 0);
+        OpBbr7: do_op_branch_bit_first(7, 0);
+        OpBbs0: do_op_branch_bit_first(0, 1);
+        OpBbs1: do_op_branch_bit_first(1, 1);
+        OpBbs2: do_op_branch_bit_first(2, 1);
+        OpBbs3: do_op_branch_bit_first(3, 1);
+        OpBbs4: do_op_branch_bit_first(4, 1);
+        OpBbs5: do_op_branch_bit_first(5, 1);
+        OpBbs6: do_op_branch_bit_first(6, 1);
+        OpBbs7: do_op_branch_bit_first(7, 1);
         OpBcc: do_op_bcc_first();
         OpBcs: do_op_bcs_first();
         OpBeq: do_op_beq_first();
@@ -845,6 +893,22 @@ task do_operation();
         OpAnd: do_op_and();
         OpAsl: do_op_asl();
         OpAslA: do_op_asl_acc();
+        OpBbr0: do_op_branch_bit(0, 0);
+        OpBbr1: do_op_branch_bit(1, 0);
+        OpBbr2: do_op_branch_bit(2, 0);
+        OpBbr3: do_op_branch_bit(3, 0);
+        OpBbr4: do_op_branch_bit(4, 0);
+        OpBbr5: do_op_branch_bit(5, 0);
+        OpBbr6: do_op_branch_bit(6, 0);
+        OpBbr7: do_op_branch_bit(7, 0);
+        OpBbs0: do_op_branch_bit(0, 1);
+        OpBbs1: do_op_branch_bit(1, 1);
+        OpBbs2: do_op_branch_bit(2, 1);
+        OpBbs3: do_op_branch_bit(3, 1);
+        OpBbs4: do_op_branch_bit(4, 1);
+        OpBbs5: do_op_branch_bit(5, 1);
+        OpBbs6: do_op_branch_bit(6, 1);
+        OpBbs7: do_op_branch_bit(7, 1);
         OpBcc: do_branch();
         OpBcs: do_branch();
         OpBeq: do_branch();
@@ -879,6 +943,120 @@ endtask
 
 task next_instruction();
     op_cycle_next = CycleFetch;
+endtask
+
+task do_op_bcc_first();
+    do_branch_first( !status[control_signals::FlagsCarry] );
+endtask
+
+task do_op_bcs_first();
+    do_branch_first( status[control_signals::FlagsCarry] );
+endtask
+
+task do_op_beq_first();
+    do_branch_first( status[control_signals::FlagsZero] );
+endtask
+
+task do_op_bmi_first();
+    do_branch_first( status[control_signals::FlagsNegative] );
+endtask
+
+task do_op_bne_first();
+    do_branch_first( !status[control_signals::FlagsZero] );
+endtask
+
+task do_op_bpl_first();
+    do_branch_first( !status[control_signals::FlagsNegative] );
+endtask
+
+task do_op_bra_first();
+    do_branch_first( 1 );
+endtask
+
+task do_op_bvc_first();
+    do_branch_first( !status[control_signals::FlagsOverflow] );
+endtask
+
+task do_op_bvs_first();
+    do_branch_first( status[control_signals::FlagsOverflow] );
+endtask
+
+task do_branch_first( input condition );
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    if( ! condition ) begin
+        next_instruction();
+    end
+endtask
+
+task do_branch();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_pc();
+
+            data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
+            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            data_latch_high_source = bus_sources::DataLatchHighSource_PC;
+            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+
+            alu_a_source = bus_sources::AluASourceCtl_PC_Low;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_source = bus_sources::AluCarrySource_Zero;
+        end
+        CycleOp2: begin
+            if( branch_offset_negative==0 && !alu_carry_latched || branch_offset_negative==1 && alu_carry_latched ) begin
+                do_fetch_cycle();
+
+                pc_low_source = bus_sources::PcLowSource_Dl;
+                pc_high_source = bus_sources::PcHighSource_CurrentValue;
+                ctrl_signals[control_signals::PC_LOAD] = 1;
+            end else begin
+                addr_bus_pc();
+
+                alu_a_source = bus_sources::AluASourceCtl_DataLatchHigh;
+                alu_b_source = bus_sources::AluBSourceCtl_Zero;
+                ctrl_signals[control_signals::AluBInverse] = 0;
+                alu_op = control_signals::AluOp_add;
+
+                if( branch_offset_negative ) begin
+                    ctrl_signals[control_signals::AluBInverse] = 1;
+                    alu_carry_source = bus_sources::AluCarrySource_Zero;
+                end else begin
+                    alu_carry_source = bus_sources::AluCarrySource_One;
+                end
+
+                data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
+                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            end
+        end
+        CycleOp3: begin
+            do_fetch_cycle();
+
+            pc_low_source = bus_sources::PcLowSource_Dl;
+            pc_high_source = bus_sources::PcHighSource_Dl;
+            ctrl_signals[control_signals::PC_LOAD] = 1;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_branch_bit_first( input int bitnum, input desired );
+endtask
+
+task do_op_branch_bit( input int bitnum, input desired );
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+        end
+        CycleOp2: begin
+            addr_bus_pc();
+            op_cycle_next = FirstOpCycle;
+            active_op_next = OpBra;
+            do_branch_first( memory_in[bitnum] == desired );
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task do_op_adc_first();
@@ -1007,102 +1185,6 @@ task do_op_eor();
             ctrl_signals[control_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
-        end
-        default: set_invalid_state();
-    endcase
-endtask
-
-task do_op_bcc_first();
-    do_branch_first( !status[control_signals::FlagsCarry] );
-endtask
-
-task do_op_bcs_first();
-    do_branch_first( status[control_signals::FlagsCarry] );
-endtask
-
-task do_op_beq_first();
-    do_branch_first( status[control_signals::FlagsZero] );
-endtask
-
-task do_op_bmi_first();
-    do_branch_first( status[control_signals::FlagsNegative] );
-endtask
-
-task do_op_bne_first();
-    do_branch_first( !status[control_signals::FlagsZero] );
-endtask
-
-task do_op_bpl_first();
-    do_branch_first( !status[control_signals::FlagsNegative] );
-endtask
-
-task do_op_bra_first();
-    do_branch_first( 1 );
-endtask
-
-task do_op_bvc_first();
-    do_branch_first( !status[control_signals::FlagsOverflow] );
-endtask
-
-task do_op_bvs_first();
-    do_branch_first( status[control_signals::FlagsOverflow] );
-endtask
-
-task do_branch_first( input condition );
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
-    if( ! condition ) begin
-        next_instruction();
-    end
-endtask
-
-task do_branch();
-    case( op_cycle )
-        FirstOpCycle: begin
-            addr_bus_pc();
-
-            data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
-            data_latch_high_source = bus_sources::DataLatchHighSource_PC;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
-
-            alu_a_source = bus_sources::AluASourceCtl_PC_Low;
-            alu_b_source = bus_sources::AluBSourceCtl_Mem;
-            ctrl_signals[control_signals::AluBInverse] = 0;
-            alu_op = control_signals::AluOp_add;
-            alu_carry_source = bus_sources::AluCarrySource_Zero;
-        end
-        CycleOp2: begin
-            if( branch_offset_negative==0 && !alu_carry_latched || branch_offset_negative==1 && alu_carry_latched ) begin
-                do_fetch_cycle();
-
-                pc_low_source = bus_sources::PcLowSource_Dl;
-                pc_high_source = bus_sources::PcHighSource_CurrentValue;
-                ctrl_signals[control_signals::PC_LOAD] = 1;
-            end else begin
-                addr_bus_pc();
-
-                alu_a_source = bus_sources::AluASourceCtl_DataLatchHigh;
-                alu_b_source = bus_sources::AluBSourceCtl_Zero;
-                ctrl_signals[control_signals::AluBInverse] = 0;
-                alu_op = control_signals::AluOp_add;
-
-                if( branch_offset_negative ) begin
-                    ctrl_signals[control_signals::AluBInverse] = 1;
-                    alu_carry_source = bus_sources::AluCarrySource_Zero;
-                end else begin
-                    alu_carry_source = bus_sources::AluCarrySource_One;
-                end
-
-                data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
-            end
-        end
-        CycleOp3: begin
-            do_fetch_cycle();
-
-            pc_low_source = bus_sources::PcLowSource_Dl;
-            pc_high_source = bus_sources::PcHighSource_Dl;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
         end
         default: set_invalid_state();
     endcase

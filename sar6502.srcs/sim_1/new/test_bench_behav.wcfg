@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="3,894.583 ns"></ZoomStartTime>
-      <ZoomEndTime time="4,255.584 ns"></ZoomEndTime>
-      <Cursor1Time time="4,550.000 ns"></Cursor1Time>
+      <ZoomStartTime time="290,136.735 ns"></ZoomStartTime>
+      <ZoomEndTime time="290,608.115 ns"></ZoomEndTime>
+      <Cursor1Time time="290,990.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="90"></ValueColumnWidth>
+      <ValueColumnWidth column_width="86"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="38" />
+   <WVObjectSize size="41" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -205,5 +205,17 @@
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals">
       <obj_property name="ElementShortName">ctrl_signals[17:0]</obj_property>
       <obj_property name="ObjectShortName">ctrl_signals[17:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/address_bus_high_source">
+      <obj_property name="ElementShortName">address_bus_high_source[31:0]</obj_property>
+      <obj_property name="ObjectShortName">address_bus_high_source[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/address_bus_low_source">
+      <obj_property name="ElementShortName">address_bus_low_source[31:0]</obj_property>
+      <obj_property name="ObjectShortName">address_bus_low_source[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/data_bus_source">
+      <obj_property name="ElementShortName">data_bus_source[31:0]</obj_property>
+      <obj_property name="ObjectShortName">data_bus_source[31:0]</obj_property>
    </wvobject>
 </wave_config>

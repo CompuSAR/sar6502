@@ -31,6 +31,9 @@ asl_zp_test:    .byte $d3
     .org $0074
 dec_zp_test:    .byte $f8
 
+    .org $0099
+branch_bit_test: .byte $50
+
     .org $00a9
 lda_zp_test:    .word lda_indirect_test
     .org $ec
@@ -323,8 +326,15 @@ dec_loop:
     dec
     php
 
+    jsr bb_test
+    lda branch_bit_test
+    eor #$ff
+    sta branch_bit_test
+    jsr bb_test
+
     sta FINISHED_TRIGGER
     .byte 00
+
 
 reset_handler:
     ldx #$ff
@@ -356,10 +366,10 @@ bit_abs_test:
 
     .org $3787
 cmp_abs_test:
-    .byte b8
+    .byte $b8
 
     .org $37a1
-    .byte 6f
+    .byte $6f
 
     .org $37a9
     .byte $0e
@@ -386,6 +396,36 @@ flags_dump:
     plp
     rts
     .byte 00
+
+    .org $41ef
+bb_test:
+    ; Branch bit tests
+    bbr 0, branch_bit_test, .1
+    bbs 0, branch_bit_test, .1
+
+.2  bbr 2, branch_bit_test, .3
+    bbs 2, branch_bit_test, .3
+
+.4  bbr 4, branch_bit_test, .5
+    bbs 4, branch_bit_test, .5
+
+.6  bbr 6, branch_bit_test, .7
+    bbs 6, branch_bit_test, .7
+
+.8  rts
+
+.7  bbr 7, branch_bit_test, .8
+    bbs 7, branch_bit_test, .8
+
+.5  bbr 5, branch_bit_test, .6
+    bbs 5, branch_bit_test, .6
+
+.3  bbr 3, branch_bit_test, .4
+    bbs 3, branch_bit_test, .4
+
+.1  bbr 1, branch_bit_test, .2
+    bbs 1, branch_bit_test, .2
+
 
 int_handler:
     php

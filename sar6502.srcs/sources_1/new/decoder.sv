@@ -149,6 +149,7 @@ typedef enum logic[31:0] {
     OpDecA,
     OpDex,
     OpDey,
+    OpEor,
     OpInx,
     OpIny,
     OpJsr,
@@ -294,6 +295,7 @@ task do_decode();
         8'h3f: set_addr_mode_zp( OpBbr3 );
         8'h40: set_addr_mode_stack( OpRti );
         8'h48: set_addr_mode_stack( OpPha );
+        8'h49: set_addr_mode_immediate( OpEor );
         8'h4f: set_addr_mode_zp( OpBbr4 );
         8'h50: set_addr_mode_implicit( OpBvc );
         8'h58: set_addr_mode_implicit( OpCli );
@@ -860,6 +862,7 @@ task set_operation(operations current_op);
         OpDecA: do_op_dec_acc_first();
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
+        OpEor: do_op_eor_first();
         OpInx: do_op_inx_first();
         OpIny: do_op_iny_first();
         OpJsr: do_op_jsr_first();
@@ -927,6 +930,7 @@ task do_operation();
         OpDecA: do_op_dec_acc();
         OpDex: do_op_dex();
         OpDey: do_op_dey();
+        OpEor: do_op_eor();
         OpInx: do_op_inx();
         OpIny: do_op_iny();
         OpJsr: do_op_jsr();
@@ -1171,11 +1175,10 @@ endtask
 task do_op_eor();
     case( op_cycle )
         FirstOpCycle: begin
+            alu_op = control_signals::AluOp_xor;
             alu_a_source = bus_sources::AluASourceCtl_A;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
             ctrl_signals[control_signals::AluBInverse] = 0;
-            alu_carry_source = bus_sources::AluCarrySource_Carry;
-            alu_op = control_signals::AluOp_xor;
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 

@@ -46,10 +46,12 @@ branch_bit_test: .byte $50
 lda_zp_test:    .word lda_indirect_test
     .org $ec
 adc_zp_test:
-    .byte $88, $d5, $13, $c2
+    .byte $88, $d5, $13
+inc_zp_test:
+    .byte $c2
 
 cmp_zp_test:
-    .byte $4f, $0a
+    .byte $4f, $0a, $8f
 
     .org $00ff
                 .byte $e6       ; eor zp,x and (zp,x) tests (LSB)
@@ -374,6 +376,26 @@ dec_loop:
     php
 
 
+    ; inc tests
+    dec
+    dec
+    ldx #$3
+
+inc_loop:
+    inc inc_abs_test
+    php
+    inc inc_abs_test,x
+    php
+    inc
+    php
+    inc inc_zp_test
+    php
+    inc inc_zp_test,x
+    php
+
+    dex
+    bne inc_loop
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -483,6 +505,9 @@ nmi_handler:
 
     .org $61da
 dec_abs_test    .byte $7b
+
+    .org $61ff
+inc_abs_test    .byte $fe, $30, $22, $48        ; inc abs, int abs,x tests
 
     .org $627a
                 .byte $01 ; dec abs,x test

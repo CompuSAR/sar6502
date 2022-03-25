@@ -150,6 +150,8 @@ typedef enum logic[31:0] {
     OpDex,
     OpDey,
     OpEor,
+    OpInc,
+    OpIncA,
     OpInx,
     OpIny,
     OpJsr,
@@ -271,6 +273,7 @@ task do_decode();
         8'h10: set_addr_mode_implicit( OpBpl );
         8'h16: set_addr_mode_zp_x( OpAsl );
         8'h18: set_addr_mode_implicit( OpClc );
+        8'h1a: set_addr_mode_implicit( OpIncA );
         8'h1e: set_addr_mode_abs_x( OpAsl );
         8'h1f: set_addr_mode_zp( OpBbr1 );
         8'h20: set_addr_mode_stack( OpJsr );
@@ -375,19 +378,23 @@ task do_decode();
         8'he1: set_addr_mode_zp_x_ind( OpSbc );
         8'he4: set_addr_mode_zp( OpCpx );
         8'he5: set_addr_mode_zp( OpSbc );
+        8'he6: set_addr_mode_zp( OpInc );
         8'he8: set_addr_mode_implicit( OpInx );
         8'he9: set_addr_mode_immediate( OpSbc );
         8'hea: set_addr_mode_implicit( OpNop );
         8'hec: set_addr_mode_absolute( OpCpx );
         8'hed: set_addr_mode_absolute( OpSbc );
+        8'hee: set_addr_mode_absolute( OpInc );
         8'hef: set_addr_mode_zp( OpBbs6 );
         8'hf0: set_addr_mode_implicit( OpBeq );
         8'hf1: set_addr_mode_zp_ind_y( OpSbc );
         8'hf2: set_addr_mode_zp_ind( OpSbc );
         8'hf5: set_addr_mode_zp_x( OpSbc );
+        8'hf6: set_addr_mode_zp_x( OpInc );
         8'hf8: set_addr_mode_implicit( OpSed );
         8'hf9: set_addr_mode_abs_y( OpSbc );
         8'hfd: set_addr_mode_abs_x( OpSbc );
+        8'hfe: set_addr_mode_abs_x( OpInc );
         8'hff: set_addr_mode_zp( OpBbs7 );
         default: do_unknown_command();
     endcase
@@ -872,6 +879,8 @@ task set_operation(operations current_op);
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
         OpEor: do_op_eor_first();
+        OpInc: do_op_inc_first();
+        OpIncA: do_op_inc_acc_first();
         OpInx: do_op_inx_first();
         OpIny: do_op_iny_first();
         OpJsr: do_op_jsr_first();
@@ -940,6 +949,8 @@ task do_operation();
         OpDex: do_op_dex();
         OpDey: do_op_dey();
         OpEor: do_op_eor();
+        OpInc: do_op_inc();
+        OpIncA: do_op_inc_acc();
         OpInx: do_op_inx();
         OpIny: do_op_iny();
         OpJsr: do_op_jsr();
@@ -1596,6 +1607,64 @@ task do_op_inx_first();
     ctrl_signals[control_signals::AluBInverse] = 0;
     alu_carry_source = bus_sources::AluCarrySource_One;
     alu_op = control_signals::AluOp_add;
+endtask
+
+task do_op_inc_first();
+    ML = 0;
+endtask
+
+task do_op_inc();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+            alu_carry_source = bus_sources::AluCarrySource_One;
+
+            ML = 0;
+        end
+        CycleOp2: begin
+            addr_bus_dl();
+
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            rW = 0;
+            ML = 0;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_inc_acc_first();
+    alu_op = control_signals::AluOp_add;
+    alu_a_source = bus_sources::AluASourceCtl_A;
+    alu_b_source = bus_sources::AluBSourceCtl_Zero;
+    ctrl_signals[control_signals::AluBInverse] = 0;
+    alu_carry_source = bus_sources::AluCarrySource_One;
+endtask
+
+task do_op_inc_acc();
+    case( op_cycle )
+        FirstOpCycle: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task do_op_inx();

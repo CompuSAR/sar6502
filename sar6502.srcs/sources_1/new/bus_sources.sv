@@ -48,6 +48,7 @@ typedef enum logic[31:0] {
     AddrBusHighSrc_Zero = 0,
     AddrBusHighSrc_One,
     AddrBusHighSrc_Mem,
+    AddrBusHighSrc_Alu,
     AddrBusHighSrc_PC,
     AddrBusHighSrc_DataLatch,
 
@@ -85,6 +86,7 @@ typedef enum logic[31:0] {
 
     DataLatchLowSource_Mem = 0,
     DataLatchLowSource_Alu,
+    DataLatchLowSource_Alu_Latched,
     DataLatchLowSource_PC,
 
     DataLatchLowSource_FA,
@@ -102,6 +104,7 @@ typedef enum logic[31:0] {
     DataLatchHighSource_Zero = 0,
     DataLatchHighSource_Mem,
     DataLatchHighSource_Alu,
+    DataLatchHighSource_Alu_Latched,
     DataLatchHighSource_PC,
 
     DataLatchHighSource_FF,

@@ -32,6 +32,7 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_Invalid = 'X,
 
     AddrBusLowSrc_Mem = 0,
+    AddrBusLowSrc_Alu,
     AddrBusLowSrc_PC,
     AddrBusLowSrc_SP,
     AddrBusLowSrc_DataLatch,
@@ -49,6 +50,7 @@ typedef enum logic[31:0] {
     AddrBusHighSrc_One,
     AddrBusHighSrc_Mem,
     AddrBusHighSrc_Alu,
+    AddrBusHighSrc_Alu_Unlatched,
     AddrBusHighSrc_PC,
     AddrBusHighSrc_DataLatch,
 
@@ -128,7 +130,8 @@ localparam StackPointerSourceCtlLast = StackPointerSource_End_Marker -1;
 typedef enum logic[31:0] {
     AluASourceCtl_Invalid = 'X,
 
-    AluASourceCtl_A = 0,
+    AluASourceCtl_Zero = 0,
+    AluASourceCtl_A,
     AluASourceCtl_X,
     AluASourceCtl_Y,
     AluASourceCtl_DataLatchLow,
@@ -137,6 +140,7 @@ typedef enum logic[31:0] {
     AluASourceCtl_PC_Low,
     AluASourceCtl_PC_High,
     AluASourceCtl_Mem,
+    AluASourceCtl_Alu,
 
     AluASourceCtl_End_Marker
 } AluASourceCtl;

@@ -93,9 +93,10 @@ enum logic[31:0] {
     AddrImplicit=0,
     AddrImmediate,
     AddrAbsolute,
-    AddrAbsInd,
+    AddrAbsoluteInd,
     AddrAbsoluteX,
     AddrAbsoluteY,
+    AddrAbsoluteXInd,
     AddrZeroPage,
     AddrZeroPageX,
     AddrZeroPageInd,
@@ -328,6 +329,7 @@ task do_decode();
         8'h75: set_addr_mode_zp_x( OpAdc );
         8'h78: set_addr_mode_implicit( OpSei );
         8'h79: set_addr_mode_abs_y( OpAdc );
+        8'h7c: set_addr_mode_abs_x_ind( OpJmp );
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h7f: set_addr_mode_zp( OpBbr7 );
         8'h80: set_addr_mode_implicit( OpBra );
@@ -411,9 +413,10 @@ endtask
 task do_addr_lookup();
     case( active_addr_mode )
         AddrAbsolute: do_addr_mode_absolute();
-        AddrAbsInd: do_addr_mode_abs_ind();
+        AddrAbsoluteInd: do_addr_mode_abs_x_ind();
         AddrAbsoluteX: do_addr_mode_abs_x();
         AddrAbsoluteY: do_addr_mode_abs_y();
+        AddrAbsoluteXInd: do_addr_mode_abs_x_ind();
         AddrZeroPage: do_addr_mode_zp();
         AddrZeroPageX: do_addr_mode_zp_x();
         AddrZeroPageInd: do_addr_mode_zp_ind();
@@ -472,55 +475,75 @@ task do_addr_mode_absolute();
 endtask
 
 task set_addr_mode_abs_ind(operations current_op);
-    active_addr_mode_next = AddrAbsInd;
+    active_op_next = current_op;
+    active_addr_mode_next = AddrAbsoluteInd;
 
     ctrl_signals[control_signals::PC_ADVANCE] = 1;
 endtask
 
-task do_addr_mode_abs_ind();
+task set_addr_mode_abs_x_ind(operations current_op);
+    active_op_next = current_op;
+    active_addr_mode_next = AddrAbsoluteXInd;
+
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+endtask
+
+task do_addr_mode_abs_x_ind();
     // Load directly to the PC
     case( op_cycle )
         CycleAddr1: begin
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
-            data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
+            // Vector LSB in data_in_latched
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = active_addr_mode==AddrAbsoluteXInd ? bus_sources::AluASourceCtl_X : bus_sources::AluASourceCtl_Zero;
+            alu_b_source = bus_sources::AluBSourceCtl_Mem;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+            alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             addr_bus_pc();
         end
         CycleAddr2: begin
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
-            data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
+            // Vector MSB in data_in_latched
+            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            data_latch_low_source = bus_sources::DataLatchLowSource_Alu_Latched;
 
             addr_bus_pc();
+
+            alu_op = control_signals::AluOp_add;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_Zero;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+            alu_carry_source = alu_carry ? bus_sources::AluCarrySource_One : bus_sources::AluCarrySource_Zero;
+        end
+        CycleAddr3: begin
+            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            data_latch_high_source = bus_sources::DataLatchHighSource_Alu_Latched;
+
+            address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
+            address_bus_high_source = bus_sources::AddrBusHighSrc_Alu;
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_DataLatchLow;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
             ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_One;
-        end
-        CycleAddr3: begin
-            data_latch_low_source = bus_sources::DataLatchLowSource_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
 
-            addr_bus_dl();
+        end
+        CycleAddr4: begin
+            // Destination LSB in data_in_latched
+            pc_low_source = bus_sources::PcLowSource_Mem;
+            ctrl_signals[control_signals::PC_LOAD] = 1;
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_DataLatchHigh;
             alu_b_source = bus_sources::AluBSourceCtl_Zero;
             ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = alu_carry ? bus_sources::AluCarrySource_One : bus_sources::AluCarrySource_Zero;
-        end
-        CycleAddr4: begin
-            pc_low_source = bus_sources::PcLowSource_Mem;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
 
-            data_latch_high_source = bus_sources::DataLatchHighSource_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
-
-            address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
-            address_bus_high_source = bus_sources::AddrBusHighSrc_Alu;
+            address_bus_low_source = bus_sources::AddrBusLowSrc_Alu;
+            address_bus_high_source = bus_sources::AddrBusHighSrc_Alu_Unlatched;
         end
         CycleAddr5: begin
+            // Destination MSB in data_in_latched
             do_fetch_cycle();
 
             pc_low_source = bus_sources::PcLowSource_CurrentValue;

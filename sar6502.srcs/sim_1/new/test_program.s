@@ -439,13 +439,19 @@ jmp_ind_test2:
     .byte 0
     .word jmp_dest4
 
-    .org $274f
+    .org $2746
     .word jmp_test_done
+
+    .org $274f
+    .word jmp_dest5
 
     .org $27b8
 jmp_ind_test1:
     .word jmp_dest1
     .byte 0
+    .word jmp_dest3
+
+    .org $27ff
     .word jmp_dest3
 
     .org $2808
@@ -572,6 +578,11 @@ jmp_dest2:
 jmp_dest3:
                 jmp (jmp_ind_test2,x)
                 brk
+
+jmp_dest5:
+                ldx #$47
+                jmp jmp_dest1
+                brk             ; Unreachable
 
 jmp_dest4:
                 ldx #$50

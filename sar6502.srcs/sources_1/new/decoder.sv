@@ -154,6 +154,7 @@ typedef enum logic[31:0] {
     OpIncA,
     OpInx,
     OpIny,
+    OpJmp,
     OpJsr,
     OpLda,
     OpLdx,
@@ -301,6 +302,7 @@ task do_decode();
         8'h45: set_addr_mode_zp( OpEor );
         8'h48: set_addr_mode_stack( OpPha );
         8'h49: set_addr_mode_immediate( OpEor );
+        8'h4c: set_addr_mode_absolute( OpJmp );
         8'h4d: set_addr_mode_absolute( OpEor );
         8'h4f: set_addr_mode_zp( OpBbr4 );
         8'h50: set_addr_mode_implicit( OpBvc );
@@ -883,6 +885,7 @@ task set_operation(operations current_op);
         OpIncA: do_op_inc_acc_first();
         OpInx: do_op_inx_first();
         OpIny: do_op_iny_first();
+        OpJmp: do_op_jmp_first();
         OpJsr: do_op_jsr_first();
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
@@ -953,6 +956,7 @@ task do_operation();
         OpIncA: do_op_inc_acc();
         OpInx: do_op_inx();
         OpIny: do_op_iny();
+        OpJmp: do_op_jmp();
         OpJsr: do_op_jsr();
         OpLda: do_op_lda();
         OpLdx: do_op_ldx();
@@ -1705,6 +1709,20 @@ task do_op_iny();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task do_op_jmp_first();
+    do_fetch_cycle();
+
+    ctrl_signals[control_signals::PC_LOAD] = 1;
+    pc_low_source = bus_sources::PcLowSource_Dl;
+    pc_high_source = bus_sources::PcHighSource_Mem;
+
+    address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch;
+    address_bus_high_source = bus_sources::AddrBusHighSrc_Mem;
+endtask
+
+task do_op_jmp();
 endtask
 
 task do_op_jsr_first();

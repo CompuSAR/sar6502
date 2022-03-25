@@ -396,6 +396,11 @@ inc_loop:
     dex
     bne inc_loop
 
+    jmp jmp_tests
+    brk                 ; Unreachable
+jmp_test_done:
+    php
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -427,6 +432,24 @@ bit_abs_test:
 
     .org $16aa
     .byte $03           ; bit abs,x
+
+    .org $26ff
+jmp_ind_test2:
+    .word jmp_dest2
+    .byte 0
+    .word jmp_dest4
+
+    .org $274f
+    .word jmp_test_done
+
+    .org $27b8
+jmp_ind_test1:
+    .word jmp_dest1
+    .byte 0
+    .word jmp_dest3
+
+    .org $2808
+    .word jmp_dest3
 
     .org $3787
 cmp_abs_test:
@@ -499,9 +522,17 @@ int_handler:
 
 nmi_handler:
     jmp int_handler
+    brk         ; Unreachable
+
+    .org $55aa
+jmp_tests:
+    ldx #$3
+
+    jmp (jmp_ind_test1)
+    brk         ; Unreachable
 
     .org $5ee6
-                .byte 3f; eor (zp,x) test
+                .byte $3f                       ; eor (zp,x) test
 
     .org $61da
 dec_abs_test    .byte $7b
@@ -532,6 +563,22 @@ adc_abs_test:
 asl_abs_test    .byte $56
     .org $85d0
                 .byte $40       ; asl abs,x test
+
+    .org $a303
+jmp_dest2:
+                jmp (jmp_ind_test1,x)
+                brk             ; Unreachable
+
+jmp_dest3:
+                jmp (jmp_ind_test2,x)
+                brk
+
+jmp_dest4:
+                ldx #$50
+
+jmp_dest1:
+                jmp (jmp_ind_test2)
+                brk             ; Unreachable
 
     .org $ae38
 lda_indirect_test .byte $bf

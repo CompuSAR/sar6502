@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="290,136.735 ns"></ZoomStartTime>
-      <ZoomEndTime time="290,608.115 ns"></ZoomEndTime>
-      <Cursor1Time time="290,990.000 ns"></Cursor1Time>
+      <ZoomStartTime time="302,313.016 ns"></ZoomStartTime>
+      <ZoomEndTime time="303,653.397 ns"></ZoomEndTime>
+      <Cursor1Time time="302,992.977 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="86"></ValueColumnWidth>
+      <ValueColumnWidth column_width="82"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="41" />
+   <WVObjectSize size="43" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -217,5 +217,13 @@
    <wvobject type="array" fp_name="/test_bench/cpu/data_bus_source">
       <obj_property name="ElementShortName">data_bus_source[31:0]</obj_property>
       <obj_property name="ObjectShortName">data_bus_source[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/active_addr_mode">
+      <obj_property name="ElementShortName">active_addr_mode[31:0]</obj_property>
+      <obj_property name="ObjectShortName">active_addr_mode[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/active_op">
+      <obj_property name="ElementShortName">active_op[31:0]</obj_property>
+      <obj_property name="ObjectShortName">active_op[31:0]</obj_property>
    </wvobject>
 </wave_config>

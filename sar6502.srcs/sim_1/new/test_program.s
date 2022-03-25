@@ -14,6 +14,9 @@ RESET_TRIGGER_DELAY     = $2fd
 INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
+    .org $0000
+                .byte $5e       ; eor zp,x and (zp,x) tests (MSB)
+
     .org $000a
     .byte $cc, $d2              ; cmp zp,x test
 
@@ -26,6 +29,11 @@ bit_zp_test:    .byte $f3
     .org $0028
                 .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
+
+    .org $005f
+eor_zp_test:
+                .byte $88, $70
+
     .org $0069
 asl_zp_test:    .byte $d3
     .org $0074
@@ -42,6 +50,9 @@ adc_zp_test:
 
 cmp_zp_test:
     .byte $4f, $0a
+
+    .org $00ff
+                .byte $e6       ; eor zp,x and (zp,x) tests (LSB)
 
     .org $0100
     .dc $ff,$7a         ; Put stack in known state
@@ -332,6 +343,37 @@ dec_loop:
     sta branch_bit_test
     jsr bb_test
 
+    ; EOR test
+    php
+    eor eor_abs_test
+    pha
+    php
+    eor eor_abs_test,x
+    pha
+    php
+    eor eor_abs_test,y
+    pha
+    php
+    eor #$f4
+    pha
+    php
+    eor eor_zp_test
+    pha
+    php
+    eor (eor_zp_test,x)
+    pha
+    php
+    eor eor_zp_test,x
+    pha
+    php
+    eor (eor_zp_test)
+    pha
+    php
+    eor (eor_zp_test),y
+    pha
+    php
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -426,6 +468,7 @@ bb_test:
 .1  bbr 1, branch_bit_test, .2
     bbs 1, branch_bit_test, .2
 
+    brk         ; Unreachable
 
 int_handler:
     php
@@ -434,6 +477,9 @@ int_handler:
 
 nmi_handler:
     jmp int_handler
+
+    .org $5ee6
+                .byte 3f; eor (zp,x) test
 
     .org $61da
 dec_abs_test    .byte $7b
@@ -447,6 +493,11 @@ lda_abs_test    .byte $74
                 .byte $c7       ; lda abs,y
     .org $6de1
                 .byte $08       ; lda abs,x
+
+    .org $7088
+                .byte $29       ; eor (zp)
+    .org $70aa
+                .byte $50       ; eor (zp),y
 
     .org $7ace
 adc_abs_test:
@@ -466,6 +517,15 @@ lda_indirect_test .byte $bf
 
     .org $c213
     .byte $25                   ; adc (zp,x) test
+
+    .org $d074
+eor_abs_test    .byte $17
+
+    .org $d096
+                .byte $11        ; eor abs,y
+
+    .org $d114
+                .byte $49       ; eor abs,x test
 
     .org $d2cc
     .byte $38                   ; cmp (zp,x) test

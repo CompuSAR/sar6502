@@ -32,6 +32,8 @@ bit_zp_test:    .byte $f3
                 .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
 
+sta_zp_test:    .byte 0, 0, $34
+
     .org $002e
 rmb_zp_test:    .byte $65, $65 ^ $ff
 smb_zp_test:    .byte $f0, $f0 ^ $ff
@@ -611,6 +613,33 @@ pull_test_loop2:
     php
 
 
+    ; STA test
+    ldy #$02
+    sta sta_abs_test
+    inc
+    sta sta_abs_test,x
+    inc
+    sta sta_abs_test,y
+    inc
+    sta sta_zp_test
+    inc
+    sta sta_zp_test,x
+    inc
+    sta (sta_zp_test,x)
+    inc
+    sta (sta_zp_test)
+    inc
+    sta (sta_zp_test),y
+    inc
+    ldx #$80
+    sta sta_abs_test,x
+    inc
+    ldy #$ff
+    sta sta_abs_test,y
+    inc
+    sta (sta_zp_test),y
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -746,6 +775,9 @@ int_handler:
 nmi_handler:
     jmp int_handler
     brk         ; Unreachable
+
+    .org $4694
+sta_abs_test:   .byte $87, $91, $20
 
     .org $55aa
 jmp_tests:

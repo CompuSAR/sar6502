@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="302,313.016 ns"></ZoomStartTime>
-      <ZoomEndTime time="303,653.397 ns"></ZoomEndTime>
-      <Cursor1Time time="302,992.977 ns"></Cursor1Time>
+      <ZoomStartTime time="390,639.583 ns"></ZoomStartTime>
+      <ZoomEndTime time="391,432.084 ns"></ZoomEndTime>
+      <Cursor1Time time="391,300.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="82"></ValueColumnWidth>
+      <ValueColumnWidth column_width="78"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="43" />
+   <WVObjectSize size="44" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -205,6 +205,11 @@
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals">
       <obj_property name="ElementShortName">ctrl_signals[17:0]</obj_property>
       <obj_property name="ObjectShortName">ctrl_signals[17:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cycle_num">
+      <obj_property name="ElementShortName">cycle_num[31:0]</obj_property>
+      <obj_property name="ObjectShortName">cycle_num[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/address_bus_high_source">
       <obj_property name="ElementShortName">address_bus_high_source[31:0]</obj_property>

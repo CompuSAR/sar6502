@@ -500,6 +500,47 @@ jmp_test_done:
     php
 
 
+    ; Stack pull tests
+    lda #$fc
+    sta $1a3    ; A
+    stz $1a4    ; Y
+    lda #$55
+    sta $1a5    ; A
+    lda #$dd
+    sta $1a6    ; Y
+    stz $1a7    ; A
+    lda #$03
+    sta $1a8    ; Y
+    lda #$9b
+    sta $1a9    ; X
+    lda #$2d
+    sta $1aa    ; X
+    stz $1ab    ; X
+
+    ldx #$03
+pull_test_loop1:
+    pla
+    sta value_dump
+    php
+    plp
+    ply
+    sty value_dump
+    php
+    plp
+
+    dex
+    bne pull_test_loop1
+
+pull_test_loop2:
+    plx
+    stx value_dump
+    php
+    plp
+
+    dey
+    bne pull_test_loop2
+
+
     sta FINISHED_TRIGGER
     .byte 00
 

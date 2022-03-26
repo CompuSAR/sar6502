@@ -170,7 +170,10 @@ typedef enum logic[31:0] {
     OpPhp,
     OpPhx,
     OpPhy,
+    OpPla,
     OpPlp,
+    OpPlx,
+    OpPly,
     OpRti,
     OpRts,
     OpSbc,
@@ -337,6 +340,7 @@ task do_decode();
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
         8'h65: set_addr_mode_zp( OpAdc );
+        8'h68: set_addr_mode_stack( OpPla );
         8'h69: set_addr_mode_immediate( OpAdc );
         8'h6c: set_addr_mode_abs_ind( OpJmp );
         8'h6d: set_addr_mode_absolute( OpAdc );
@@ -347,6 +351,7 @@ task do_decode();
         8'h75: set_addr_mode_zp_x( OpAdc );
         8'h78: set_addr_mode_implicit( OpSei );
         8'h79: set_addr_mode_abs_y( OpAdc );
+        8'h7a: set_addr_mode_stack( OpPly );
         8'h7c: set_addr_mode_abs_x_ind( OpJmp );
         8'h7d: set_addr_mode_abs_x( OpAdc );
         8'h7f: set_addr_mode_zp( OpBbr7 );
@@ -427,6 +432,7 @@ task do_decode();
         8'hf6: set_addr_mode_zp_x( OpInc );
         8'hf8: set_addr_mode_implicit( OpSed );
         8'hf9: set_addr_mode_abs_y( OpSbc );
+        8'hfa: set_addr_mode_stack( OpPlx );
         8'hfd: set_addr_mode_abs_x( OpSbc );
         8'hfe: set_addr_mode_abs_x( OpInc );
         8'hff: set_addr_mode_zp( OpBbs7 );
@@ -1022,7 +1028,10 @@ task set_operation(operations current_op);
         OpPhp: do_op_php_first();
         OpPhx: do_op_phx_first();
         OpPhy: do_op_phy_first();
+        OpPla: do_op_pla_first();
         OpPlp: do_op_plp_first();
+        OpPlx: do_op_plx_first();
+        OpPly: do_op_ply_first();
         OpRti: do_op_rti_first();
         OpRts: do_op_rts_first();
         OpSbc: do_op_sbc_first();
@@ -1091,7 +1100,10 @@ task do_operation();
         OpLsr: do_op_lsr();
         OpLsrA: do_op_lsr_acc();
         OpOra: do_op_ora();
+        OpPla: do_op_pla();
         OpPlp: do_op_plp();
+        OpPlx: do_op_plx();
+        OpPly: do_op_ply();
         OpRti: do_op_rti();
         OpRts: do_op_rts();
         OpSbc: do_op_sbc();
@@ -2065,6 +2077,84 @@ task do_op_phy_first();
     next_instruction();
 endtask
 
+task do_op_pla_first();
+    // First stack cycle: dummy read
+    sp_inc();
+endtask
+
+task do_op_pla();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_sp();
+        end
+        CycleOp2: begin
+            // This is the data loaded by the previous address operation
+            data_bus_source = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_A] = 1;
+
+            ctrl_signals[control_signals::UseAluFlags] = 0;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+
+            do_fetch_cycle();
+        end
+        default set_invalid_state();
+    endcase
+endtask
+
+task do_op_plx_first();
+    // First stack cycle: dummy read
+    sp_inc();
+endtask
+
+task do_op_plx();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_sp();
+        end
+        CycleOp2: begin
+            // This is the data loaded by the previous address operation
+            data_bus_source = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_X] = 1;
+
+            ctrl_signals[control_signals::UseAluFlags] = 0;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+
+            do_fetch_cycle();
+        end
+        default set_invalid_state();
+    endcase
+endtask
+
+task do_op_ply_first();
+    // First stack cycle: dummy read
+    sp_inc();
+endtask
+
+task do_op_ply();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_sp();
+        end
+        CycleOp2: begin
+            // This is the data loaded by the previous address operation
+            data_bus_source = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_Y] = 1;
+
+            ctrl_signals[control_signals::UseAluFlags] = 0;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+            ctrl_signals[control_signals::UpdateFlagN] = 1;
+
+            do_fetch_cycle();
+        end
+        default set_invalid_state();
+    endcase
+endtask
+
 task do_op_plp_first();
     // First stack cycle: dummy read
     sp_inc();
@@ -2081,6 +2171,7 @@ task do_op_plp();
             ctrl_signals[control_signals::UseAluFlags] = 0;
             ctrl_signals[control_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 0;
             ctrl_signals[control_signals::UpdateFlagI] = 1;
             ctrl_signals[control_signals::UpdateFlagD] = 1;
             ctrl_signals[control_signals::UpdateFlagV] = 1;

@@ -174,6 +174,14 @@ typedef enum logic[31:0] {
     OpPlp,
     OpPlx,
     OpPly,
+    OpRmb0,
+    OpRmb1,
+    OpRmb2,
+    OpRmb3,
+    OpRmb4,
+    OpRmb5,
+    OpRmb6,
+    OpRmb7,
     OpRti,
     OpRts,
     OpSbc,
@@ -278,6 +286,7 @@ task do_decode();
         8'h01: set_addr_mode_zp_x_ind( OpOra );
         8'h05: set_addr_mode_zp( OpOra );
         8'h06: set_addr_mode_zp( OpAsl );
+        8'h07: set_addr_mode_zp( OpRmb0 );
         8'h08: set_addr_mode_stack( OpPhp );
         8'h09: set_addr_mode_immediate( OpOra );
         8'h0a: set_addr_mode_implicit( OpAslA );
@@ -289,6 +298,7 @@ task do_decode();
         8'h12: set_addr_mode_zp_ind( OpOra );
         8'h15: set_addr_mode_zp_x( OpOra );
         8'h16: set_addr_mode_zp_x( OpAsl );
+        8'h17: set_addr_mode_zp( OpRmb1 );
         8'h18: set_addr_mode_implicit( OpClc );
         8'h19: set_addr_mode_abs_y( OpOra );
         8'h1a: set_addr_mode_implicit( OpIncA );
@@ -299,6 +309,7 @@ task do_decode();
         8'h21: set_addr_mode_zp_x_ind( OpAnd );
         8'h24: set_addr_mode_zp( OpBit );
         8'h25: set_addr_mode_zp( OpAnd );
+        8'h27: set_addr_mode_zp( OpRmb2 );
         8'h28: set_addr_mode_stack( OpPlp );
         8'h29: set_addr_mode_immediate( OpAnd );
         8'h2c: set_addr_mode_absolute( OpBit );
@@ -309,6 +320,7 @@ task do_decode();
         8'h32: set_addr_mode_zp_ind( OpAnd );
         8'h34: set_addr_mode_zp_x( OpBit );
         8'h35: set_addr_mode_zp_x( OpAnd );
+        8'h37: set_addr_mode_zp( OpRmb3 );
         8'h38: set_addr_mode_implicit( OpSec );
         8'h39: set_addr_mode_abs_y( OpAnd );
         8'h3a: set_addr_mode_implicit( OpDecA );
@@ -319,6 +331,7 @@ task do_decode();
         8'h41: set_addr_mode_zp_x_ind( OpEor );
         8'h45: set_addr_mode_zp( OpEor );
         8'h46: set_addr_mode_zp( OpLsr );
+        8'h47: set_addr_mode_zp( OpRmb4 );
         8'h48: set_addr_mode_stack( OpPha );
         8'h49: set_addr_mode_immediate( OpEor );
         8'h4a: set_addr_mode_implicit( OpLsrA );
@@ -331,6 +344,7 @@ task do_decode();
         8'h52: set_addr_mode_zp_ind( OpEor );
         8'h55: set_addr_mode_zp_x( OpEor );
         8'h56: set_addr_mode_zp_x( OpLsr );
+        8'h57: set_addr_mode_zp( OpRmb5 );
         8'h58: set_addr_mode_implicit( OpCli );
         8'h59: set_addr_mode_abs_y( OpEor );
         8'h5a: set_addr_mode_stack( OpPhy );
@@ -340,6 +354,7 @@ task do_decode();
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
         8'h65: set_addr_mode_zp( OpAdc );
+        8'h67: set_addr_mode_zp( OpRmb6 );
         8'h68: set_addr_mode_stack( OpPla );
         8'h69: set_addr_mode_immediate( OpAdc );
         8'h6c: set_addr_mode_abs_ind( OpJmp );
@@ -349,6 +364,7 @@ task do_decode();
         8'h71: set_addr_mode_zp_ind_y( OpAdc );
         8'h72: set_addr_mode_zp_ind( OpAdc );
         8'h75: set_addr_mode_zp_x( OpAdc );
+        8'h77: set_addr_mode_zp( OpRmb7 );
         8'h78: set_addr_mode_implicit( OpSei );
         8'h79: set_addr_mode_abs_y( OpAdc );
         8'h7a: set_addr_mode_stack( OpPly );
@@ -1032,6 +1048,14 @@ task set_operation(operations current_op);
         OpPlp: do_op_plp_first();
         OpPlx: do_op_plx_first();
         OpPly: do_op_ply_first();
+        OpRmb0: do_op_rmb_first(0);
+        OpRmb1: do_op_rmb_first(1);
+        OpRmb2: do_op_rmb_first(2);
+        OpRmb3: do_op_rmb_first(3);
+        OpRmb4: do_op_rmb_first(4);
+        OpRmb5: do_op_rmb_first(5);
+        OpRmb6: do_op_rmb_first(6);
+        OpRmb7: do_op_rmb_first(7);
         OpRti: do_op_rti_first();
         OpRts: do_op_rts_first();
         OpSbc: do_op_sbc_first();
@@ -1104,6 +1128,14 @@ task do_operation();
         OpPlp: do_op_plp();
         OpPlx: do_op_plx();
         OpPly: do_op_ply();
+        OpRmb0: do_op_rmb(0);
+        OpRmb1: do_op_rmb(1);
+        OpRmb2: do_op_rmb(2);
+        OpRmb3: do_op_rmb(3);
+        OpRmb4: do_op_rmb(4);
+        OpRmb5: do_op_rmb(5);
+        OpRmb6: do_op_rmb(6);
+        OpRmb7: do_op_rmb(7);
         OpRti: do_op_rti();
         OpRts: do_op_rts();
         OpSbc: do_op_sbc();
@@ -2180,6 +2212,43 @@ task do_op_plp();
             do_fetch_cycle();
         end
         default set_invalid_state();
+    endcase
+endtask
+
+task do_op_rmb_first(input bitnum);
+    ML = 0;
+endtask
+
+task do_op_rmb(input bitnum);
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+            ML = 0;
+
+            alu_op = control_signals::AluOp_and;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            case( active_op )
+                OpRmb0: alu_b_source = bus_sources::AluBSourceCtl_Bit0;
+                OpRmb1: alu_b_source = bus_sources::AluBSourceCtl_Bit1;
+                OpRmb2: alu_b_source = bus_sources::AluBSourceCtl_Bit2;
+                OpRmb3: alu_b_source = bus_sources::AluBSourceCtl_Bit3;
+                OpRmb4: alu_b_source = bus_sources::AluBSourceCtl_Bit4;
+                OpRmb5: alu_b_source = bus_sources::AluBSourceCtl_Bit5;
+                OpRmb6: alu_b_source = bus_sources::AluBSourceCtl_Bit6;
+                OpRmb7: alu_b_source = bus_sources::AluBSourceCtl_Bit7;
+            endcase
+            ctrl_signals[control_signals::AluBInverse] = 1;
+        end
+        CycleOp2: begin
+            addr_bus_dl();
+            ML = 0;
+            rW = 0;
+
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
     endcase
 endtask
 

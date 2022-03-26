@@ -32,6 +32,9 @@ bit_zp_test:    .byte $f3
                 .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
 
+    .org $002e
+rmb_zp_test:    .byte $65, $65 ^ $ff
+
     .org $0034
                 .byte $a8       ; ldy zp,x
     .org $003f
@@ -539,6 +542,25 @@ pull_test_loop2:
 
     dey
     bne pull_test_loop2
+
+
+    ; RMB test
+    rmb 0,rmb_zp_test
+    rmb 0,rmb_zp_test+1
+    rmb 1,rmb_zp_test
+    rmb 1,rmb_zp_test+1
+    rmb 2,rmb_zp_test
+    rmb 2,rmb_zp_test+1
+    rmb 3,rmb_zp_test
+    rmb 3,rmb_zp_test+1
+    rmb 4,rmb_zp_test
+    rmb 4,rmb_zp_test+1
+    rmb 5,rmb_zp_test
+    rmb 5,rmb_zp_test+1
+    rmb 6,rmb_zp_test
+    rmb 6,rmb_zp_test+1
+    rmb 7,rmb_zp_test
+    rmb 7,rmb_zp_test+1
 
 
     sta FINISHED_TRIGGER

@@ -265,6 +265,14 @@ assign alu_a_inputs[bus_sources::AluASourceCtl_Mem] = data_in_l;
 assign alu_a_inputs[bus_sources::AluASourceCtl_Alu] = alu_result_latched;
 
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Zero] = 8'b0;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit0] = 8'b0000_0001;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit1] = 8'b0000_0010;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit2] = 8'b0000_0100;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit3] = 8'b0000_1000;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit4] = 8'b0001_0000;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit5] = 8'b0010_0000;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit6] = 8'b0100_0000;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit7] = 8'b1000_0000;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
 
 assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;

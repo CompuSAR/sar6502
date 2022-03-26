@@ -49,10 +49,16 @@ dec_zp_test:    .byte $f8
     .org $0078
 ldx_zp_test:    .byte $4d
 
+    .org $0092
+                .byte $6e       ; lsr zp,x
+
     .org $0099
 branch_bit_test: .byte $50
 
-    .byte $f5           ; ldx zp,y
+                .byte $f5       ; ldx zp,y
+
+    .org $009d
+lsr_zp_test:    .byte $7e
 
     .org $00a9
 lda_zp_test:    .word lda_indirect_test
@@ -453,6 +459,20 @@ jmp_test_done:
     sty value_dump
 
 
+    ; LSR test
+    lsr lsr_abs_test
+    php
+    lsr lsr_abs_test,x
+    php
+    lsr
+    php
+    sta value_dump
+    lsr lsr_zp_test
+    php
+    lsr lsr_zp_test,x
+    php
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -624,8 +644,15 @@ lda_abs_test    .byte $74
 adc_abs_test:
     .byte $65, $ca, $26, $6b
 
+    .org $7ea8
+lsr_abs_test:
+    .byte $9b
+
+    .org $7f9d
+    .byte $49                   ; lsr abs,x
+
     .org $8510
-asl_abs_test    .byte $56
+asl_abs_test:   .byte $56
     .org $85d0
                 .byte $40       ; asl abs,x test
 

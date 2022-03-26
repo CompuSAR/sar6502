@@ -223,28 +223,55 @@ sbc_loop:
     sbc adc_abs_test
     pha
     php
+    ora adc_abs_test
+    pha
+    php
     sbc adc_abs_test,x
+    pha
+    php
+    ora adc_abs_test,x
     pha
     php
     sbc adc_abs_test,y
     pha
     php
+    ora adc_abs_test,y
+    pha
+    php
     sbc #$cd
+    pha
+    php
+    ora #$cd
     pha
     php
     sbc adc_zp_test
     pha
     php
+    ora adc_zp_test
+    pha
+    php
     sbc (adc_zp_test,x)
+    pha
+    php
+    ora (adc_zp_test,x)
     pha
     php
     sbc adc_zp_test,x
     pha
     php
+    ora adc_zp_test,x
+    pha
+    php
     sbc (adc_zp_test)
     pha
     php
+    ora (adc_zp_test)
+    pha
+    php
     sbc (adc_zp_test),y
+    pha
+    php
+    ora (adc_zp_test),y
     pha
     php
     inx

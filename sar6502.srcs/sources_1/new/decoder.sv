@@ -165,6 +165,7 @@ typedef enum logic[31:0] {
     OpLsr,
     OpLsrA,
     OpNop,
+    OpOra,
     OpPha,
     OpPhp,
     OpPhx,
@@ -271,15 +272,24 @@ endtask
 task do_decode();
     case( memory_in )
         8'h00: set_addr_mode_implicit( OpBrk );
+        8'h01: set_addr_mode_zp_x_ind( OpOra );
+        8'h05: set_addr_mode_zp( OpOra );
         8'h06: set_addr_mode_zp( OpAsl );
         8'h08: set_addr_mode_stack( OpPhp );
+        8'h09: set_addr_mode_immediate( OpOra );
         8'h0a: set_addr_mode_implicit( OpAslA );
+        8'h0d: set_addr_mode_absolute( OpOra );
         8'h0e: set_addr_mode_absolute( OpAsl );
         8'h0f: set_addr_mode_zp( OpBbr0 );
         8'h10: set_addr_mode_implicit( OpBpl );
+        8'h11: set_addr_mode_zp_ind_y( OpOra );
+        8'h12: set_addr_mode_zp_ind( OpOra );
+        8'h15: set_addr_mode_zp_x( OpOra );
         8'h16: set_addr_mode_zp_x( OpAsl );
         8'h18: set_addr_mode_implicit( OpClc );
+        8'h19: set_addr_mode_abs_y( OpOra );
         8'h1a: set_addr_mode_implicit( OpIncA );
+        8'h1d: set_addr_mode_abs_x( OpOra );
         8'h1e: set_addr_mode_abs_x( OpAsl );
         8'h1f: set_addr_mode_zp( OpBbr1 );
         8'h20: set_addr_mode_stack( OpJsr );
@@ -995,8 +1005,6 @@ task set_operation(operations current_op);
         OpDex: do_op_dex_first();
         OpDey: do_op_dey_first();
         OpEor: do_op_eor_first();
-        OpLsr: do_op_lsr_first();
-        OpLsrA: do_op_lsr_acc_first();
         OpInc: do_op_inc_first();
         OpIncA: do_op_inc_acc_first();
         OpInx: do_op_inx_first();
@@ -1006,7 +1014,10 @@ task set_operation(operations current_op);
         OpLda: do_op_lda_first();
         OpLdx: do_op_ldx_first();
         OpLdy: do_op_ldy_first();
+        OpLsr: do_op_lsr_first();
+        OpLsrA: do_op_lsr_acc_first();
         OpNop: do_op_nop_first();
+        OpOra: do_op_ora_first();
         OpPha: do_op_pha_first();
         OpPhp: do_op_php_first();
         OpPhx: do_op_phx_first();
@@ -1068,8 +1079,6 @@ task do_operation();
         OpDex: do_op_dex();
         OpDey: do_op_dey();
         OpEor: do_op_eor();
-        OpLsr: do_op_lsr();
-        OpLsrA: do_op_lsr_acc();
         OpInc: do_op_inc();
         OpIncA: do_op_inc_acc();
         OpInx: do_op_inx();
@@ -1079,6 +1088,9 @@ task do_operation();
         OpLda: do_op_lda();
         OpLdx: do_op_ldx();
         OpLdy: do_op_ldy();
+        OpLsr: do_op_lsr();
+        OpLsrA: do_op_lsr_acc();
+        OpOra: do_op_ora();
         OpPlp: do_op_plp();
         OpRti: do_op_rti();
         OpRts: do_op_rts();

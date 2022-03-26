@@ -205,7 +205,13 @@ typedef enum logic[31:0] {
     OpStx,
     OpSty,
     OpStz,
-    OpTxs
+    OpTax,
+    OpTay,
+    OpTsx,
+    OpTxa,
+    OpTxs,
+    OpTya,
+    OpWai
 } operations;
 operations active_op = OpNone, active_op_next;
 
@@ -404,6 +410,7 @@ task do_decode();
         8'h87: set_addr_mode_zp( OpSmb0 );
         8'h88: set_addr_mode_implicit( OpDey );
         8'h89: set_addr_mode_immediate( OpBit );
+        8'h8a: set_addr_mode_implicit( OpTxa );
         8'h8c: set_addr_mode_absolute( OpSty );
         8'h8d: set_addr_mode_absolute( OpSta );
         8'h8e: set_addr_mode_absolute( OpStx );
@@ -415,6 +422,7 @@ task do_decode();
         8'h95: set_addr_mode_zp_x( OpSta );
         8'h96: set_addr_mode_zp_y( OpStx );
         8'h97: set_addr_mode_zp( OpSmb1 );
+        8'h98: set_addr_mode_implicit( OpTya );
         8'h99: set_addr_mode_abs_y( OpSta );
         8'h9a: set_addr_mode_implicit( OpTxs );
         8'h9c: set_addr_mode_absolute( OpStz );
@@ -428,7 +436,9 @@ task do_decode();
         8'ha5: set_addr_mode_zp( OpLda );
         8'ha6: set_addr_mode_zp( OpLdx );
         8'ha7: set_addr_mode_zp( OpSmb2 );
+        8'ha8: set_addr_mode_implicit( OpTay );
         8'ha9: set_addr_mode_immediate( OpLda );
+        8'haa: set_addr_mode_implicit( OpTax );
         8'hac: set_addr_mode_absolute( OpLdy );
         8'had: set_addr_mode_absolute( OpLda );
         8'hae: set_addr_mode_absolute( OpLdx );
@@ -442,6 +452,7 @@ task do_decode();
         8'hb7: set_addr_mode_zp( OpSmb3 );
         8'hb8: set_addr_mode_implicit( OpClv );
         8'hb9: set_addr_mode_abs_y( OpLda );
+        8'hba: set_addr_mode_implicit( OpTsx );
         8'hbc: set_addr_mode_abs_x( OpLdy );
         8'hbd: set_addr_mode_abs_x( OpLda );
         8'hbe: set_addr_mode_abs_y( OpLdx );
@@ -1181,7 +1192,12 @@ task set_operation(operations current_op);
         OpStx: do_op_stx_first();
         OpSty: do_op_sty_first();
         OpStz: do_op_stz_first();
+        OpTax: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_X);
+        OpTay: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_Y);
+        OpTsx: do_op_transfer_first(bus_sources::DataBusSrc_SP, control_signals::LOAD_X);
+        OpTxa: do_op_transfer_first(bus_sources::DataBusSrc_X, control_signals::LOAD_A);
         OpTxs: do_op_txs_first();
+        OpTya: do_op_transfer_first(bus_sources::DataBusSrc_Y, control_signals::LOAD_A);
         default: set_invalid_state();
     endcase
 endtask
@@ -2717,6 +2733,17 @@ task do_op_stz();
     endcase
 endtask
 
+
+task do_op_transfer_first(input bus_sources::DataBusSourceCtl src, input control_signals::ctrl_signals dest);
+    next_instruction();
+
+    data_bus_source = src;
+    ctrl_signals[dest] = 1;
+
+    ctrl_signals[control_signals::UpdateFlagN] = 1;
+    ctrl_signals[control_signals::UpdateFlagZ] = 1;
+    ctrl_signals[control_signals::CalculateFlagZ] = 1;
+endtask
 
 task do_op_txs_first();
     next_instruction();

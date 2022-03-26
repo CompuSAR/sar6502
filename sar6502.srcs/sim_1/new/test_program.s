@@ -668,9 +668,48 @@ pull_test_loop2:
     php
 
 
+    ; Transfer test
+    lda #$85
+    jsr transfer_tests
+    lda #$00
+    jsr transfer_tests
+
+    tsx
+    jsr dump_state
+    ldx #$ff
+    lda #$00
+    txs
+    jsr dump_state
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
+transfer_tests:
+    jsr dump_state
+    ldy #$01
+    tay
+    jsr dump_state
+    ldx #$02
+    tax
+    jsr dump_state
+    eor #$ff
+    ldy #$01
+    tya
+    jsr dump_state
+    ldx #$01
+    txa
+    jsr dump_state
+    rts
+
+
+dump_state:
+    php
+    sta value_dump
+    stx value_dump
+    sty value_dump
+    plp
+    rts
 
 reset_handler:
     ldx #$ff

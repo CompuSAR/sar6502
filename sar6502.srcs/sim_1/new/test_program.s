@@ -638,6 +638,16 @@ pull_test_loop2:
     sta sta_abs_test,y
     inc
     sta (sta_zp_test),y
+    php
+
+
+    ; STX test
+    stx sta_abs_test
+    inx
+    stx sta_zp_test+1
+    inx
+    stx sta_zp_test+1,y
+    php
 
 
     sta FINISHED_TRIGGER

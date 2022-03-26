@@ -14,6 +14,8 @@ RESET_TRIGGER_DELAY     = $2fd
 INT_TRIGGER_COUNT       = $2fe
 INT_TRIGGER_DELAY       = $2ff
 
+value_dump = $ff00
+
     .org $0000
                 .byte $5e       ; eor zp,x and (zp,x) tests (MSB)
 
@@ -39,8 +41,13 @@ asl_zp_test:    .byte $d3
     .org $0074
 dec_zp_test:    .byte $f8
 
+    .org $0078
+ldx_zp_test:    .byte $4d
+
     .org $0099
 branch_bit_test: .byte $50
+
+    .byte $f5           ; ldx zp,y
 
     .org $00a9
 lda_zp_test:    .word lda_indirect_test
@@ -401,6 +408,26 @@ inc_loop:
 jmp_test_done:
     php
 
+    ; LDX test
+    ldx ldx_abs_test
+    php
+    stx value_dump
+    ldx ldx_abs_test,y
+    php
+    stx value_dump
+    ldx ldx_abs_test-$22,y
+    php
+    stx value_dump
+    ldx #$04
+    php
+    stx value_dump
+    ldx ldx_zp_test
+    php
+    stx value_dump
+    ldx ldx_zp_test,y
+    php
+    stx value_dump
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -432,6 +459,13 @@ bit_abs_test:
 
     .org $16aa
     .byte $03           ; bit abs,x
+
+    .org $1a10
+ldx_abs_test:
+    .byte $6d
+
+    .org $1a32
+    .byte $d7           ; ldx abs,y
 
     .org $26ff
 jmp_ind_test2:

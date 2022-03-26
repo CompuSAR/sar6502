@@ -99,6 +99,7 @@ enum logic[31:0] {
     AddrAbsoluteXInd,
     AddrZeroPage,
     AddrZeroPageX,
+    AddrZeroPageY,
     AddrZeroPageInd,
     AddrZeroPageXInd,
     AddrZeroPageIndZ,
@@ -337,6 +338,7 @@ task do_decode();
         8'h88: set_addr_mode_implicit( OpDey );
         8'h89: set_addr_mode_immediate( OpBit );
         8'h8d: set_addr_mode_absolute( OpSta );
+        8'h8e: set_addr_mode_absolute( OpStx );
         8'h8f: set_addr_mode_zp( OpBbs0 );
         8'h90: set_addr_mode_implicit( OpBcc );
         8'h9a: set_addr_mode_implicit( OpTxs );
@@ -346,16 +348,20 @@ task do_decode();
         8'ha1: set_addr_mode_zp_x_ind( OpLda );
         8'ha2: set_addr_mode_immediate( OpLdx );
         8'ha5: set_addr_mode_zp( OpLda );
+        8'ha6: set_addr_mode_zp( OpLdx );
         8'ha9: set_addr_mode_immediate( OpLda );
         8'had: set_addr_mode_absolute( OpLda );
+        8'hae: set_addr_mode_absolute( OpLdx );
         8'haf: set_addr_mode_zp( OpBbs2 );
         8'hb0: set_addr_mode_implicit( OpBcs );
         8'hb1: set_addr_mode_zp_ind_y( OpLda );
         8'hb2: set_addr_mode_zp_ind( OpLda );
         8'hb5: set_addr_mode_zp_x( OpLda );
+        8'hb6: set_addr_mode_zp_y( OpLdx );
         8'hb8: set_addr_mode_implicit( OpClv );
         8'hb9: set_addr_mode_abs_y( OpLda );
         8'hbd: set_addr_mode_abs_x( OpLda );
+        8'hbe: set_addr_mode_abs_y( OpLdx );
         8'hbf: set_addr_mode_zp( OpBbs3 );
         8'hc0: set_addr_mode_immediate( OpCpy );
         8'hc1: set_addr_mode_zp_x_ind( OpCmp );
@@ -419,6 +425,7 @@ task do_addr_lookup();
         AddrAbsoluteXInd: do_addr_mode_abs_x_ind();
         AddrZeroPage: do_addr_mode_zp();
         AddrZeroPageX: do_addr_mode_zp_x();
+        AddrZeroPageY: do_addr_mode_zp_x();
         AddrZeroPageInd: do_addr_mode_zp_ind();
         AddrZeroPageXInd: do_addr_mode_zp_x_ind();
         AddrZeroPageIndZ: do_addr_mode_zp_ind_y();
@@ -854,13 +861,21 @@ task set_addr_mode_zp_x(operations current_op);
     active_addr_mode_next = AddrZeroPageX;
 endtask
 
+task set_addr_mode_zp_y(operations current_op);
+    active_op_next = current_op;
+    active_addr_mode_next = AddrZeroPageY;
+endtask
+
 task do_addr_mode_zp_x();
     case( op_cycle )
         CycleAddr1: begin
             addr_bus_pc();
 
             alu_op = control_signals::AluOp_add;
-            alu_a_source = bus_sources::AluASourceCtl_X;
+            if( active_addr_mode==AddrZeroPageY )
+                alu_a_source = bus_sources::AluASourceCtl_Y;
+            else
+                alu_a_source = bus_sources::AluASourceCtl_X;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
             ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = bus_sources::AluCarrySource_Zero;

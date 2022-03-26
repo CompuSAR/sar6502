@@ -650,6 +650,16 @@ pull_test_loop2:
     php
 
 
+    ; STY test
+    ldx #$2
+    sty sta_abs_test
+    iny
+    sty sta_zp_test
+    iny
+    sty sta_zp_test,x
+    php
+
+
     sta FINISHED_TRIGGER
     .byte 00
 

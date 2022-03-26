@@ -32,6 +32,11 @@ bit_zp_test:    .byte $f3
                 .byte $7a       ; bit zp,x test
                 .byte $6e       ; asl zp,x test
 
+    .org $0034
+                .byte $a8       ; ldy zp,x
+    .org $003f
+ldy_zp_test:    .byte $2c
+
     .org $005f
 eor_zp_test:
                 .byte $88, $70
@@ -408,6 +413,7 @@ inc_loop:
 jmp_test_done:
     php
 
+
     ; LDX test
     ldx ldx_abs_test
     php
@@ -427,6 +433,25 @@ jmp_test_done:
     ldx ldx_zp_test,y
     php
     stx value_dump
+
+
+    ; LDY test
+    ldy ldy_abs_test
+    php
+    sty value_dump
+    ldy ldy_abs_test,x
+    php
+    sty value_dump
+    ldy #$6c
+    php
+    sty value_dump
+    ldy ldy_zp_test
+    php
+    sty value_dump
+    ldy ldy_zp_test,x
+    php
+    sty value_dump
+
 
     sta FINISHED_TRIGGER
     .byte 00
@@ -650,6 +675,13 @@ eor_abs_test    .byte $17
     .org $d588
     .byte $15                   ; adc (zp,x) test
     .byte $8e, $9b, $f5         ; adc (zp),y test
+
+    .org $e308
+ldy_abs_test:
+    .byte $ff
+
+    .org $e3fd
+    .byte $93                   ; ldy abs,x
 
     .org $fffa
 nmi_vector:     .word nmi_handler

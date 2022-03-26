@@ -274,6 +274,7 @@ assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit5] = 8'b0010_0000;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit6] = 8'b0100_0000;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Bit7] = 8'b1000_0000;
 assign alu_b_inputs[bus_sources::AluBSourceCtl_Mem] = data_in_l;
+assign alu_b_inputs[bus_sources::AluBSourceCtl_A] = data_bus_inputs[bus_sources::DataBusSrc_A];
 
 assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
 assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;

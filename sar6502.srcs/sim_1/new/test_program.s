@@ -50,6 +50,10 @@ rol_zp_test:    .byte $41, $9b, $60
 eor_zp_test:
                 .byte $88, $70
 
+    .org $0066
+trb_zp_test:    .byte $75, $42
+tsb_zp_test:    .byte $a3
+
     .org $0069
 asl_zp_test:    .byte $d3
     .org $0074
@@ -682,6 +686,31 @@ pull_test_loop2:
     jsr dump_state
 
 
+    ; TSB/TRB test
+    lda #$89
+    trb trb_abs_test
+    jsr dump_state
+    trb trb_abs_test+1
+    jsr dump_state
+
+    tsb tsb_abs_test
+    jsr dump_state
+
+    trb trb_zp_test
+    jsr dump_state
+    trb trb_zp_test+1
+    jsr dump_state
+
+    tsb tsb_zp_test
+    jsr dump_state
+
+    lda #$00
+    tsb trb_abs_test+1
+    jsr dump_state
+    tsb tsb_zp_test+1
+    jsr dump_state
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -878,8 +907,11 @@ lda_abs_test    .byte $74
                 .byte $50       ; eor (zp),y
 
     .org $7ace
-adc_abs_test:
-    .byte $65, $ca, $26, $6b
+adc_abs_test:   .byte $65, $ca, $26, $6b
+
+    .org $7d15
+trb_abs_test:   .byte $d7, $36
+tsb_abs_test:   .byte $a5, $00
 
     .org $7ea8
 lsr_abs_test:

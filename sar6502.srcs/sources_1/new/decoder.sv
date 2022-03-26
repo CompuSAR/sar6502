@@ -202,11 +202,14 @@ typedef enum logic[31:0] {
     OpSmb6,
     OpSmb7,
     OpSta,
+    OpStp,
     OpStx,
     OpSty,
     OpStz,
     OpTax,
     OpTay,
+    OpTrb,
+    OpTsb,
     OpTsx,
     OpTxa,
     OpTxs,
@@ -303,24 +306,28 @@ task do_decode();
     case( memory_in )
         8'h00: set_addr_mode_implicit( OpBrk );
         8'h01: set_addr_mode_zp_x_ind( OpOra );
+        8'h04: set_addr_mode_zp( OpTsb );
         8'h05: set_addr_mode_zp( OpOra );
         8'h06: set_addr_mode_zp( OpAsl );
         8'h07: set_addr_mode_zp( OpRmb0 );
         8'h08: set_addr_mode_stack( OpPhp );
         8'h09: set_addr_mode_immediate( OpOra );
         8'h0a: set_addr_mode_implicit( OpAslA );
+        8'h0c: set_addr_mode_absolute( OpTsb );
         8'h0d: set_addr_mode_absolute( OpOra );
         8'h0e: set_addr_mode_absolute( OpAsl );
         8'h0f: set_addr_mode_zp( OpBbr0 );
         8'h10: set_addr_mode_implicit( OpBpl );
         8'h11: set_addr_mode_zp_ind_y( OpOra );
         8'h12: set_addr_mode_zp_ind( OpOra );
+        8'h14: set_addr_mode_zp( OpTrb );
         8'h15: set_addr_mode_zp_x( OpOra );
         8'h16: set_addr_mode_zp_x( OpAsl );
         8'h17: set_addr_mode_zp( OpRmb1 );
         8'h18: set_addr_mode_implicit( OpClc );
         8'h19: set_addr_mode_abs_y( OpOra );
         8'h1a: set_addr_mode_implicit( OpIncA );
+        8'h1c: set_addr_mode_absolute( OpTrb );
         8'h1d: set_addr_mode_abs_x( OpOra );
         8'h1e: set_addr_mode_abs_x( OpAsl );
         8'h1f: set_addr_mode_zp( OpBbr1 );
@@ -1194,6 +1201,8 @@ task set_operation(operations current_op);
         OpStz: do_op_stz_first();
         OpTax: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_X);
         OpTay: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_Y);
+        OpTrb: do_op_trb_first();
+        OpTsb: do_op_tsb_first();
         OpTsx: do_op_transfer_first(bus_sources::DataBusSrc_SP, control_signals::LOAD_X);
         OpTxa: do_op_transfer_first(bus_sources::DataBusSrc_X, control_signals::LOAD_A);
         OpTxs: do_op_txs_first();
@@ -1284,6 +1293,8 @@ task do_operation();
         OpSmb7: do_op_smb(7);
         OpSta: do_op_sta();
         OpStz: do_op_stz();
+        OpTrb: do_op_trb();
+        OpTsb: do_op_tsb();
         default: set_invalid_state();
     endcase
 endtask
@@ -2751,6 +2762,82 @@ task do_op_txs_first();
     data_bus_source = bus_sources::DataBusSrc_X;
     stack_pointer_source = bus_sources::StackPointerSource_DataBus;
     ctrl_signals[control_signals::LOAD_SP] = 1;
+endtask
+
+task do_op_trb_first();
+    ML = 0;
+endtask
+
+task do_op_trb();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+            ML = 0;
+
+            alu_op = control_signals::AluOp_and;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_A;
+            ctrl_signals[control_signals::AluBInverse] = 1;
+        end
+        CycleOp2: begin
+            addr_bus_dl();
+            ML = 0;
+            rW = 0;
+
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+
+            alu_op = control_signals::AluOp_and;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_A;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+        end
+        CycleOp3: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_tsb_first();
+    ML = 0;
+endtask
+
+task do_op_tsb();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+            ML = 0;
+
+            alu_op = control_signals::AluOp_or;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_A;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+        end
+        CycleOp2: begin
+            addr_bus_dl();
+            ML = 0;
+            rW = 0;
+
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+
+            alu_op = control_signals::AluOp_and;
+            alu_a_source = bus_sources::AluASourceCtl_Mem;
+            alu_b_source = bus_sources::AluBSourceCtl_A;
+            ctrl_signals[control_signals::AluBInverse] = 0;
+        end
+        CycleOp3: begin
+            data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
+            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ctrl_signals[control_signals::CalculateFlagZ] = 1;
+
+            do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 endmodule

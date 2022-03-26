@@ -160,6 +160,7 @@ typedef enum logic[31:0] {
     AluBSourceCtl_Bit6,
     AluBSourceCtl_Bit7,
     AluBSourceCtl_Mem,
+    AluBSourceCtl_A,
 
     AluBSourceCtl_End_Marker
 } AluBSourceCtl;

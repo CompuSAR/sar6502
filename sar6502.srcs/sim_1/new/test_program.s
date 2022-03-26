@@ -41,6 +41,9 @@ smb_zp_test:    .byte $f0, $f0 ^ $ff
     .org $003f
 ldy_zp_test:    .byte $2c
 
+    .org $004e
+rol_zp_test:    .byte $41, $9b, $60
+
     .org $005f
 eor_zp_test:
                 .byte $88, $70
@@ -581,6 +584,33 @@ pull_test_loop2:
     smb 7,smb_zp_test+1
 
 
+    ; ROL/ROR test
+    ldx #1
+    lda #$af
+    rol rol_abs_test
+    php
+    rol
+    php
+    sta value_dump
+    ror rol_abs_test+1
+    php
+    rol rol_abs_test,x
+    php
+    ror rol_abs_test+1,x
+    php
+    ror
+    php
+    sta value_dump
+    rol rol_zp_test
+    php
+    ror rol_zp_test+1
+    php
+    rol rol_zp_test,x
+    php
+    ror rol_zp_test+1,x
+    php
+
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -817,6 +847,10 @@ ldy_abs_test:
 
     .org $e3fd
     .byte $93                   ; ldy abs,x
+
+    .org $f9f8
+rol_abs_test:
+    .byte $cd, $71, $e4
 
     .org $fffa
 nmi_vector:     .word nmi_handler

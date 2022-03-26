@@ -660,6 +660,14 @@ pull_test_loop2:
     php
 
 
+    ; STZ test
+    stz sta_abs_test
+    stz sta_abs_test,x
+    stz sta_zp_test
+    stz sta_zp_test,x
+    php
+
+
     sta FINISHED_TRIGGER
     .byte 00
 

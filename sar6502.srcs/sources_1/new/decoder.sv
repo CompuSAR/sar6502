@@ -103,7 +103,7 @@ enum logic[31:0] {
     AddrZeroPageInd,
     AddrZeroPageXInd,
     AddrZeroPageIndZ,
-    AddrZeroPageIndZSta,
+    AddrZeroPageIndZSta, // BUG: WDC manual says only STA abs,x needs special handling
     AddrStack
 } active_addr_mode = AddrImplicit, active_addr_mode_next;
 
@@ -371,6 +371,7 @@ task do_decode();
         8'h5f: set_addr_mode_zp( OpBbr5 );
         8'h60: set_addr_mode_stack( OpRts );
         8'h61: set_addr_mode_zp_x_ind( OpAdc );
+        8'h64: set_addr_mode_zp( OpStz );
         8'h65: set_addr_mode_zp( OpAdc );
         8'h66: set_addr_mode_zp( OpRor );
         8'h67: set_addr_mode_zp( OpRmb6 );
@@ -384,6 +385,7 @@ task do_decode();
         8'h70: set_addr_mode_implicit( OpBvs );
         8'h71: set_addr_mode_zp_ind_y( OpAdc );
         8'h72: set_addr_mode_zp_ind( OpAdc );
+        8'h74: set_addr_mode_zp_x( OpStz );
         8'h75: set_addr_mode_zp_x( OpAdc );
         8'h76: set_addr_mode_zp_x( OpRor );
         8'h77: set_addr_mode_zp( OpRmb7 );
@@ -417,6 +419,7 @@ task do_decode();
         8'h9a: set_addr_mode_implicit( OpTxs );
         8'h9c: set_addr_mode_absolute( OpStz );
         8'h9d: set_addr_mode_abs_x( OpSta );
+        8'h9e: set_addr_mode_abs_x( OpStz );
         8'h9f: set_addr_mode_zp( OpBbs1 );
         8'ha0: set_addr_mode_immediate( OpLdy );
         8'ha1: set_addr_mode_zp_x_ind( OpLda );
@@ -1264,6 +1267,7 @@ task do_operation();
         OpSmb6: do_op_smb(6);
         OpSmb7: do_op_smb(7);
         OpSta: do_op_sta();
+        OpStz: do_op_stz();
         default: set_invalid_state();
     endcase
 endtask
@@ -2648,6 +2652,7 @@ task do_op_sei_first();
 endtask
 
 task do_op_sta_first();
+    // BUG: WDC manual only mentions extra cycle for abs,x operand
     if( op_cycle!=CycleAddr3 && ( active_addr_mode==AddrAbsoluteX || active_addr_mode==AddrAbsoluteY ) ) begin
         addr_bus_dl();
     end else begin
@@ -2687,11 +2692,31 @@ task do_op_sty_first();
 endtask
 
 task do_op_stz_first();
-    rW = 0;
-    data_bus_source = bus_sources::DataBusSrc_Zero;
+    // BUG: WDC datasheet never mentions extra cycles for STZ, only for STA
+    if( op_cycle!=CycleAddr3 && ( active_addr_mode==AddrAbsoluteX || active_addr_mode==AddrAbsoluteY ) ) begin
+        addr_bus_dl();
+    end else begin
+        rW = 0;
+        data_bus_source = bus_sources::DataBusSrc_Zero;
 
-    next_instruction();
+        next_instruction();
+    end
 endtask
+
+task do_op_stz();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_dl();
+
+            rW = 0;
+            data_bus_source = bus_sources::DataBusSrc_Zero;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
 
 task do_op_txs_first();
     next_instruction();

@@ -718,6 +718,7 @@ pull_test_loop2:
     sta reset_vector+1
     lda #$04
     sta RESET_TRIGGER_COUNT
+    lda #$10
     sta RESET_TRIGGER_DELAY
 
     stp

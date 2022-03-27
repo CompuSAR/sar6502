@@ -88,11 +88,11 @@ logic signals[Sig_NumElements-1:0];
 sar6502 cpu(
     .phi2(clock),
     .data_in(data_in),
-    .RES( signals[SigReset] ),
-    .rdy( signals[SigReady] ),
-    .IRQ( signals[SigIrq] ),
-    .NMI( signals[SigNmi] ),
-    .SO( signals[SigSo] ),
+    .RES( !signals[SigReset] ),
+    .rdy( !signals[SigReady] ),
+    .IRQ( !signals[SigIrq] ),
+    .NMI( !signals[SigNmi] ),
+    .SO( !signals[SigSo] ),
 
     .address(address_bus),
     .data_out(data_out),
@@ -120,10 +120,10 @@ initial begin
     foreach( signals[i] ) begin
         pending_signals[i].delay = 0;
         pending_signals[i].count = 0;
-        signals[i] = 1;
+        signals[i] = 0;
     end
 
-    signals[SigReset] = 0;
+    pending_signals[SigReset].delay = 2;
     pending_signals[SigReset].count = 5;
 
     forever begin
@@ -143,16 +143,18 @@ task clock_low();
 begin
     // Signal control
     foreach( signals[i] ) begin
-        if( pending_signals[i].delay>0 ) begin
-            pending_signals[i].delay--;
+        if( signals[i]==1 || pending_signals[i].delay>0 ) begin
+            if( pending_signals[i].delay>0 ) begin
+                pending_signals[i].delay--;
 
-            if( pending_signals[i].delay==0 )
-                signals[i] = 0;
-        end else if( pending_signals[i].count>0 ) begin
-            pending_signals[i].count--;
+                if( pending_signals[i].delay==0 )
+                    signals[i] = 1;
+            end else begin
+                pending_signals[i].count--;
 
-            if( pending_signals[i].count==0 )
-                signals[i] = 1;
+                if( pending_signals[i].count==0 )
+                    signals[i] = 0;
+            end
         end
     end
 
@@ -227,12 +229,12 @@ task perform_io();
             $display("Test finished successfully");
             $finish();
         end
-        8'hfa: pending_signals[SigNmi].delay = data_out;
-        8'hfb: pending_signals[SigNmi].count = data_out;
-        8'hfc: pending_signals[SigReset].delay = data_out;
-        8'hfd: pending_signals[SigReset].count = data_out;
-        8'hfe: pending_signals[SigIrq].delay = data_out;
-        8'hff: pending_signals[SigIrq].count = data_out;
+        8'hfa: pending_signals[SigNmi].count = data_out;
+        8'hfb: pending_signals[SigNmi].delay = data_out;
+        8'hfc: pending_signals[SigReset].count = data_out;
+        8'hfd: pending_signals[SigReset].delay = data_out;
+        8'hfe: pending_signals[SigIrq].count = data_out;
+        8'hff: pending_signals[SigIrq].delay = data_out;
     endcase
 endtask
 

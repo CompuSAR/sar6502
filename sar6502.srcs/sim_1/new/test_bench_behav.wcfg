@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="390,639.583 ns"></ZoomStartTime>
-      <ZoomEndTime time="391,432.084 ns"></ZoomEndTime>
-      <Cursor1Time time="391,300.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="796.501 ns"></ZoomEndTime>
+      <Cursor1Time time="0.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="78"></ValueColumnWidth>
+      <ValueColumnWidth column_width="70"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="44" />
+   <WVObjectSize size="45" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -33,6 +33,12 @@
    <wvobject type="array" fp_name="/test_bench/address_bus">
       <obj_property name="ElementShortName">address_bus[15:0]</obj_property>
       <obj_property name="ObjectShortName">address_bus[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_bench/incompatible">
+      <obj_property name="ElementShortName">incompatible</obj_property>
+      <obj_property name="ObjectShortName">incompatible</obj_property>
+      <obj_property name="CustomSignalColor">#800080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/read_Write">
       <obj_property name="ElementShortName">read_Write</obj_property>

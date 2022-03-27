@@ -80,7 +80,7 @@ logic clock;
 logic [15:0] address_bus;
 logic [7:0] data_in, data_out;
 
-logic read_Write, vector_pull, memory_lock, sync;
+logic read_Write, vector_pull, memory_lock, sync, incompatible;
 
 typedef enum { SigReset, SigIrq, SigNmi, SigSo, SigReady, Sig_NumElements } signal_types;
 logic signals[Sig_NumElements-1:0];
@@ -99,7 +99,8 @@ sar6502 cpu(
     .rW(read_Write),
     .VP(vector_pull),
     .ML(memory_lock),
-    .sync(sync)
+    .sync(sync),
+    .incompatible(incompatible)
 );
 
 logic [7:0]memory[65536];
@@ -187,7 +188,10 @@ endtask
 
 task verify_cycle( input logic [35:0]plan_line );
 begin
-    assert_state( address_bus, plan_line[31:16], "Address bus" );
+    if( !incompatible || sync==1 || plan_line[1]==1 || read_Write==0 || plan_line[0]==0 ) begin
+        assert_state( address_bus, plan_line[31:16], "Address bus" );
+    end else
+        $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, address_bus, plan_line[31:16]);
     assert_state( read_Write, plan_line[0], "Read/write" );
     assert_state( sync, plan_line[1], "Sync" );
     if( plan_line[2]==1 ) // Due to bug in wd65c02, allow our ML to be active while theirs isn't.
@@ -196,7 +200,8 @@ begin
 
     if( read_Write ) begin
         // Read
-        assert_state( data_in, plan_line[15:8], "Data in" );
+        if( !incompatible )
+            assert_state( data_in, plan_line[15:8], "Data in" );
     end else begin
         // Write
         memory[address_bus] = data_out;
@@ -215,13 +220,19 @@ task assert_state( input logic [15:0]actual, input logic [15:0]expected, input s
 endtask
 
 task perform_io();
-    $display("IO writing %x to %x", data_out, address_bus);
+    $display("Cycle %d: IO writing %x to %x", cycle_num, data_out, address_bus);
 
     casex( address_bus[7:0] )
         8'h00: begin
             $display("Test finished successfully");
             $finish();
         end
+        8'hfa: pending_signals[SigNmi].delay = data_out;
+        8'hfb: pending_signals[SigNmi].count = data_out;
+        8'hfc: pending_signals[SigReset].delay = data_out;
+        8'hfd: pending_signals[SigReset].count = data_out;
+        8'hfe: pending_signals[SigIrq].delay = data_out;
+        8'hff: pending_signals[SigIrq].count = data_out;
     endcase
 endtask
 

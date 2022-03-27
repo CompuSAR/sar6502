@@ -62,7 +62,8 @@ module decoder#(parameter CPU_VARIANT = 2)
         output logic rW,
         output logic sync,
         output logic ML,
-        output logic VP
+        output logic VP,
+        output logic incompatible
     );
 
 localparam MAX_OPCODE_CYCLES = 16;
@@ -102,8 +103,7 @@ enum logic[31:0] {
     AddrZeroPageY,
     AddrZeroPageInd,
     AddrZeroPageXInd,
-    AddrZeroPageIndZ,
-    AddrZeroPageIndZSta, // BUG: WDC manual says only STA abs,x needs special handling
+    AddrZeroPageIndY,
     AddrStack
 } active_addr_mode = AddrImplicit, active_addr_mode_next;
 
@@ -268,6 +268,7 @@ always_comb begin
     sync = 0;
     ML = 1;
     VP = 1;
+    incompatible = 0;
     int_state_next = int_state;
 
     active_op_next = active_op;
@@ -423,7 +424,7 @@ task do_decode();
         8'h8e: set_addr_mode_absolute( OpStx );
         8'h8f: set_addr_mode_zp( OpBbs0 );
         8'h90: set_addr_mode_implicit( OpBcc );
-        8'h91: set_addr_mode_zp_ind_y_sta( OpSta );
+        8'h91: set_addr_mode_zp_ind_y( OpSta );
         8'h92: set_addr_mode_zp_ind( OpSta );
         8'h94: set_addr_mode_zp_x( OpSty );
         8'h95: set_addr_mode_zp_x( OpSta );
@@ -486,6 +487,7 @@ task do_decode();
         8'hd8: set_addr_mode_implicit( OpCld );
         8'hd9: set_addr_mode_abs_y( OpCmp );
         8'hda: set_addr_mode_stack( OpPhx );
+        8'hdb: set_addr_mode_implicit( OpStp );
         8'hdd: set_addr_mode_abs_x( OpCmp );
         8'hde: set_addr_mode_abs_x( OpDec );
         8'hdf: set_addr_mode_zp( OpBbs5 );
@@ -534,8 +536,7 @@ task do_addr_lookup();
         AddrZeroPageY: do_addr_mode_zp_x();
         AddrZeroPageInd: do_addr_mode_zp_ind();
         AddrZeroPageXInd: do_addr_mode_zp_x_ind();
-        AddrZeroPageIndZ: do_addr_mode_zp_ind_y();
-        AddrZeroPageIndZSta: do_addr_mode_zp_ind_y_sta();
+        AddrZeroPageIndY: do_addr_mode_zp_ind_y();
         AddrStack: do_addr_mode_stack();
         default: set_invalid_state();
     endcase
@@ -828,14 +829,7 @@ endtask
 
 task set_addr_mode_zp_ind_y(operations current_op);
     active_op_next = current_op;
-    active_addr_mode_next = AddrZeroPageIndZ;
-
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
-endtask
-
-task set_addr_mode_zp_ind_y_sta(operations current_op);
-    active_op_next = current_op;
-    active_addr_mode_next = AddrZeroPageIndZSta;
+    active_addr_mode_next = AddrZeroPageIndY;
 
     ctrl_signals[control_signals::PC_ADVANCE] = 1;
 endtask
@@ -1196,6 +1190,7 @@ task set_operation(operations current_op);
         OpSmb6: do_op_smb_first(6);
         OpSmb7: do_op_smb_first(7);
         OpSta: do_op_sta_first();
+        OpStp: do_op_stop_first();
         OpStx: do_op_stx_first();
         OpSty: do_op_sty_first();
         OpStz: do_op_stz_first();
@@ -1292,6 +1287,7 @@ task do_operation();
         OpSmb6: do_op_smb(6);
         OpSmb7: do_op_smb(7);
         OpSta: do_op_sta();
+        OpStp: do_op_stop();
         OpStz: do_op_stz();
         OpTrb: do_op_trb();
         OpTsb: do_op_tsb();
@@ -2682,6 +2678,9 @@ task do_op_sta_first();
     // BUG: WDC manual only mentions extra cycle for abs,x operand
     if( op_cycle!=CycleAddr3 && ( active_addr_mode==AddrAbsoluteX || active_addr_mode==AddrAbsoluteY ) ) begin
         addr_bus_dl();
+    end else if( op_cycle!=CycleAddr4 && active_addr_mode==AddrZeroPageIndY ) begin
+        addr_bus_dl();
+        incompatible = 1;
     end else begin
         rW = 0;
         data_bus_source = bus_sources::DataBusSrc_A;
@@ -2835,6 +2834,20 @@ task do_op_tsb();
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_stop_first();
+endtask
+
+task do_op_stop();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_pc();
+
+            op_cycle_next = FirstOpCycle;
         end
         default: set_invalid_state();
     endcase

@@ -711,6 +711,18 @@ pull_test_loop2:
     jsr dump_state
 
 
+    ; STP test
+    lda #(reset_handler_stp % 256)
+    sta reset_vector
+    lda #(reset_handler_stp / 256)
+    sta reset_vector+1
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    sta RESET_TRIGGER_DELAY
+
+    stp
+stp_test_cont:
+
     sta FINISHED_TRIGGER
     .byte 00
 
@@ -750,7 +762,11 @@ reset_handler:
     lda #INTMASK+OVERFLOW
     pha
     rti
-    .byte 00
+    brk         ; Unreachable
+
+reset_handler_stp:
+    jmp stp_test_cont
+    brk         ; Unreachable
 
     .org $0a4f
     .byte $8f           ; cmp (zp) test

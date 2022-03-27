@@ -52,6 +52,8 @@ module sar6502(
     output ML,
     output sync,
 
+    output incompatible,        // Address bus is deliberately incompatible with our base CPU
+
     output debug1,
     output debug2,
     output debug3,
@@ -196,7 +198,8 @@ decoder decoder(
     .rW( rW ),
     .sync( sync ),
     .ML( ML ),
-    .VP( VP )
+    .VP( VP ),
+    .incompatible( incompatible )
 );
 
 // Assign the rest of the bus inputs

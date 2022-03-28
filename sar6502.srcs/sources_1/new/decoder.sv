@@ -111,6 +111,7 @@ typedef enum logic[31:0] {
     OpInvalid = 'X,
 
     OpNone = 0,
+
     OpAdc,
     OpAnd,
     OpAsl,
@@ -216,7 +217,7 @@ typedef enum logic[31:0] {
     OpTya,
     OpWai
 } operations;
-operations active_op = OpNone, active_op_next;
+operations active_op = OpWai, active_op_next;
 
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
@@ -225,9 +226,9 @@ logic branch_offset_negative;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
-        active_op <= OpInvalid;
+        active_op <= OpNone;
         active_addr_mode <= AddrInvalid;
-        op_cycle <= CycleFetch;
+        op_cycle <= FirstOpCycle;
         int_state <= IntStateReset;
     end else begin
         op_cycle <= op_cycle_next;
@@ -277,6 +278,7 @@ always_comb begin
 
     if( !RESET ) begin
         int_state_next = IntStateReset;
+        addr_bus_pc();
     end else if( op_cycle==CycleFetch ) begin
         do_fetch_cycle();
     end else if( op_cycle==CycleDecode ) begin
@@ -300,7 +302,8 @@ task do_fetch_cycle();
 
     if( int_state==IntStateNone ) begin
         ctrl_signals[control_signals::PC_ADVANCE] = 1;
-    end
+    end else if( int_state==IntStateReset )
+        incompatible = 1;
 endtask
 
 task do_decode();
@@ -1208,6 +1211,8 @@ endtask
 
 task do_operation();
     case( active_op )
+        OpNone: do_op_none();
+
         OpAdc: do_op_adc();
         OpAnd: do_op_and();
         OpAsl: do_op_asl();
@@ -1291,6 +1296,16 @@ task do_operation();
         OpStz: do_op_stz();
         OpTrb: do_op_trb();
         OpTsb: do_op_tsb();
+        default: set_invalid_state();
+    endcase
+endtask
+
+task do_op_none();
+    case( op_cycle )
+        FirstOpCycle: begin
+            addr_bus_pc();
+            next_instruction();
+        end
         default: set_invalid_state();
     endcase
 endtask
@@ -1833,6 +1848,7 @@ task do_op_brk_first();
         IntStateIrq: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
         default: set_invalid_state();
     endcase
+
     ctrl_signals[control_signals::LOAD_DataLow] = 1;
     ctrl_signals[control_signals::PC_ADVANCE] = (int_state==IntStateNone ? 1 : 0);
 

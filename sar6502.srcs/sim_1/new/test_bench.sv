@@ -190,7 +190,7 @@ endtask
 
 task verify_cycle( input logic [35:0]plan_line );
 begin
-    if( !incompatible || sync==1 || plan_line[1]==1 || read_Write==0 || plan_line[0]==0 ) begin
+    if( !incompatible || read_Write==0 || plan_line[0]==0 ) begin
         assert_state( address_bus, plan_line[31:16], "Address bus" );
     end else
         $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, address_bus, plan_line[31:16]);

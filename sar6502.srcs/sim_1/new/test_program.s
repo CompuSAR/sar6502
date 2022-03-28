@@ -11,8 +11,8 @@ NMI_TRIGGER_COUNT       = $2fa
 NMI_TRIGGER_DELAY       = $2fb
 RESET_TRIGGER_COUNT     = $2fc
 RESET_TRIGGER_DELAY     = $2fd
-INT_TRIGGER_COUNT       = $2fe
-INT_TRIGGER_DELAY       = $2ff
+IRQ_TRIGGER_COUNT       = $2fe
+IRQ_TRIGGER_DELAY       = $2ff
 
 value_dump = $ff00
 
@@ -712,9 +712,9 @@ pull_test_loop2:
 
 
     ; STP test
-    lda #(reset_handler_stp % 256)
+    lda #(stp_test_cont1 % 256)
     sta reset_vector
-    lda #(reset_handler_stp / 256)
+    lda #(stp_test_cont1 / 256)
     sta reset_vector+1
     lda #$04
     sta RESET_TRIGGER_COUNT
@@ -722,7 +722,78 @@ pull_test_loop2:
     sta RESET_TRIGGER_DELAY
 
     stp
-stp_test_cont:
+
+stp_test_cont1:
+    jsr dump_state
+
+    lda #(stp_test_cont2 % 256)
+    sta reset_vector
+    lda #(stp_test_cont2 / 256)
+    sta reset_vector+1
+
+    lda #$ff
+    pha
+    php
+    jsr dump_state
+
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    sta RESET_TRIGGER_DELAY
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+stp_test_cont2:
+    jsr dump_state
+
+    lda #(stp_test_cont3 % 256)
+    sta reset_vector
+    lda #(stp_test_cont3 / 256)
+    sta reset_vector+1
+
+    lda #$00
+    pha
+    php
+    jsr dump_state
+
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    sta RESET_TRIGGER_DELAY
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+stp_test_cont3:
+    jsr dump_state
+
+
+    ; IRQ test
+    lda #$6
+    sta IRQ_TRIGGER_COUNT
+    sta IRQ_TRIGGER_DELAY
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
 
     sta FINISHED_TRIGGER
     .byte 00
@@ -765,9 +836,6 @@ reset_handler:
     rti
     brk         ; Unreachable
 
-reset_handler_stp:
-    jmp stp_test_cont
-    brk         ; Unreachable
 
     .org $0a4f
     .byte $8f           ; cmp (zp) test
@@ -884,6 +952,7 @@ int_handler:
     php
     plp
     rti
+    brk         ; Unreachable
 
 nmi_handler:
     jmp int_handler

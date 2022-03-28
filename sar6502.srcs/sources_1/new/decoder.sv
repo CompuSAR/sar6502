@@ -300,10 +300,10 @@ task do_fetch_cycle();
     addr_bus_pc();
     sync = 1;
 
-    if( int_state==IntStateNone ) begin
-        ctrl_signals[control_signals::PC_ADVANCE] = 1;
-    end else if( int_state==IntStateReset )
+    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    if( int_state==IntStateReset ) begin
         incompatible = 1;
+    end
 endtask
 
 task do_decode();
@@ -1838,6 +1838,8 @@ task do_op_bit();
 endtask
 
 task do_op_brk_first();
+    incompatible = 1;
+
     data_latch_high_source = bus_sources::DataLatchHighSource_FF;
     ctrl_signals[control_signals::LOAD_DataHigh] = 1;
 

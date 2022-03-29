@@ -44,6 +44,7 @@ module decoder#(parameter CPU_VARIANT = 2)
         input alu_carry,
         input clock,
         input RESET,
+        input IRQ,
 
         output bus_sources::AddressBusLowSourceCtl address_bus_low_source,
         output bus_sources::AddressBusHighSourceCtl address_bus_high_source,
@@ -223,6 +224,7 @@ enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntSt
 
 logic alu_carry_latched;
 logic branch_offset_negative;
+logic irq_mask;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
@@ -238,6 +240,8 @@ always_ff@(negedge clock) begin
         alu_carry_latched <= alu_carry;
         branch_offset_negative <= memory_in[7];
     end
+
+    irq_mask <= status[control_signals::FlagsIrqMask];
 end
 
 task set_invalid_state();
@@ -300,8 +304,12 @@ task do_fetch_cycle();
     addr_bus_pc();
     sync = 1;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
-    if( int_state==IntStateReset ) begin
+    if( int_state==IntStateNone ) begin
+        if( !IRQ && irq_mask==0 )
+            int_state_next = IntStateIrq;
+        else
+            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    end else if( int_state==IntStateReset ) begin
         incompatible = 1;
     end
 endtask
@@ -1897,10 +1905,8 @@ task do_op_brk();
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
             ctrl_signals[control_signals::LOAD_DataLow] = 1;
 
-            if( CPU_VARIANT>0 ) begin
-                data_bus_source = bus_sources::DataBusSrc_Zero;
-                ctrl_signals[control_signals::UpdateFlagD] = 1;
-            end
+            data_bus_source = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::UpdateFlagI] = 1;
         end
         CycleOp5: begin
             addr_bus_dl();
@@ -1910,8 +1916,10 @@ task do_op_brk();
             pc_high_source = bus_sources::PcHighSource_Mem;
             pc_low_source = bus_sources::PcLowSource_Mem;
 
-            data_bus_source = bus_sources::DataBusSrc_Ones;
-            ctrl_signals[control_signals::UpdateFlagI] = 1;
+            if( CPU_VARIANT>0 ) begin
+                data_bus_source = bus_sources::DataBusSrc_Zero;
+                ctrl_signals[control_signals::UpdateFlagD] = 1;
+            end
         end
         CycleOp6: begin
             ctrl_signals[control_signals::PC_LOAD] = 1;

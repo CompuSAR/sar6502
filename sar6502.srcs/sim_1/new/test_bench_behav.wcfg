@@ -13,13 +13,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="451,746.250 ns"></ZoomStartTime>
-      <ZoomEndTime time="452,542.751 ns"></ZoomEndTime>
-      <Cursor1Time time="452,410.000 ns"></Cursor1Time>
+      <ZoomStartTime time="477,294.583 ns"></ZoomStartTime>
+      <ZoomEndTime time="477,667.584 ns"></ZoomEndTime>
+      <Cursor1Time time="477,960.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="70"></ValueColumnWidth>
+      <ValueColumnWidth column_width="66"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="46" />
    <wvobject type="logic" fp_name="/test_bench/clock">
@@ -33,11 +33,25 @@
    <wvobject type="array" fp_name="/test_bench/address_bus">
       <obj_property name="ElementShortName">address_bus[15:0]</obj_property>
       <obj_property name="ObjectShortName">address_bus[15:0]</obj_property>
+      <obj_property name="CustomSignalColor">#008080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/incompatible">
       <obj_property name="ElementShortName">incompatible</obj_property>
       <obj_property name="ObjectShortName">incompatible</obj_property>
       <obj_property name="CustomSignalColor">#800080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/data_in">
+      <obj_property name="ElementShortName">data_in[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_in[7:0]</obj_property>
+      <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/data_out">
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="CustomSignalColor">#00FFFF</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/read_Write">
@@ -53,14 +67,6 @@
       <obj_property name="ElementShortName">address_out[15:0]</obj_property>
       <obj_property name="ObjectShortName">address_out[15:0]</obj_property>
       <obj_property name="label">PC</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/test_bench/data_in">
-      <obj_property name="ElementShortName">data_in[7:0]</obj_property>
-      <obj_property name="ObjectShortName">data_in[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/test_bench/data_out">
-      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
-      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/register_a/data_out">
       <obj_property name="DisplayName">label</obj_property>
@@ -216,6 +222,8 @@
       <obj_property name="ElementShortName">cycle_num[31:0]</obj_property>
       <obj_property name="ObjectShortName">cycle_num[31:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/address_bus_high_source">
       <obj_property name="ElementShortName">address_bus_high_source[31:0]</obj_property>

@@ -48,7 +48,7 @@ typedef enum logic[31:0] {
 typedef enum {
     FlagsCarry = 0,
     FlagsZero = 1,
-    FlagsIrqMark = 2,
+    FlagsIrqMask = 2,
     FlagsDecimal = 3,
     FlagsBrk = 4,
     FlagsOverflow = 6,

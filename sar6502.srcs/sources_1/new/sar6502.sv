@@ -180,6 +180,7 @@ decoder decoder(
     .alu_carry( alu_carry ),
     .clock(phi2),
     .RESET(RESET_L),
+    .IRQ(IRQ_L),
 
     .address_bus_low_source( address_bus_low_source ),
     .address_bus_high_source( address_bus_high_source ),

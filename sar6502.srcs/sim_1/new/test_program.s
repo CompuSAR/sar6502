@@ -733,7 +733,7 @@ stp_test_cont1:
 
     lda #$ff
     pha
-    php
+    plp
     jsr dump_state
 
     lda #$04
@@ -759,7 +759,7 @@ stp_test_cont2:
 
     lda #$00
     pha
-    php
+    plp
     jsr dump_state
 
     lda #$04
@@ -787,6 +787,22 @@ stp_test_cont3:
     nop
     nop
     nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    lda #30
+    sta IRQ_TRIGGER_COUNT
+    ldx #4
+    stx IRQ_TRIGGER_DELAY
+    nop
+    nop
+    nop
+    nop
+    cli
     nop
     nop
     nop

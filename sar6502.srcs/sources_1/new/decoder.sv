@@ -45,6 +45,7 @@ module decoder#(parameter CPU_VARIANT = 2)
         input clock,
         input RESET,
         input IRQ,
+        input NMI,
 
         output bus_sources::AddressBusLowSourceCtl address_bus_low_source,
         output bus_sources::AddressBusHighSourceCtl address_bus_high_source,
@@ -225,6 +226,8 @@ enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntSt
 logic alu_carry_latched;
 logic branch_offset_negative;
 logic irq_mask;
+logic last_NMI;
+logic nmi_pending, nmi_pending_next;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
@@ -232,6 +235,7 @@ always_ff@(negedge clock) begin
         active_addr_mode <= AddrInvalid;
         op_cycle <= FirstOpCycle;
         int_state <= IntStateReset;
+        nmi_pending <= 0;
     end else begin
         op_cycle <= op_cycle_next;
         active_addr_mode <= active_addr_mode_next;
@@ -239,9 +243,14 @@ always_ff@(negedge clock) begin
         int_state <= int_state_next;
         alu_carry_latched <= alu_carry;
         branch_offset_negative <= memory_in[7];
+        if(last_NMI && !NMI)
+            nmi_pending <= 1;
+        else
+            nmi_pending <= nmi_pending_next;
     end
 
     irq_mask <= status[control_signals::FlagsIrqMask];
+    last_NMI <= NMI;
 end
 
 task set_invalid_state();
@@ -275,6 +284,7 @@ always_comb begin
     VP = 1;
     incompatible = 0;
     int_state_next = int_state;
+    nmi_pending_next = nmi_pending;
 
     active_op_next = active_op;
     active_addr_mode_next = active_addr_mode;
@@ -305,7 +315,10 @@ task do_fetch_cycle();
     sync = 1;
 
     if( int_state==IntStateNone ) begin
-        if( !IRQ && irq_mask==0 )
+        if(nmi_pending) begin
+            int_state_next = IntStateNmi;
+            nmi_pending_next = 0;
+        end else if( !IRQ && irq_mask==0 )
             int_state_next = IntStateIrq;
         else
             ctrl_signals[control_signals::PC_ADVANCE] = 1;

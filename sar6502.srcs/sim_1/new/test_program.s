@@ -750,6 +750,10 @@ stp_test_cont1:
     nop
 
 stp_test_cont2:
+    ; We don't care about the status flags, only D and I
+    lda #$00
+    clv
+    clc
     jsr dump_state
 
     lda #(stp_test_cont3 % 256)
@@ -776,6 +780,10 @@ stp_test_cont2:
     nop
 
 stp_test_cont3:
+    ; We don't care about the status flags, only D and I
+    lda #$00
+    clv
+    clc
     jsr dump_state
 
 
@@ -803,6 +811,33 @@ stp_test_cont3:
     nop
     nop
     cli
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+
+    ; NMI test
+    lda #40
+    sta NMI_TRIGGER_COUNT
+    sta IRQ_TRIGGER_COUNT
+    ldx #15
+    ldy #11
+    stx IRQ_TRIGGER_DELAY
+    sty NMI_TRIGGER_DELAY
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
     nop
     nop
     nop

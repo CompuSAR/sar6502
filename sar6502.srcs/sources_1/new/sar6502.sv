@@ -181,6 +181,7 @@ decoder decoder(
     .clock(phi2),
     .RESET(RESET_L),
     .IRQ(IRQ_L),
+    .NMI(NMI_L),
 
     .address_bus_low_source( address_bus_low_source ),
     .address_bus_high_source( address_bus_high_source ),

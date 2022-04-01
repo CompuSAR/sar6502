@@ -77,6 +77,7 @@ typedef enum logic[31:0] {
     PcHighSource_CurrentValue = 0,
     PcHighSource_Mem,
     PcHighSource_Dl,
+    PcHighSource_Alu_Latched,
 
     PcHighSource_End_Marker
 } PcHighSourceCtl;

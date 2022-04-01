@@ -82,6 +82,7 @@ always_ff@(negedge phi2) begin
     previous_SO <= SO_L;
     prev_pc_value <= pc_value;
     alu_result_latched <= alu_result;
+    alu_carry_latched <= alu_carry;
 end
 
 // Buses
@@ -110,6 +111,7 @@ logic alu_carry_inputs[bus_sources::AluCarrySourceCtlLast:0];
 bus_sources::AluCarrySourceCtl alu_carry_source;
 control_signals::alu_control alu_control;
 logic alu_carry, alu_overflow;
+logic alu_carry_latched;
 
 alu alu( .a(alu_a_inputs[alu_a_source]), .b(alu_b_inputs[alu_b_source]),
     .carry_in(alu_carry_inputs[alu_carry_source]),
@@ -133,7 +135,7 @@ register register_stack(
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
 logic [7:0]status_value;
-status_register restier_p(.data_in(data_bus), .data_out(status_value), .clock(phi2),
+status_register register_p(.data_in(data_bus), .data_out(status_value), .clock(phi2),
     .alu_carry(alu_carry),
     .alu_overflow(alu_overflow),
     .use_alu_flags(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
@@ -177,7 +179,7 @@ logic [control_signals::ctrl_signals_last:0] ctrl_signals;
 decoder decoder(
     .memory_in(data_in_l),
     .status( status_value ),
-    .alu_carry( alu_carry ),
+    .alu_carry( alu_carry_latched ),
     .clock(phi2),
     .RESET(RESET_L),
     .IRQ(IRQ_L),
@@ -238,6 +240,7 @@ assign pc_low_inputs[bus_sources::PcLowSource_Dl] = data_latch_value[7:0];
 assign pc_high_inputs[bus_sources::PcHighSource_CurrentValue] = prev_pc_value[15:8];
 assign pc_high_inputs[bus_sources::PcHighSource_Mem] = data_in_l;
 assign pc_high_inputs[bus_sources::PcHighSource_Dl] = data_latch_value[15:8];
+assign pc_high_inputs[bus_sources::PcHighSource_Alu_Latched] = alu_result_latched;
 
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Mem] = data_in_l;
 assign data_latch_low_inputs[bus_sources::DataLatchLowSource_Alu] = alu_result;

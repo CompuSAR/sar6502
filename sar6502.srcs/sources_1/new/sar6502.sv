@@ -52,14 +52,7 @@ module sar6502(
     output ML,
     output sync,
 
-    output incompatible,        // Address bus is deliberately incompatible with our base CPU
-
-    output debug1,
-    output debug2,
-    output debug3,
-    output debug4,
-    output debug5,
-    output debug6
+    output incompatible        // Address bus is deliberately incompatible with our base CPU
     );
 
 // Input latches
@@ -67,7 +60,7 @@ logic [7:0] data_in_l;
 logic RESET_L;
 logic IRQ_L;
 logic NMI_L;
-logic SO_L, previous_SO;
+logic SO_L;
 logic [15:0]pc_value, prev_pc_value;
 logic [7:0]alu_result, alu_result_latched;
 
@@ -287,7 +280,6 @@ always_ff@(negedge phi2) begin
         IRQ_L <= IRQ;
         NMI_L <= NMI;
         SO_L <= SO;
-        previous_SO <= SO_L;
         prev_pc_value <= pc_value;
         alu_result_latched <= alu_result;
         alu_carry_latched <= alu_carry;

@@ -136,7 +136,7 @@ status_register register_p(.data_in(data_bus), .data_out(status_value), .clock(p
     .output_b(ctrl_signals[control_signals::OutputFlagB]),
     .update_v(ctrl_signals[control_signals::UpdateFlagV]),
     .update_n(ctrl_signals[control_signals::UpdateFlagN]),
-    .ready(rdy)
+    .ready(rdy), .so(SO_L)
 );
 
 logic [15:0]data_latch_value;

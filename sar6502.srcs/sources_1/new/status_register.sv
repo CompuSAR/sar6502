@@ -56,10 +56,12 @@ module status_register(
         input use_alu_flags,
         input calculate_zero,
 
-        input ready
+        input ready,
+        input so
     );
 
 logic negative, overflow, decimal, irq_mask, zero, carry;
+logic prev_so = 0;
 
 assign data_out = { negative, overflow, 1'b1, output_b, decimal, irq_mask, zero, carry };
 
@@ -83,6 +85,11 @@ begin
         if( update_c )
             carry <= use_alu_flags ? alu_carry : data_in[0];
     end
+
+    if( prev_so==1 && so==0 )
+        overflow <= 1;
+
+    prev_so <= so;
 end
 
 endmodule

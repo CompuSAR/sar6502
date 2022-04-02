@@ -8,20 +8,21 @@
             <top_module name="bus_sources" />
             <top_module name="control_signals" />
             <top_module name="glbl" />
+            <top_module name="load_signals" />
             <top_module name="test_bench" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="487,044.954 ns"></ZoomStartTime>
-      <ZoomEndTime time="487,548.103 ns"></ZoomEndTime>
-      <Cursor1Time time="487,264.327 ns"></Cursor1Time>
+      <ZoomStartTime time="488,579.637 ns"></ZoomStartTime>
+      <ZoomEndTime time="490,032.073 ns"></ZoomEndTime>
+      <Cursor1Time time="489,790.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="213"></NameColumnWidth>
-      <ValueColumnWidth column_width="62"></ValueColumnWidth>
+      <NameColumnWidth column_width="211"></NameColumnWidth>
+      <ValueColumnWidth column_width="60"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="40" />
+   <WVObjectSize size="41" />
    <wvobject type="logic" fp_name="/test_bench/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -193,8 +194,13 @@
       <obj_property name="ObjectShortName">memory_lock</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/ctrl_signals">
-      <obj_property name="ElementShortName">ctrl_signals[18:0]</obj_property>
-      <obj_property name="ObjectShortName">ctrl_signals[18:0]</obj_property>
+      <obj_property name="ElementShortName">ctrl_signals[3:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_signals[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/ld_signals">
+      <obj_property name="ElementShortName">ld_signals[13:0]</obj_property>
+      <obj_property name="ObjectShortName">ld_signals[13:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cycle_num">
       <obj_property name="ElementShortName">cycle_num[31:0]</obj_property>

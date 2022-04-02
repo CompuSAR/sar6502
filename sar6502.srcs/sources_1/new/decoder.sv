@@ -61,6 +61,7 @@ module decoder#(parameter CPU_VARIANT = 2)
         output bus_sources::AluASourceCtl alu_a_source,
         output bus_sources::AluBSourceCtl alu_b_source,
         output bus_sources::AluCarrySourceCtl alu_carry_source,
+        output logic [load_signals::ld_signals_last:0] ld_signals,
         output logic [control_signals::ctrl_signals_last:0] ctrl_signals,
 
         output logic rW,
@@ -269,6 +270,7 @@ task set_invalid_state();
     alu_b_source = bus_sources::AluBSourceCtl_Invalid;
     alu_op = control_signals::AluOp_INVALID;
     alu_carry_source = bus_sources::AluCarrySource_Invalid;
+    ld_signals = { load_signals::ld_signals_last {1'bx} };
     ctrl_signals = { control_signals::ctrl_signals_last {1'bx} };
 
     active_op_next = OpInvalid;
@@ -279,7 +281,7 @@ endtask
 always_comb begin
     set_invalid_state();
 
-    ctrl_signals[control_signals::LastLoadSignal-1:0] = 0;
+    ld_signals = 0;
     rW = 1;
     sync = 0;
     ML = 1;
@@ -323,7 +325,7 @@ task do_fetch_cycle();
         end else if( !IRQ && irq_mask==0 )
             int_state_next = IntStateIrq;
         else
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
     end else if( int_state==IntStateReset ) begin
         incompatible = 1;
     end
@@ -591,21 +593,21 @@ endtask
 task set_addr_mode_absolute(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsolute;
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_absolute();
     case( op_cycle )
         CycleAddr1: begin
             data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
             addr_bus_pc();
         end
         CycleAddr2: begin
             data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             addr_bus_dl_mem();
 
@@ -619,14 +621,14 @@ task set_addr_mode_abs_ind(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsoluteInd;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task set_addr_mode_abs_x_ind(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsoluteXInd;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_abs_x_ind();
@@ -650,7 +652,7 @@ task do_addr_mode_abs_x_ind();
             ctrl_signals[control_signals::AluBInverse] = 0;
             alu_carry_source = alu_carry ? bus_sources::AluCarrySource_One : bus_sources::AluCarrySource_Zero;
 
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu_Latched;
 
             addr_bus_pc();
@@ -658,8 +660,8 @@ task do_addr_mode_abs_x_ind();
         CycleAddr3: begin
             pc_low_source = bus_sources::PcLowSource_Dl;
             pc_high_source = bus_sources::PcHighSource_Alu_Latched;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
             // Address of destination LSB
             addr_bus_pc();
@@ -669,7 +671,7 @@ task do_addr_mode_abs_x_ind();
 
             addr_bus_pc();
 
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
             data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
         end
         CycleAddr5: begin
@@ -679,7 +681,7 @@ task do_addr_mode_abs_x_ind();
             pc_low_source = bus_sources::PcLowSource_Dl;
             pc_high_source = bus_sources::PcHighSource_Mem;
 
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
         end
         default: set_invalid_state();
     endcase
@@ -688,7 +690,7 @@ endtask
 task set_addr_mode_abs_x(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsoluteX;
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_abs_x();
@@ -703,7 +705,7 @@ task do_addr_mode_abs_x();
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
         end
         CycleAddr2: begin
             if( alu_carry ) begin
@@ -716,21 +718,21 @@ task do_addr_mode_abs_x();
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
             end else begin
                 data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
 
                 addr_bus_dl_mem();
 
-                ctrl_signals[control_signals::PC_ADVANCE] = 1;
+                ld_signals[load_signals::PC_ADVANCE] = 1;
                 set_operation( active_op );
             end
         end
         CycleAddr3: begin
             addr_bus_dl();
 
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
             set_operation( active_op );
         end
         default: set_invalid_state();
@@ -740,7 +742,7 @@ endtask
 task set_addr_mode_abs_y(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrAbsoluteY;
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_abs_y();
@@ -755,7 +757,7 @@ task do_addr_mode_abs_y();
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
         end
         CycleAddr2: begin
             if( alu_carry ) begin
@@ -768,21 +770,21 @@ task do_addr_mode_abs_y();
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
             end else begin
                 data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
 
                 addr_bus_dl_mem();
 
-                ctrl_signals[control_signals::PC_ADVANCE] = 1;
+                ld_signals[load_signals::PC_ADVANCE] = 1;
                 set_operation( active_op );
             end
         end
         CycleAddr3: begin
             addr_bus_dl();
 
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
             set_operation( active_op );
         end
         default: set_invalid_state();
@@ -806,7 +808,7 @@ task do_addr_mode_zp_x_ind();
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
         end
         CycleAddr2: begin
             address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch_High;
@@ -819,20 +821,20 @@ task do_addr_mode_zp_x_ind();
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
         end
         CycleAddr3: begin
             data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
 
             address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch_High;
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
         end
         CycleAddr4: begin
             data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             addr_bus_dl_mem();
 
@@ -846,7 +848,7 @@ task set_addr_mode_zp_ind_y(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrZeroPageIndY;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_zp_ind_y();
@@ -862,7 +864,7 @@ task do_addr_mode_zp_ind_y();
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
         end
         CycleAddr2: begin
             address_bus_low_source = bus_sources::AddrBusLowSrc_DataLatch_High;
@@ -875,14 +877,14 @@ task do_addr_mode_zp_ind_y();
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
         end
         CycleAddr3: begin
             if( !alu_carry ) begin
                 addr_bus_dl_mem();
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Mem;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
 
                 set_operation( active_op );
             end else begin
@@ -896,7 +898,7 @@ task do_addr_mode_zp_ind_y();
                 alu_carry_source = bus_sources::AluCarrySource_One;
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
             end
         end
         CycleAddr4: begin
@@ -922,7 +924,7 @@ task do_addr_mode_zp_ind_y_sta();
         end
         CycleAddr2: begin
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             address_bus_low_source = bus_sources::AddrBusLowSrc_Alu;
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
@@ -938,7 +940,7 @@ task do_addr_mode_zp_ind_y_sta();
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
 
             alu_op = control_signals::AluOp_add;
             alu_a_source = bus_sources::AluASourceCtl_Mem;
@@ -951,7 +953,7 @@ task do_addr_mode_zp_ind_y_sta();
             address_bus_high_source = bus_sources::AddrBusHighSrc_Alu;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             set_operation( active_op );
         end
@@ -961,7 +963,7 @@ endtask
 
 task set_addr_mode_immediate(operations current_op);
     active_addr_mode_next = AddrImmediate;
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 
     set_operation(current_op);
 endtask
@@ -991,7 +993,7 @@ task sp_dec();
     alu_op = control_signals::AluOp_add;
 
     stack_pointer_source = bus_sources::StackPointerSource_Alu;
-    ctrl_signals[control_signals::LOAD_SP] = 1;
+    ld_signals[load_signals::LOAD_SP] = 1;
 endtask
 
 task sp_inc();
@@ -1003,14 +1005,14 @@ task sp_inc();
     alu_carry_source = bus_sources::AluCarrySource_One;
 
     stack_pointer_source = bus_sources::StackPointerSource_Alu;
-    ctrl_signals[control_signals::LOAD_SP] = 1;
+    ld_signals[load_signals::LOAD_SP] = 1;
 endtask
 
 task set_addr_mode_zp(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrZeroPage;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_zp();
@@ -1020,9 +1022,9 @@ task do_addr_mode_zp();
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
             data_latch_high_source = bus_sources::DataLatchHighSource_Zero;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             set_operation(active_op);
         end
@@ -1055,12 +1057,12 @@ task do_addr_mode_zp_x();
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Zero;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
         end
         CycleAddr2: begin
             addr_bus_dl();
@@ -1075,7 +1077,7 @@ task set_addr_mode_zp_ind(operations current_op);
     active_op_next = current_op;
     active_addr_mode_next = AddrZeroPageInd;
 
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_addr_mode_zp_ind();
@@ -1088,7 +1090,7 @@ task do_addr_mode_zp_ind();
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             address_bus_low_source = bus_sources::AddrBusLowSrc_Mem;
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
@@ -1098,7 +1100,7 @@ task do_addr_mode_zp_ind();
             address_bus_high_source = bus_sources::AddrBusHighSrc_Zero;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
         end
         CycleAddr3: begin
             addr_bus_dl_mem();
@@ -1209,14 +1211,14 @@ task set_operation(operations current_op);
         OpStx: do_op_stx_first();
         OpSty: do_op_sty_first();
         OpStz: do_op_stz_first();
-        OpTax: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_X);
-        OpTay: do_op_transfer_first(bus_sources::DataBusSrc_A, control_signals::LOAD_Y);
+        OpTax: do_op_transfer_first(bus_sources::DataBusSrc_A, load_signals::LOAD_X);
+        OpTay: do_op_transfer_first(bus_sources::DataBusSrc_A, load_signals::LOAD_Y);
         OpTrb: do_op_trb_first();
         OpTsb: do_op_tsb_first();
-        OpTsx: do_op_transfer_first(bus_sources::DataBusSrc_SP, control_signals::LOAD_X);
-        OpTxa: do_op_transfer_first(bus_sources::DataBusSrc_X, control_signals::LOAD_A);
+        OpTsx: do_op_transfer_first(bus_sources::DataBusSrc_SP, load_signals::LOAD_X);
+        OpTxa: do_op_transfer_first(bus_sources::DataBusSrc_X, load_signals::LOAD_A);
         OpTxs: do_op_txs_first();
-        OpTya: do_op_transfer_first(bus_sources::DataBusSrc_Y, control_signals::LOAD_A);
+        OpTya: do_op_transfer_first(bus_sources::DataBusSrc_Y, load_signals::LOAD_A);
         default: set_invalid_state();
     endcase
 endtask
@@ -1363,7 +1365,7 @@ task do_op_bvs_first();
 endtask
 
 task do_branch_first( input condition );
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
     if( ! condition ) begin
         next_instruction();
     end
@@ -1375,9 +1377,9 @@ task do_branch();
             addr_bus_pc();
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
             data_latch_high_source = bus_sources::DataLatchHighSource_PC;
-            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+            ld_signals[load_signals::LOAD_DataHigh] = 1;
 
             alu_a_source = bus_sources::AluASourceCtl_PC_Low;
             alu_b_source = bus_sources::AluBSourceCtl_Mem;
@@ -1391,7 +1393,7 @@ task do_branch();
 
                 pc_low_source = bus_sources::PcLowSource_Dl;
                 pc_high_source = bus_sources::PcHighSource_CurrentValue;
-                ctrl_signals[control_signals::PC_LOAD] = 1;
+                ld_signals[load_signals::PC_LOAD] = 1;
             end else begin
                 addr_bus_pc();
 
@@ -1408,7 +1410,7 @@ task do_branch();
                 end
 
                 data_latch_high_source = bus_sources::DataLatchHighSource_Alu;
-                ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+                ld_signals[load_signals::LOAD_DataHigh] = 1;
             end
         end
         CycleOp3: begin
@@ -1416,7 +1418,7 @@ task do_branch();
 
             pc_low_source = bus_sources::PcLowSource_Dl;
             pc_high_source = bus_sources::PcHighSource_Dl;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
         end
         default: set_invalid_state();
     endcase
@@ -1454,13 +1456,13 @@ task do_op_adc();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagV] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagV] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
         end
@@ -1482,13 +1484,13 @@ task do_op_sbc();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagV] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagV] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
         end
@@ -1510,10 +1512,10 @@ task do_op_and();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
         end
@@ -1535,10 +1537,10 @@ task do_op_ora();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
         end
@@ -1559,10 +1561,10 @@ task do_op_eor();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             do_fetch_cycle();
         end
@@ -1585,7 +1587,7 @@ task do_op_asl();
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
         end
         CycleOp2: begin
@@ -1595,9 +1597,9 @@ task do_op_asl();
             addr_bus_dl();
             rW = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             next_instruction();
         end
@@ -1610,22 +1612,22 @@ task do_op_asl_acc_first();
     alu_a_source = bus_sources::AluASourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
 
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 1;
 
     data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::LOAD_DataLow] = 1;
 endtask
 
 task do_op_asl_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Dl_Low;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             do_fetch_cycle();
         end
@@ -1648,7 +1650,7 @@ task do_op_lsr();
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_carry_source = bus_sources::AluCarrySource_Zero;
 
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
         end
         CycleOp2: begin
@@ -1658,9 +1660,9 @@ task do_op_lsr();
             addr_bus_dl();
             rW = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             next_instruction();
         end
@@ -1673,22 +1675,22 @@ task do_op_lsr_acc_first();
     alu_a_source = bus_sources::AluASourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
 
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 1;
 
     data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::LOAD_DataLow] = 1;
 endtask
 
 task do_op_lsr_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Dl_Low;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             do_fetch_cycle();
         end
@@ -1711,7 +1713,7 @@ task do_op_rol();
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
 
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
         end
         CycleOp2: begin
@@ -1721,9 +1723,9 @@ task do_op_rol();
             addr_bus_dl();
             rW = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             next_instruction();
         end
@@ -1736,22 +1738,22 @@ task do_op_rol_acc_first();
     alu_a_source = bus_sources::AluASourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Carry;
 
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 1;
 
     data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::LOAD_DataLow] = 1;
 endtask
 
 task do_op_rol_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Dl_Low;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             do_fetch_cycle();
         end
@@ -1774,7 +1776,7 @@ task do_op_ror();
             alu_a_source = bus_sources::AluASourceCtl_Mem;
             alu_carry_source = bus_sources::AluCarrySource_Carry;
 
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
         end
         CycleOp2: begin
@@ -1784,9 +1786,9 @@ task do_op_ror();
             addr_bus_dl();
             rW = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             next_instruction();
         end
@@ -1799,22 +1801,22 @@ task do_op_ror_acc_first();
     alu_a_source = bus_sources::AluASourceCtl_A;
     alu_carry_source = bus_sources::AluCarrySource_Zero;
 
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 1;
 
     data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::LOAD_DataLow] = 1;
 endtask
 
 task do_op_ror_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Dl_Low;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
 
             do_fetch_cycle();
         end
@@ -1825,8 +1827,8 @@ endtask
 task do_op_bit_first();
     if( active_addr_mode_next != AddrImmediate ) begin
         data_bus_source = bus_sources::DataBusSrc_Mem_Unlatched;
-        ctrl_signals[control_signals::UpdateFlagN] = 1;
-        ctrl_signals[control_signals::UpdateFlagV] = 1;
+        ld_signals[load_signals::UpdateFlagN] = 1;
+        ld_signals[load_signals::UpdateFlagV] = 1;
         ctrl_signals[control_signals::UseAluFlags] = 0;
     end
 endtask
@@ -1840,7 +1842,7 @@ task do_op_bit();
             ctrl_signals[control_signals::AluBInverse] = 0;
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -1853,7 +1855,7 @@ task do_op_brk_first();
     incompatible = 1;
 
     data_latch_high_source = bus_sources::DataLatchHighSource_FF;
-    ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+    ld_signals[load_signals::LOAD_DataHigh] = 1;
 
     case(int_state)
         IntStateNone: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
@@ -1863,8 +1865,8 @@ task do_op_brk_first();
         default: set_invalid_state();
     endcase
 
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
-    ctrl_signals[control_signals::PC_ADVANCE] = (int_state==IntStateNone ? 1 : 0);
+    ld_signals[load_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = (int_state==IntStateNone ? 1 : 0);
 
     address_bus_high_source = bus_sources::AddrBusHighSrc_PC;
     address_bus_low_source = bus_sources::AddrBusLowSrc_PC;
@@ -1907,26 +1909,26 @@ task do_op_brk();
             alu_carry_source = bus_sources::AluCarrySource_One;
 
             data_latch_low_source = bus_sources::DataLatchLowSource_Alu;
-            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+            ld_signals[load_signals::LOAD_DataLow] = 1;
 
             data_bus_source = bus_sources::DataBusSrc_Ones;
-            ctrl_signals[control_signals::UpdateFlagI] = 1;
+            ld_signals[load_signals::UpdateFlagI] = 1;
         end
         CycleOp5: begin
             addr_bus_dl();
             VP = 0;
 
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
             pc_high_source = bus_sources::PcHighSource_Mem;
             pc_low_source = bus_sources::PcLowSource_Mem;
 
             if( CPU_VARIANT>0 ) begin
                 data_bus_source = bus_sources::DataBusSrc_Zero;
-                ctrl_signals[control_signals::UpdateFlagD] = 1;
+                ld_signals[load_signals::UpdateFlagD] = 1;
             end
         end
         CycleOp6: begin
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
             pc_low_source = bus_sources::PcLowSource_CurrentValue;
             pc_high_source = bus_sources::PcHighSource_Mem;
 
@@ -1940,7 +1942,7 @@ task do_op_clc_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Zero;
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
@@ -1948,21 +1950,21 @@ task do_op_cld_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Zero;
-    ctrl_signals[control_signals::UpdateFlagD] = 1;
+    ld_signals[load_signals::UpdateFlagD] = 1;
 endtask
 
 task do_op_cli_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Zero;
-    ctrl_signals[control_signals::UpdateFlagI] = 1;
+    ld_signals[load_signals::UpdateFlagI] = 1;
 endtask
 
 task do_op_clv_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Zero;
-    ctrl_signals[control_signals::UpdateFlagV] = 1;
+    ld_signals[load_signals::UpdateFlagV] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
@@ -1980,9 +1982,9 @@ task do_op_cmp();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
 
@@ -2006,9 +2008,9 @@ task do_op_cpx();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
 
@@ -2032,9 +2034,9 @@ task do_op_cpy();
 
             data_bus_source = bus_sources::DataBusSrc_Alu;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
             ctrl_signals[control_signals::UseAluFlags] = 1;
 
@@ -2068,8 +2070,8 @@ task do_op_dec();
             rW = 0;
             ML = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             next_instruction();
@@ -2090,10 +2092,10 @@ task do_op_dec_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2114,10 +2116,10 @@ task do_op_dex();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_X] = 1;
+            ld_signals[load_signals::LOAD_X] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2138,10 +2140,10 @@ task do_op_dey();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_Y] = 1;
+            ld_signals[load_signals::LOAD_Y] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2182,8 +2184,8 @@ task do_op_inc();
             rW = 0;
             ML = 0;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             next_instruction();
@@ -2204,10 +2206,10 @@ task do_op_inc_acc();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2220,10 +2222,10 @@ task do_op_inx();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_X] = 1;
+            ld_signals[load_signals::LOAD_X] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2244,10 +2246,10 @@ task do_op_iny();
     case( op_cycle )
         FirstOpCycle: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::LOAD_Y] = 1;
+            ld_signals[load_signals::LOAD_Y] = 1;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2259,7 +2261,7 @@ endtask
 task do_op_jmp_first();
     do_fetch_cycle();
 
-    ctrl_signals[control_signals::PC_LOAD] = 1;
+    ld_signals[load_signals::PC_LOAD] = 1;
     pc_low_source = bus_sources::PcLowSource_Dl;
     pc_high_source = bus_sources::PcHighSource_Mem;
 
@@ -2272,11 +2274,11 @@ endtask
 
 task do_op_jsr_first();
     // Store destination LSB in DL
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
+    ld_signals[load_signals::LOAD_DataLow] = 1;
     data_latch_low_source = bus_sources::DataLatchLowSource_Mem;
 
     // Dummy stack cycle while we advance the PC
-    ctrl_signals[control_signals::PC_ADVANCE] = 1;
+    ld_signals[load_signals::PC_ADVANCE] = 1;
 endtask
 
 task do_op_jsr();
@@ -2305,7 +2307,7 @@ task do_op_jsr();
             // Load destination MSB into PC
             pc_high_source = bus_sources::PcHighSource_Mem;
             pc_low_source = bus_sources::PcLowSource_Dl;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
 
             do_fetch_cycle();
         end
@@ -2319,13 +2321,13 @@ endtask
 task do_op_lda();
     case( op_cycle )
         FirstOpCycle: begin
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
             data_bus_source = bus_sources::DataBusSrc_Mem;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2340,13 +2342,13 @@ endtask
 task do_op_ldx();
     case( op_cycle )
         FirstOpCycle: begin
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
-            ctrl_signals[control_signals::LOAD_X] = 1;
+            ld_signals[load_signals::LOAD_X] = 1;
             data_bus_source = bus_sources::DataBusSrc_Mem;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2361,13 +2363,13 @@ endtask
 task do_op_ldy();
     case( op_cycle )
         FirstOpCycle: begin
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
-            ctrl_signals[control_signals::LOAD_Y] = 1;
+            ld_signals[load_signals::LOAD_Y] = 1;
             data_bus_source = bus_sources::DataBusSrc_Mem;
 
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2430,12 +2432,12 @@ task do_op_pla();
         CycleOp2: begin
             // This is the data loaded by the previous address operation
             data_bus_source = bus_sources::DataBusSrc_Mem;
-            ctrl_signals[control_signals::LOAD_A] = 1;
+            ld_signals[load_signals::LOAD_A] = 1;
 
             ctrl_signals[control_signals::UseAluFlags] = 0;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
 
             do_fetch_cycle();
         end
@@ -2456,12 +2458,12 @@ task do_op_plx();
         CycleOp2: begin
             // This is the data loaded by the previous address operation
             data_bus_source = bus_sources::DataBusSrc_Mem;
-            ctrl_signals[control_signals::LOAD_X] = 1;
+            ld_signals[load_signals::LOAD_X] = 1;
 
             ctrl_signals[control_signals::UseAluFlags] = 0;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
 
             do_fetch_cycle();
         end
@@ -2482,12 +2484,12 @@ task do_op_ply();
         CycleOp2: begin
             // This is the data loaded by the previous address operation
             data_bus_source = bus_sources::DataBusSrc_Mem;
-            ctrl_signals[control_signals::LOAD_Y] = 1;
+            ld_signals[load_signals::LOAD_Y] = 1;
 
             ctrl_signals[control_signals::UseAluFlags] = 0;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
 
             do_fetch_cycle();
         end
@@ -2509,13 +2511,13 @@ task do_op_plp();
             // This is the data loaded by the previous address operation
             data_bus_source = bus_sources::DataBusSrc_Mem;
             ctrl_signals[control_signals::UseAluFlags] = 0;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 0;
-            ctrl_signals[control_signals::UpdateFlagI] = 1;
-            ctrl_signals[control_signals::UpdateFlagD] = 1;
-            ctrl_signals[control_signals::UpdateFlagV] = 1;
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagI] = 1;
+            ld_signals[load_signals::UpdateFlagD] = 1;
+            ld_signals[load_signals::UpdateFlagV] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
 
             do_fetch_cycle();
         end
@@ -2616,12 +2618,12 @@ task do_op_rti();
             // This is the data loaded by the previous address operation
             data_bus_source = bus_sources::DataBusSrc_Mem;
             ctrl_signals[control_signals::UseAluFlags] = 0;
-            ctrl_signals[control_signals::UpdateFlagC] = 1;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
-            ctrl_signals[control_signals::UpdateFlagI] = 1;
-            ctrl_signals[control_signals::UpdateFlagD] = 1;
-            ctrl_signals[control_signals::UpdateFlagV] = 1;
-            ctrl_signals[control_signals::UpdateFlagN] = 1;
+            ld_signals[load_signals::UpdateFlagC] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagI] = 1;
+            ld_signals[load_signals::UpdateFlagD] = 1;
+            ld_signals[load_signals::UpdateFlagV] = 1;
+            ld_signals[load_signals::UpdateFlagN] = 1;
 
             // Read PC MSB
             addr_bus_sp();
@@ -2631,7 +2633,7 @@ task do_op_rti();
         CycleOp3: begin
             // Store PC MSB
             pc_low_source = bus_sources::PcLowSource_Mem;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
 
             // Read PC LSB
             addr_bus_sp();
@@ -2639,7 +2641,7 @@ task do_op_rti();
         CycleOp4: begin
             pc_low_source = bus_sources::PcLowSource_CurrentValue;
             pc_high_source = bus_sources::PcHighSource_Mem;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
 
             do_fetch_cycle();
         end
@@ -2663,7 +2665,7 @@ task do_op_rts();
         CycleOp2: begin
             // Store PC MSB
             pc_low_source = bus_sources::PcLowSource_Mem;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
 
             // Read PC LSB
             addr_bus_sp();
@@ -2671,8 +2673,8 @@ task do_op_rts();
         CycleOp3: begin
             pc_low_source = bus_sources::PcLowSource_CurrentValue;
             pc_high_source = bus_sources::PcHighSource_Mem;
-            ctrl_signals[control_signals::PC_LOAD] = 1;
-            ctrl_signals[control_signals::PC_ADVANCE] = 1;
+            ld_signals[load_signals::PC_LOAD] = 1;
+            ld_signals[load_signals::PC_ADVANCE] = 1;
 
             addr_bus_pc();
 
@@ -2686,7 +2688,7 @@ task do_op_sec_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Ones;
-    ctrl_signals[control_signals::UpdateFlagC] = 1;
+    ld_signals[load_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 0;
 endtask
 
@@ -2694,14 +2696,14 @@ task do_op_sed_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Ones;
-    ctrl_signals[control_signals::UpdateFlagD] = 1;
+    ld_signals[load_signals::UpdateFlagD] = 1;
 endtask
 
 task do_op_sei_first();
     next_instruction();
 
     data_bus_source = bus_sources::DataBusSrc_Ones;
-    ctrl_signals[control_signals::UpdateFlagI] = 1;
+    ld_signals[load_signals::UpdateFlagI] = 1;
 endtask
 
 task do_op_sta_first();
@@ -2774,14 +2776,14 @@ task do_op_stz();
 endtask
 
 
-task do_op_transfer_first(input bus_sources::DataBusSourceCtl src, input control_signals::ctrl_signals dest);
+task do_op_transfer_first(input bus_sources::DataBusSourceCtl src, input load_signals::ld_signals dest);
     next_instruction();
 
     data_bus_source = src;
-    ctrl_signals[dest] = 1;
+    ld_signals[dest] = 1;
 
-    ctrl_signals[control_signals::UpdateFlagN] = 1;
-    ctrl_signals[control_signals::UpdateFlagZ] = 1;
+    ld_signals[load_signals::UpdateFlagN] = 1;
+    ld_signals[load_signals::UpdateFlagZ] = 1;
     ctrl_signals[control_signals::CalculateFlagZ] = 1;
 endtask
 
@@ -2790,7 +2792,7 @@ task do_op_txs_first();
 
     data_bus_source = bus_sources::DataBusSrc_X;
     stack_pointer_source = bus_sources::StackPointerSource_DataBus;
-    ctrl_signals[control_signals::LOAD_SP] = 1;
+    ld_signals[load_signals::LOAD_SP] = 1;
 endtask
 
 task do_op_trb_first();
@@ -2822,7 +2824,7 @@ task do_op_trb();
         end
         CycleOp3: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();
@@ -2860,7 +2862,7 @@ task do_op_tsb();
         end
         CycleOp3: begin
             data_bus_source = bus_sources::DataBusSrc_Alu_Latched;
-            ctrl_signals[control_signals::UpdateFlagZ] = 1;
+            ld_signals[load_signals::UpdateFlagZ] = 1;
             ctrl_signals[control_signals::CalculateFlagZ] = 1;
 
             do_fetch_cycle();

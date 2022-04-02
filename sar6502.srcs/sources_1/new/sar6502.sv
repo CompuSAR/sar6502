@@ -73,6 +73,7 @@ logic [7:0]alu_result, alu_result_latched;
 
 // Control
 logic [control_signals::ctrl_signals_last:0] ctrl_signals;
+logic [load_signals::ld_signals_last:0] ld_signals;
 
 // Buses
 logic [7:0]data_bus;
@@ -108,11 +109,11 @@ alu alu( .a(alu_a_inputs[alu_a_source]), .b(alu_b_inputs[alu_b_source]),
     .control(alu_control), .result(alu_result), .carry_out(alu_carry), .overflow_out(alu_overflow) );
 
 // Registers
-register register_a(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_A]),
+register register_a(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ld_signals[load_signals::LOAD_A]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_A]));
-register register_x(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_X]),
+register register_x(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ld_signals[load_signals::LOAD_X]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_X]));
-register register_y(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_Y]),
+register register_y(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ld_signals[load_signals::LOAD_Y]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_Y]));
 
 logic [7:0]stack_pointer_inputs[bus_sources::StackPointerSourceCtlLast : 0];
@@ -121,7 +122,7 @@ register register_stack(
     .data_in(stack_pointer_inputs[stack_pointer_source]),
     .clock(phi2),
     .ready(rdy),
-    .latch(ctrl_signals[control_signals::LOAD_SP]),
+    .latch(ld_signals[load_signals::LOAD_SP]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
 logic [7:0]status_value;
@@ -129,13 +130,13 @@ status_register register_p(.data_in(data_bus), .data_out(status_value), .clock(p
     .alu_carry(alu_carry),
     .alu_overflow(alu_overflow),
     .use_alu_flags(ctrl_signals[control_signals::UseAluFlags]), .calculate_zero(ctrl_signals[control_signals::CalculateFlagZ]),
-    .update_c(ctrl_signals[control_signals::UpdateFlagC]),
-    .update_z(ctrl_signals[control_signals::UpdateFlagZ]),
-    .update_i(ctrl_signals[control_signals::UpdateFlagI]),
-    .update_d(ctrl_signals[control_signals::UpdateFlagD]),
+    .update_c(ld_signals[load_signals::UpdateFlagC]),
+    .update_z(ld_signals[load_signals::UpdateFlagZ]),
+    .update_i(ld_signals[load_signals::UpdateFlagI]),
+    .update_d(ld_signals[load_signals::UpdateFlagD]),
     .output_b(ctrl_signals[control_signals::OutputFlagB]),
-    .update_v(ctrl_signals[control_signals::UpdateFlagV]),
-    .update_n(ctrl_signals[control_signals::UpdateFlagN]),
+    .update_v(ld_signals[load_signals::UpdateFlagV]),
+    .update_n(ld_signals[load_signals::UpdateFlagN]),
     .ready(rdy), .so(SO_L)
 );
 
@@ -146,10 +147,10 @@ bus_sources::DataLatchHighSourceCtl data_latch_high_source;
 logic [7:0]data_latch_high_inputs[bus_sources::DataLatchHighSourceCtlLast : 0];
 
 register data_latch_low( .data_in(data_latch_low_inputs[data_latch_low_source]),
-    .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_DataLow]),
+    .clock(phi2), .ready(rdy), .latch(ld_signals[load_signals::LOAD_DataLow]),
     .data_out(data_latch_value[7:0]));
 register data_latch_high( .data_in(data_latch_high_inputs[data_latch_high_source]),
-    .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_DataHigh]),
+    .clock(phi2), .ready(rdy), .latch(ld_signals[load_signals::LOAD_DataHigh]),
     .data_out(data_latch_value[15:8]));
 
 bus_sources::PcLowSourceCtl pc_low_source;
@@ -160,8 +161,8 @@ logic [7:0]pc_high_inputs[bus_sources::PcHighSourceCtlLast : 0];
 
 program_counter register_pc(
     .address_in({pc_high_inputs[pc_high_source], pc_low_inputs[pc_low_source]}),
-    .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
-    .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2), .ready(rdy),
+    .ctl_advance(ld_signals[load_signals::PC_ADVANCE]),
+    .ctl_load(ld_signals[load_signals::PC_LOAD]), .clock(phi2), .ready(rdy),
     .address_out(pc_value));
 
 decoder decoder(
@@ -187,6 +188,7 @@ decoder decoder(
     .alu_a_source(alu_a_source),
     .alu_b_source(alu_b_source),
     .alu_carry_source(alu_carry_source),
+    .ld_signals( ld_signals ),
     .ctrl_signals( ctrl_signals ),
 
     .rW( rW ),

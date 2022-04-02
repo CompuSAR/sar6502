@@ -65,25 +65,14 @@ module sar6502(
 // Input latches
 logic [7:0] data_in_l;
 logic RESET_L;
-logic ready_l;
 logic IRQ_L;
 logic NMI_L;
 logic SO_L, previous_SO;
 logic [15:0]pc_value, prev_pc_value;
 logic [7:0]alu_result, alu_result_latched;
 
-always_ff@(negedge phi2) begin
-    data_in_l <= data_in;
-    RESET_L <= RES;
-    ready_l <= rdy;
-    IRQ_L <= IRQ;
-    NMI_L <= NMI;
-    SO_L <= SO;
-    previous_SO <= SO_L;
-    prev_pc_value <= pc_value;
-    alu_result_latched <= alu_result;
-    alu_carry_latched <= alu_carry;
-end
+// Control
+logic [control_signals::ctrl_signals_last:0] ctrl_signals;
 
 // Buses
 logic [7:0]data_bus;
@@ -119,11 +108,11 @@ alu alu( .a(alu_a_inputs[alu_a_source]), .b(alu_b_inputs[alu_b_source]),
     .control(alu_control), .result(alu_result), .carry_out(alu_carry), .overflow_out(alu_overflow) );
 
 // Registers
-register register_a(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_A]),
+register register_a(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_A]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_A]));
-register register_x(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_X]),
+register register_x(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_X]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_X]));
-register register_y(.data_in(data_bus), .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_Y]),
+register register_y(.data_in(data_bus), .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_Y]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_Y]));
 
 logic [7:0]stack_pointer_inputs[bus_sources::StackPointerSourceCtlLast : 0];
@@ -131,6 +120,7 @@ bus_sources::StackPointerSourceCtl stack_pointer_source;
 register register_stack(
     .data_in(stack_pointer_inputs[stack_pointer_source]),
     .clock(phi2),
+    .ready(rdy),
     .latch(ctrl_signals[control_signals::LOAD_SP]),
     .data_out(data_bus_inputs[bus_sources::DataBusSrc_SP]));
 
@@ -145,7 +135,8 @@ status_register register_p(.data_in(data_bus), .data_out(status_value), .clock(p
     .update_d(ctrl_signals[control_signals::UpdateFlagD]),
     .output_b(ctrl_signals[control_signals::OutputFlagB]),
     .update_v(ctrl_signals[control_signals::UpdateFlagV]),
-    .update_n(ctrl_signals[control_signals::UpdateFlagN])
+    .update_n(ctrl_signals[control_signals::UpdateFlagN]),
+    .ready(rdy)
 );
 
 logic [15:0]data_latch_value;
@@ -155,10 +146,10 @@ bus_sources::DataLatchHighSourceCtl data_latch_high_source;
 logic [7:0]data_latch_high_inputs[bus_sources::DataLatchHighSourceCtlLast : 0];
 
 register data_latch_low( .data_in(data_latch_low_inputs[data_latch_low_source]),
-    .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataLow]),
+    .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_DataLow]),
     .data_out(data_latch_value[7:0]));
 register data_latch_high( .data_in(data_latch_high_inputs[data_latch_high_source]),
-    .clock(phi2), .latch(ctrl_signals[control_signals::LOAD_DataHigh]),
+    .clock(phi2), .ready(rdy), .latch(ctrl_signals[control_signals::LOAD_DataHigh]),
     .data_out(data_latch_value[15:8]));
 
 bus_sources::PcLowSourceCtl pc_low_source;
@@ -170,11 +161,8 @@ logic [7:0]pc_high_inputs[bus_sources::PcHighSourceCtlLast : 0];
 program_counter register_pc(
     .address_in({pc_high_inputs[pc_high_source], pc_low_inputs[pc_low_source]}),
     .ctl_advance(ctrl_signals[control_signals::PC_ADVANCE]),
-    .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2),
+    .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2), .ready(rdy),
     .address_out(pc_value));
-
-// Control
-logic [control_signals::ctrl_signals_last:0] ctrl_signals;
 
 decoder decoder(
     .memory_in(data_in_l),
@@ -184,6 +172,8 @@ decoder decoder(
     .RESET(RESET_L),
     .IRQ(IRQ_L),
     .NMI(NMI_L),
+
+    .ready(rdy),
 
     .address_bus_low_source( address_bus_low_source ),
     .address_bus_high_source( address_bus_high_source ),
@@ -288,5 +278,20 @@ assign alu_carry_inputs[bus_sources::AluCarrySource_Zero] = 0;
 assign alu_carry_inputs[bus_sources::AluCarrySource_One] = 1;
 assign alu_carry_inputs[bus_sources::AluCarrySource_Carry] =
     data_bus_inputs[bus_sources::DataBusSrc_Status][control_signals::FlagsCarry];
+
+always_ff@(negedge phi2) begin
+    RESET_L <= RES;
+
+    if( rdy ) begin
+        data_in_l <= data_in;
+        IRQ_L <= IRQ;
+        NMI_L <= NMI;
+        SO_L <= SO;
+        previous_SO <= SO_L;
+        prev_pc_value <= pc_value;
+        alu_result_latched <= alu_result;
+        alu_carry_latched <= alu_carry;
+    end
+end
 
 endmodule

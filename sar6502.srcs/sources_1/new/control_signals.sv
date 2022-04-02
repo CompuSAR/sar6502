@@ -23,15 +23,16 @@ typedef enum logic[31:0] {
     UpdateFlagV,
     UpdateFlagN,
 
-    UseAluFlags,
+    LastLoadSignal,
 
+    UseAluFlags,
     CalculateFlagZ,
     AluBInverse,
 
-    EndMarker
+    CtrlSignals_EndMarker
 } ctrl_signals;
 
-localparam ctrl_signals_last = EndMarker-1;
+localparam ctrl_signals_last = CtrlSignals_EndMarker-1;
 
 typedef enum logic[31:0] {
     AluOp_INVALID = 'X,

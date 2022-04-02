@@ -111,6 +111,8 @@ struct {
     int count;
 } pending_signals[Sig_NumElements-1:0];
 
+logic [15:0]address_latched;
+
 initial begin
     // Clock and memory read handling
     clock = 0;
@@ -127,20 +129,20 @@ initial begin
     pending_signals[SigReset].count = 5;
 
     forever begin
-        clock_low();
         #tDHR data_in = 8'bX;
         #(tPWL-tDHR) clock = 1;
+        address_latched = address_bus;
         clock_high();
-        #(tPWH-tDSR) data_in=memory[address_bus];
-        #tDSR clock = 0;
+        #(tPWH-tDSR) data_in=memory[address_latched];
+        #tDSR
+        clock_low();
+        clock = 0;
     end
 end
 
 int cycle_num = 0;
 
-task clock_low();
-    automatic logic [35:0]plan_line;
-begin
+task clock_high();
     // Signal control
     foreach( signals[i] ) begin
         if( signals[i]==1 || pending_signals[i].delay>0 ) begin
@@ -157,7 +159,11 @@ begin
             end
         end
     end
+endtask
 
+task clock_low();
+    automatic logic [35:0]plan_line;
+begin
     // Verification
     if( cycle_num==0 ) begin
         if( address_bus !== 16'hfffc )
@@ -180,11 +186,6 @@ begin
         perform_io();
 
     cycle_num++;
-end
-endtask
-
-task clock_high();
-begin
 end
 endtask
 
@@ -229,6 +230,10 @@ task perform_io();
             $display("Test finished successfully");
             $finish();
         end
+        8'h80: pending_signals[SigReady].count = data_out;
+        8'h81: pending_signals[SigReady].delay = data_out;
+        8'h82: pending_signals[SigSo].count = data_out;
+        8'h83: pending_signals[SigSo].delay = data_out;
         8'hfa: pending_signals[SigNmi].count = data_out;
         8'hfb: pending_signals[SigNmi].delay = data_out;
         8'hfc: pending_signals[SigReset].count = data_out;

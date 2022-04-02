@@ -42,12 +42,15 @@ module register(
         input [7:0]data_in,
         input latch,
         input clock,
+
+        input ready,
+
         output reg [7:0]data_out
     );
 
 always_ff@(negedge clock)
 begin
-    if( latch )
+    if( latch && ready )
         data_out <= data_in;
 end
 

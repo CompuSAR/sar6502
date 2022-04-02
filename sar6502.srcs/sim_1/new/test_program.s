@@ -7,6 +7,10 @@ OVERFLOW = %01000000
 NEGATIVE = %10000000
 
 FINISHED_TRIGGER        = $200
+READY_TRIGGER_COUNT     = $280
+READY_TRIGGER_DELAY     = $281
+SO_TRIGGER_COUNT        = $282
+SO_TRIGGER_DELAY        = $283
 NMI_TRIGGER_COUNT       = $2fa
 NMI_TRIGGER_DELAY       = $2fb
 RESET_TRIGGER_COUNT     = $2fc
@@ -844,6 +848,22 @@ stp_test_cont3:
     nop
     nop
     nop
+
+
+    ; Ready and SO tests
+    clv
+
+    lda #10
+    sta READY_TRIGGER_COUNT
+    lda #2
+    sta SO_TRIGGER_COUNT
+    ldx #9
+    ldy #30
+    stx READY_TRIGGER_DELAY
+    sty SO_TRIGGER_DELAY
+
+so_test_loop:
+    bvc so_test_loop
 
 
     sta FINISHED_TRIGGER

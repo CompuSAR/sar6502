@@ -54,7 +54,9 @@ module status_register(
         input update_n,
 
         input use_alu_flags,
-        input calculate_zero
+        input calculate_zero,
+
+        input ready
     );
 
 logic negative, overflow, decimal, irq_mask, zero, carry;
@@ -63,22 +65,24 @@ assign data_out = { negative, overflow, 1'b1, output_b, decimal, irq_mask, zero,
 
 always_ff@(negedge clock)
 begin
-    if( update_n )
-        negative <= data_in[7];
-    if( update_v )
-        overflow <= use_alu_flags ? alu_overflow : data_in[6];
-    if( update_d )
-        decimal <= data_in[3];
-    if( update_i )
-        irq_mask <= data_in[2];
-    if( update_z ) begin
-        if( calculate_zero )
-            zero <= data_in==0 ? 1 : 0;
-        else
-            zero <= data_in[1];
+    if( ready ) begin
+        if( update_n )
+            negative <= data_in[7];
+        if( update_v )
+            overflow <= use_alu_flags ? alu_overflow : data_in[6];
+        if( update_d )
+            decimal <= data_in[3];
+        if( update_i )
+            irq_mask <= data_in[2];
+        if( update_z ) begin
+            if( calculate_zero )
+                zero <= data_in==0 ? 1 : 0;
+            else
+                zero <= data_in[1];
+        end
+        if( update_c )
+            carry <= use_alu_flags ? alu_carry : data_in[0];
     end
-    if( update_c )
-        carry <= use_alu_flags ? alu_carry : data_in[0];
 end
 
 endmodule

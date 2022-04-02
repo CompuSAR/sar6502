@@ -47,6 +47,8 @@ module decoder#(parameter CPU_VARIANT = 2)
         input IRQ,
         input NMI,
 
+        input ready,
+
         output bus_sources::AddressBusLowSourceCtl address_bus_low_source,
         output bus_sources::AddressBusHighSourceCtl address_bus_high_source,
         output bus_sources::DataBusSourceCtl data_bus_source,
@@ -235,7 +237,7 @@ always_ff@(negedge clock) begin
         op_cycle <= FirstOpCycle;
         int_state <= IntStateReset;
         nmi_pending <= 0;
-    end else begin
+    end else if( ready ) begin
         op_cycle <= op_cycle_next;
         active_addr_mode <= active_addr_mode_next;
         active_op <= active_op_next;
@@ -245,6 +247,8 @@ always_ff@(negedge clock) begin
             nmi_pending <= 1;
         else
             nmi_pending <= nmi_pending_next;
+    end else begin
+        // If not ready and not reset, everything remains as it was
     end
 
     irq_mask <= status[control_signals::FlagsIrqMask];
@@ -275,7 +279,7 @@ endtask
 always_comb begin
     set_invalid_state();
 
-    ctrl_signals = 0;
+    ctrl_signals[control_signals::LastLoadSignal-1:0] = 0;
     rW = 1;
     sync = 0;
     ML = 1;

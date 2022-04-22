@@ -1217,6 +1217,7 @@ task set_operation(operations current_op);
         OpTxa: do_op_transfer_first(bus_sources::DataBusSrc_X, control_signals::LOAD_A);
         OpTxs: do_op_txs_first();
         OpTya: do_op_transfer_first(bus_sources::DataBusSrc_Y, control_signals::LOAD_A);
+        OpWai: do_op_wai_first();
         default: set_invalid_state();
     endcase
 endtask
@@ -1308,6 +1309,7 @@ task do_operation();
         OpStz: do_op_stz();
         OpTrb: do_op_trb();
         OpTsb: do_op_tsb();
+        OpWai: do_op_wai();
         default: set_invalid_state();
     endcase
 endtask
@@ -2881,6 +2883,19 @@ task do_op_stop();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task do_op_wai_first();
+endtask
+
+task do_op_wai();
+    if( op_cycle==CycleOp2 )
+        op_cycle_next = FirstOpCycle;
+
+    addr_bus_pc();
+
+    if( !IRQ || nmi_pending )
+        next_instruction();
 endtask
 
 endmodule

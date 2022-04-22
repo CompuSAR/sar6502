@@ -866,6 +866,28 @@ so_test_loop:
     bvc so_test_loop
 
 
+    ; WAI tests
+    cli
+    lda #6
+    sta IRQ_TRIGGER_COUNT
+    lda #10
+    sta IRQ_TRIGGER_DELAY
+    wai
+
+    sei
+    lda #6
+    sta IRQ_TRIGGER_COUNT
+    lda #10
+    sta IRQ_TRIGGER_DELAY
+    wai
+
+    lda #6
+    sta NMI_TRIGGER_COUNT
+    lda #10
+    sta NMI_TRIGGER_DELAY
+    wai
+
+
     sta FINISHED_TRIGGER
     .byte 00
 

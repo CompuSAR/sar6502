@@ -114,7 +114,7 @@ enum logic[31:0] {
 typedef enum logic[31:0] {
     OpInvalid = 'X,
 
-    OpNone = 'h00,
+    OpBrk = 'h00,
 
     OpRmb0 = 'h07,
     OpRmb1 = 'h17,
@@ -228,8 +228,7 @@ typedef enum logic[31:0] {
     OpStp = 'hdb,
     OpWai = 'hcb,
 
-    OpBrk = 'h100,
-    OpClc, //= 'h18,
+    OpClc = 'h101, //= 'h18,
     OpCld, //= 'hd8,
     OpCli, //= 'h58,
     OpClv, //= 'hb8,
@@ -237,7 +236,7 @@ typedef enum logic[31:0] {
     OpSed, //= 'hf8,
     OpSei, //= 'h78,
 
-    OpEndMarker
+    OpEndMarker = 'h2222
 } operations;
 operations active_op = OpWai, active_op_next;
 
@@ -250,7 +249,7 @@ logic nmi_pending, nmi_pending_next;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
-        active_op <= OpNone;
+        active_op <= OpStp;
         active_addr_mode <= AddrInvalid;
         op_cycle <= FirstOpCycle;
         int_state <= IntStateReset;
@@ -1243,8 +1242,6 @@ endtask
 
 task do_operation();
     case( active_op )
-        OpNone: do_op_none();
-
         OpAdc: do_op_adc();
         OpAnd: do_op_and();
         OpAsl: do_op_asl();
@@ -1329,16 +1326,6 @@ task do_operation();
         OpTrb: do_op_trb();
         OpTsb: do_op_tsb();
         OpWai: do_op_wai();
-        default: set_invalid_state();
-    endcase
-endtask
-
-task do_op_none();
-    case( op_cycle )
-        FirstOpCycle: begin
-            addr_bus_pc();
-            next_instruction();
-        end
         default: set_invalid_state();
     endcase
 endtask

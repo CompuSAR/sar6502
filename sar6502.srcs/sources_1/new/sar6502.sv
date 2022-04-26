@@ -65,7 +65,7 @@ logic [15:0]pc_value, prev_pc_value;
 logic [7:0]alu_result, alu_result_latched;
 
 // Control
-logic [control_signals::ctrl_signals_last:0] ctrl_signals;
+logic ctrl_signals[control_signals::ctrl_signals_last:0];
 
 // Buses
 logic [7:0]data_bus;

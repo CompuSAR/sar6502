@@ -61,7 +61,7 @@ module decoder#(parameter CPU_VARIANT = 0)
         output bus_sources::AluASourceCtl alu_a_source,
         output bus_sources::AluBSourceCtl alu_b_source,
         output bus_sources::AluCarrySourceCtl alu_carry_source,
-        output logic [control_signals::ctrl_signals_last:0] ctrl_signals,
+        output logic ctrl_signals[control_signals::ctrl_signals_last:0],
 
         output logic rW,
         output logic sync,
@@ -228,13 +228,13 @@ typedef enum logic[31:0] {
     OpStp = 'hdb,
     OpWai = 'hcb,
 
-    OpClc = 'h101, //= 'h18,
-    OpCld, //= 'hd8,
-    OpCli, //= 'h58,
-    OpClv, //= 'hb8,
-    OpSec, //= 'h38,
-    OpSed, //= 'hf8,
-    OpSei, //= 'h78,
+    OpClc = 'h18,
+    OpCld = 'hd8,
+    OpCli = 'h58,
+    OpClv = 'hb8,
+    OpSec = 'h38,
+    OpSed = 'hf8,
+    OpSei = 'h78,
 
     OpEndMarker = 'h2222
 } operations;
@@ -273,6 +273,8 @@ always_ff@(negedge clock) begin
 end
 
 task set_invalid_state();
+    int i;
+
     op_cycle_next = CycleInvalid;
     address_bus_low_source = bus_sources::AddrBusLowSrc_Invalid;
     address_bus_high_source = bus_sources::AddrBusHighSrc_Invalid;
@@ -286,7 +288,8 @@ task set_invalid_state();
     alu_b_source = bus_sources::AluBSourceCtl_Invalid;
     alu_op = control_signals::AluOp_INVALID;
     alu_carry_source = bus_sources::AluCarrySource_Invalid;
-    ctrl_signals = { control_signals::ctrl_signals_last {1'bx} };
+    for(i=0; i<control_signals::ctrl_signals_last; ++i)
+        ctrl_signals[i] = 1'bx;
 
     active_op_next = OpInvalid;
     active_addr_mode_next = AddrInvalid;
@@ -294,9 +297,12 @@ endtask
 
 // Decoder main
 always_comb begin
+    int i;
+
     set_invalid_state();
 
-    ctrl_signals[control_signals::LastLoadSignal-1:0] = 0;
+    for(i=0; i<control_signals::LastLoadSignal; ++i)
+        ctrl_signals[i] = 1'b0;
     rW = 1;
     sync = 0;
     ML = 1;

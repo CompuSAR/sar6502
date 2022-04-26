@@ -238,7 +238,7 @@ typedef enum logic[31:0] {
 
     OpEndMarker = 'h2222
 } operations;
-operations active_op = OpWai, active_op_next;
+operations active_op = OpStp, active_op_next;
 
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
@@ -249,7 +249,7 @@ logic nmi_pending, nmi_pending_next;
 
 always_ff@(negedge clock) begin
     if( !RESET ) begin
-        active_op <= OpStp;
+        active_op <= OpBrk;
         active_addr_mode <= AddrInvalid;
         op_cycle <= FirstOpCycle;
         int_state <= IntStateReset;

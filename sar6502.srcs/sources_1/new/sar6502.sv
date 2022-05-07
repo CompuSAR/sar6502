@@ -37,7 +37,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module sar6502(
+module sar6502#(parameter CPU_VARIANT = 0)
+(
     input phi2,
     input [7:0] data_in,
     input RES,
@@ -157,7 +158,7 @@ program_counter register_pc(
     .ctl_load(ctrl_signals[control_signals::PC_LOAD]), .clock(phi2), .ready(rdy),
     .address_out(pc_value));
 
-decoder decoder(
+decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(
     .memory_in(data_in_l),
     .status( status_value ),
     .alu_carry( alu_carry_latched ),

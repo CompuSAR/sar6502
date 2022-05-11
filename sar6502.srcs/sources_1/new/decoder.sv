@@ -1866,18 +1866,6 @@ endtask
 task do_op_brk_first();
     incompatible = 1;
 
-    data_latch_high_source = bus_sources::DataLatchHighSource_FF;
-    ctrl_signals[control_signals::LOAD_DataHigh] = 1;
-
-    case(int_state)
-        IntStateNone: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
-        IntStateReset: data_latch_low_source = bus_sources::DataLatchLowSource_FC;
-        IntStateNmi: data_latch_low_source = bus_sources::DataLatchLowSource_FA;
-        IntStateIrq: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
-        default: set_invalid_state();
-    endcase
-
-    ctrl_signals[control_signals::LOAD_DataLow] = 1;
     ctrl_signals[control_signals::PC_ADVANCE] = (int_state==IntStateNone ? 1 : 0);
 
     address_bus_high_source = bus_sources::AddrBusHighSrc_PC;
@@ -1901,6 +1889,18 @@ task do_op_brk();
             sp_dec();
         end
         CycleOp3: begin
+            data_latch_high_source = bus_sources::DataLatchHighSource_FF;
+            ctrl_signals[control_signals::LOAD_DataHigh] = 1;
+
+            case(int_state)
+                IntStateNone: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
+                IntStateReset: data_latch_low_source = bus_sources::DataLatchLowSource_FC;
+                IntStateNmi: data_latch_low_source = bus_sources::DataLatchLowSource_FA;
+                IntStateIrq: data_latch_low_source = bus_sources::DataLatchLowSource_FE;
+                default: set_invalid_state();
+            endcase
+            ctrl_signals[control_signals::LOAD_DataLow] = 1;
+
             addr_bus_sp();
             rW = (int_state == IntStateReset) ? 1 : 0;
             data_bus_source = bus_sources::DataBusSrc_Status;

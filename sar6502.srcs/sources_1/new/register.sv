@@ -45,7 +45,7 @@ module register(
 
         input ready,
 
-        output reg [7:0]data_out
+        output reg [7:0]data_out = 0
     );
 
 always_ff@(negedge clock)

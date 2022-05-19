@@ -85,7 +85,7 @@ logic read_Write, vector_pull, memory_lock, sync, incompatible;
 typedef enum { SigReset, SigIrq, SigNmi, SigSo, SigReady, Sig_NumElements } signal_types;
 logic signals[Sig_NumElements-1:0];
 
-sar6502 cpu(
+sar6502#(.CPU_VARIANT(2)) cpu(
     .phi2(clock),
     .data_in(data_in),
     .RES( !signals[SigReset] ),

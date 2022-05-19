@@ -490,358 +490,493 @@
 @0609 08                                // test_program.s:619 php
 @060a 76 4f                             // test_program.s:620 ror rol_zp_test+1,x
 @060c 08                                // test_program.s:621 php
-@060d a0 02                             // test_program.s:625 ldy #$02
-@060f 8d 94 46                          // test_program.s:626 sta sta_abs_test
-@0612 1a                                // test_program.s:627 inc
-@0613 9d 94 46                          // test_program.s:628 sta sta_abs_test,x
-@0616 1a                                // test_program.s:629 inc
-@0617 99 94 46                          // test_program.s:630 sta sta_abs_test,y
-@061a 1a                                // test_program.s:631 inc
-@061b 85 2a                             // test_program.s:632 sta sta_zp_test
-@061d 1a                                // test_program.s:633 inc
-@061e 95 2a                             // test_program.s:634 sta sta_zp_test,x
-@0620 1a                                // test_program.s:635 inc
-@0621 81 2a                             // test_program.s:636 sta (sta_zp_test,x)
-@0623 1a                                // test_program.s:637 inc
-@0624 92 2a                             // test_program.s:638 sta (sta_zp_test)
-@0626 1a                                // test_program.s:639 inc
-@0627 91 2a                             // test_program.s:640 sta (sta_zp_test),y
-@0629 1a                                // test_program.s:641 inc
-@062a a2 80                             // test_program.s:642 ldx #$80
-@062c 9d 94 46                          // test_program.s:643 sta sta_abs_test,x
-@062f 1a                                // test_program.s:644 inc
-@0630 a0 ff                             // test_program.s:645 ldy #$ff
-@0632 99 94 46                          // test_program.s:646 sta sta_abs_test,y
-@0635 1a                                // test_program.s:647 inc
-@0636 91 2a                             // test_program.s:648 sta (sta_zp_test),y
-@0638 08                                // test_program.s:649 php
-@0639 8e 94 46                          // test_program.s:653 stx sta_abs_test
-@063c e8                                // test_program.s:654 inx
-@063d 86 2b                             // test_program.s:655 stx sta_zp_test+1
-@063f e8                                // test_program.s:656 inx
-@0640 96 2b                             // test_program.s:657 stx sta_zp_test+1,y
-@0642 08                                // test_program.s:658 php
-@0643 a2 02                             // test_program.s:662 ldx #$2
-@0645 8c 94 46                          // test_program.s:663 sty sta_abs_test
-@0648 c8                                // test_program.s:664 iny
-@0649 84 2a                             // test_program.s:665 sty sta_zp_test
-@064b c8                                // test_program.s:666 iny
-@064c 94 2a                             // test_program.s:667 sty sta_zp_test,x
-@064e 08                                // test_program.s:668 php
-@064f 9c 94 46                          // test_program.s:672 stz sta_abs_test
-@0652 9e 94 46                          // test_program.s:673 stz sta_abs_test,x
-@0655 64 2a                             // test_program.s:674 stz sta_zp_test
-@0657 74 2a                             // test_program.s:675 stz sta_zp_test,x
-@0659 08                                // test_program.s:676 php
-@065a a9 85                             // test_program.s:680 lda #$85
-@065c 20 8f 07                          // test_program.s:681 jsr transfer_tests
-@065f a9 00                             // test_program.s:682 lda #$00
-@0661 20 8f 07                          // test_program.s:683 jsr transfer_tests
-@0664 ba                                // test_program.s:685 tsx
-@0665 20 ad 07                          // test_program.s:686 jsr dump_state
-@0668 a2 ff                             // test_program.s:687 ldx #$ff
-@066a a9 00                             // test_program.s:688 lda #$00
-@066c 9a                                // test_program.s:689 txs
-@066d 20 ad 07                          // test_program.s:690 jsr dump_state
-@0670 a9 89                             // test_program.s:694 lda #$89
-@0672 1c 15 7d                          // test_program.s:695 trb trb_abs_test
-@0675 20 ad 07                          // test_program.s:696 jsr dump_state
-@0678 1c 16 7d                          // test_program.s:697 trb trb_abs_test+1
-@067b 20 ad 07                          // test_program.s:698 jsr dump_state
-@067e 0c 17 7d                          // test_program.s:700 tsb tsb_abs_test
-@0681 20 ad 07                          // test_program.s:701 jsr dump_state
-@0684 14 66                             // test_program.s:703 trb trb_zp_test
-@0686 20 ad 07                          // test_program.s:704 jsr dump_state
-@0689 14 67                             // test_program.s:705 trb trb_zp_test+1
-@068b 20 ad 07                          // test_program.s:706 jsr dump_state
-@068e 04 68                             // test_program.s:708 tsb tsb_zp_test
-@0690 20 ad 07                          // test_program.s:709 jsr dump_state
-@0693 a9 00                             // test_program.s:711 lda #$00
-@0695 0c 16 7d                          // test_program.s:712 tsb trb_abs_test+1
-@0698 20 ad 07                          // test_program.s:713 jsr dump_state
-@069b 04 69                             // test_program.s:714 tsb tsb_zp_test+1
-@069d 20 ad 07                          // test_program.s:715 jsr dump_state
-@06a0 a9 b5                             // test_program.s:719 lda #(stp_test_cont1 % 256)
-@06a2 8d fc ff                          // test_program.s:720 sta reset_vector
-@06a5 a9 06                             // test_program.s:721 lda #(stp_test_cont1 / 256)
-@06a7 8d fd ff                          // test_program.s:722 sta reset_vector+1
-@06aa a9 04                             // test_program.s:723 lda #$04
-@06ac 8d fc 02                          // test_program.s:724 sta RESET_TRIGGER_COUNT
-@06af a9 10                             // test_program.s:725 lda #$10
-@06b1 8d fd 02                          // test_program.s:726 sta RESET_TRIGGER_DELAY
-@06b4 db                                // test_program.s:728 stp
-@06b5 20 ad 07                          // test_program.s:731 jsr dump_state
-@06b8 a9 d9                             // test_program.s:733 lda #(stp_test_cont2 % 256)
-@06ba 8d fc ff                          // test_program.s:734 sta reset_vector
-@06bd a9 06                             // test_program.s:735 lda #(stp_test_cont2 / 256)
-@06bf 8d fd ff                          // test_program.s:736 sta reset_vector+1
-@06c2 a9 ff                             // test_program.s:738 lda #$ff
-@06c4 48                                // test_program.s:739 pha
-@06c5 28                                // test_program.s:740 plp
-@06c6 20 ad 07                          // test_program.s:741 jsr dump_state
-@06c9 a9 04                             // test_program.s:743 lda #$04
-@06cb 8d fc 02                          // test_program.s:744 sta RESET_TRIGGER_COUNT
-@06ce 8d fd 02                          // test_program.s:745 sta RESET_TRIGGER_DELAY
-@06d1 ea                                // test_program.s:747 nop
-@06d2 ea                                // test_program.s:748 nop
-@06d3 ea                                // test_program.s:749 nop
-@06d4 ea                                // test_program.s:750 nop
-@06d5 ea                                // test_program.s:751 nop
-@06d6 ea                                // test_program.s:752 nop
-@06d7 ea                                // test_program.s:753 nop
-@06d8 ea                                // test_program.s:754 nop
-@06d9 a9 00                             // test_program.s:758 lda #$00
-@06db b8                                // test_program.s:759 clv
-@06dc 18                                // test_program.s:760 clc
-@06dd 20 ad 07                          // test_program.s:761 jsr dump_state
-@06e0 a9 01                             // test_program.s:763 lda #(stp_test_cont3 % 256)
-@06e2 8d fc ff                          // test_program.s:764 sta reset_vector
-@06e5 a9 07                             // test_program.s:765 lda #(stp_test_cont3 / 256)
-@06e7 8d fd ff                          // test_program.s:766 sta reset_vector+1
-@06ea a9 00                             // test_program.s:768 lda #$00
-@06ec 48                                // test_program.s:769 pha
-@06ed 28                                // test_program.s:770 plp
-@06ee 20 ad 07                          // test_program.s:771 jsr dump_state
-@06f1 a9 04                             // test_program.s:773 lda #$04
-@06f3 8d fc 02                          // test_program.s:774 sta RESET_TRIGGER_COUNT
-@06f6 8d fd 02                          // test_program.s:775 sta RESET_TRIGGER_DELAY
-@06f9 ea                                // test_program.s:777 nop
-@06fa ea                                // test_program.s:778 nop
-@06fb ea                                // test_program.s:779 nop
-@06fc ea                                // test_program.s:780 nop
-@06fd ea                                // test_program.s:781 nop
-@06fe ea                                // test_program.s:782 nop
-@06ff ea                                // test_program.s:783 nop
-@0700 ea                                // test_program.s:784 nop
-@0701 a9 00                             // test_program.s:788 lda #$00
-@0703 b8                                // test_program.s:789 clv
-@0704 18                                // test_program.s:790 clc
-@0705 20 ad 07                          // test_program.s:791 jsr dump_state
-@0708 a9 06                             // test_program.s:795 lda #$6
-@070a 8d fe 02                          // test_program.s:796 sta IRQ_TRIGGER_COUNT
-@070d 8d ff 02                          // test_program.s:797 sta IRQ_TRIGGER_DELAY
-@0710 ea                                // test_program.s:798 nop
-@0711 ea                                // test_program.s:799 nop
-@0712 ea                                // test_program.s:800 nop
-@0713 ea                                // test_program.s:801 nop
-@0714 ea                                // test_program.s:802 nop
-@0715 ea                                // test_program.s:803 nop
-@0716 ea                                // test_program.s:804 nop
-@0717 ea                                // test_program.s:805 nop
-@0718 ea                                // test_program.s:806 nop
-@0719 ea                                // test_program.s:807 nop
-@071a a9 1e                             // test_program.s:809 lda #30
-@071c 8d fe 02                          // test_program.s:810 sta IRQ_TRIGGER_COUNT
-@071f a2 04                             // test_program.s:811 ldx #4
-@0721 8e ff 02                          // test_program.s:812 stx IRQ_TRIGGER_DELAY
-@0724 ea                                // test_program.s:813 nop
-@0725 ea                                // test_program.s:814 nop
-@0726 ea                                // test_program.s:815 nop
-@0727 ea                                // test_program.s:816 nop
-@0728 58                                // test_program.s:817 cli
-@0729 ea                                // test_program.s:818 nop
-@072a ea                                // test_program.s:819 nop
-@072b ea                                // test_program.s:820 nop
-@072c ea                                // test_program.s:821 nop
-@072d ea                                // test_program.s:822 nop
-@072e ea                                // test_program.s:823 nop
-@072f a9 28                             // test_program.s:827 lda #40
-@0731 8d fa 02                          // test_program.s:828 sta NMI_TRIGGER_COUNT
-@0734 8d fe 02                          // test_program.s:829 sta IRQ_TRIGGER_COUNT
-@0737 a2 0f                             // test_program.s:830 ldx #15
-@0739 a0 0b                             // test_program.s:831 ldy #11
-@073b 8e ff 02                          // test_program.s:832 stx IRQ_TRIGGER_DELAY
-@073e 8c fb 02                          // test_program.s:833 sty NMI_TRIGGER_DELAY
-@0741 ea                                // test_program.s:835 nop
-@0742 ea                                // test_program.s:836 nop
-@0743 ea                                // test_program.s:837 nop
-@0744 ea                                // test_program.s:838 nop
-@0745 ea                                // test_program.s:839 nop
-@0746 ea                                // test_program.s:840 nop
-@0747 ea                                // test_program.s:841 nop
-@0748 ea                                // test_program.s:842 nop
-@0749 ea                                // test_program.s:843 nop
-@074a ea                                // test_program.s:844 nop
-@074b ea                                // test_program.s:845 nop
-@074c ea                                // test_program.s:846 nop
-@074d ea                                // test_program.s:847 nop
-@074e ea                                // test_program.s:848 nop
-@074f ea                                // test_program.s:849 nop
-@0750 ea                                // test_program.s:850 nop
-@0751 b8                                // test_program.s:854 clv
-@0752 a9 0a                             // test_program.s:856 lda #10
-@0754 8d 80 02                          // test_program.s:857 sta READY_TRIGGER_COUNT
-@0757 a9 02                             // test_program.s:858 lda #2
-@0759 8d 82 02                          // test_program.s:859 sta SO_TRIGGER_COUNT
-@075c a2 09                             // test_program.s:860 ldx #9
-@075e a0 1e                             // test_program.s:861 ldy #30
-@0760 8e 81 02                          // test_program.s:862 stx READY_TRIGGER_DELAY
-@0763 8c 83 02                          // test_program.s:863 sty SO_TRIGGER_DELAY
-@0766 50 fe                             // test_program.s:866 bvc so_test_loop
-@0768 58                                // test_program.s:870 cli
-@0769 a9 06                             // test_program.s:871 lda #6
-@076b 8d fe 02                          // test_program.s:872 sta IRQ_TRIGGER_COUNT
-@076e a9 0a                             // test_program.s:873 lda #10
-@0770 8d ff 02                          // test_program.s:874 sta IRQ_TRIGGER_DELAY
-@0773 cb                                // test_program.s:875 wai
-@0774 78                                // test_program.s:877 sei
-@0775 a9 06                             // test_program.s:878 lda #6
-@0777 8d fe 02                          // test_program.s:879 sta IRQ_TRIGGER_COUNT
-@077a a9 0a                             // test_program.s:880 lda #10
-@077c 8d ff 02                          // test_program.s:881 sta IRQ_TRIGGER_DELAY
-@077f cb                                // test_program.s:882 wai
-@0780 a9 06                             // test_program.s:884 lda #6
-@0782 8d fa 02                          // test_program.s:885 sta NMI_TRIGGER_COUNT
-@0785 a9 0a                             // test_program.s:886 lda #10
-@0787 8d fb 02                          // test_program.s:887 sta NMI_TRIGGER_DELAY
-@078a cb                                // test_program.s:888 wai
-@078b 8d 00 02                          // test_program.s:891 sta FINISHED_TRIGGER
-@078e 00                                // test_program.s:892 .byte 00
-@078f 20 ad 07                          // test_program.s:895 jsr dump_state
-@0792 a0 01                             // test_program.s:896 ldy #$01
-@0794 a8                                // test_program.s:897 tay
-@0795 20 ad 07                          // test_program.s:898 jsr dump_state
-@0798 a2 02                             // test_program.s:899 ldx #$02
-@079a aa                                // test_program.s:900 tax
-@079b 20 ad 07                          // test_program.s:901 jsr dump_state
-@079e 49 ff                             // test_program.s:902 eor #$ff
-@07a0 a0 01                             // test_program.s:903 ldy #$01
-@07a2 98                                // test_program.s:904 tya
-@07a3 20 ad 07                          // test_program.s:905 jsr dump_state
-@07a6 a2 01                             // test_program.s:906 ldx #$01
-@07a8 8a                                // test_program.s:907 txa
-@07a9 20 ad 07                          // test_program.s:908 jsr dump_state
-@07ac 60                                // test_program.s:909 rts
-@07ad 08                                // test_program.s:913 php
-@07ae 8d 00 ff                          // test_program.s:914 sta value_dump
-@07b1 8e 00 ff                          // test_program.s:915 stx value_dump
-@07b4 8c 00 ff                          // test_program.s:916 sty value_dump
-@07b7 28                                // test_program.s:917 plp
-@07b8 60                                // test_program.s:918 rts
-@07b9 a2 ff                             // test_program.s:921 ldx #$ff
-@07bb 9a                                // test_program.s:922 txs
-@07bc a9 03                             // test_program.s:923 lda #start/256
-@07be 48                                // test_program.s:924 pha
-@07bf a9 00                             // test_program.s:925 lda #start%256
-@07c1 48                                // test_program.s:926 pha
-@07c2 a9 44                             // test_program.s:927 lda #INTMASK+OVERFLOW
-@07c4 48                                // test_program.s:928 pha
-@07c5 40                                // test_program.s:929 rti
-@07c6 00                                // test_program.s:930 brk         ; Unreachable
-@0a4f 8f                                // test_program.s:934 .byte $8f           ; cmp (zp) test
-@0a71 25                                // test_program.s:937 .byte $25           ; cmp (zp),y test
-@13d5 dd                                // test_program.s:940 .byte $dd           ; adc (zp,x) test
-@1690 6b                                // test_program.s:944 .byte $6b
-@16aa 03                                // test_program.s:947 .byte $03           ; bit abs,x
-@1a10 6d                                // test_program.s:951 .byte $6d
-@1a32 d7                                // test_program.s:954 .byte $d7           ; ldx abs,y
-@26ff 03 a3                             // test_program.s:958 .word jmp_dest2
-@2701 00                                // test_program.s:959 .byte 0
-@2702 11 a3                             // test_program.s:960 .word jmp_dest4
-@2746 07 05                             // test_program.s:963 .word jmp_test_done
-@274f 0b a3                             // test_program.s:966 .word jmp_dest5
-@27b8 13 a3                             // test_program.s:970 .word jmp_dest1
-@27ba 00                                // test_program.s:971 .byte 0
-@27bb 07 a3                             // test_program.s:972 .word jmp_dest3
-@27ff 07 a3                             // test_program.s:975 .word jmp_dest3
-@2808 07 a3                             // test_program.s:978 .word jmp_dest3
-@3787 b8                                // test_program.s:982 .byte $b8
-@37a1 6f                                // test_program.s:985 .byte $6f
-@37a9 0e                                // test_program.s:988 .byte $0e
-@40ef 08                                // test_program.s:993 php
-@40f0 b0 0c                             // test_program.s:994 bcs .1
-@40f2 90 0a                             // test_program.s:995 bcc .1
-@40f4 70 04                             // test_program.s:997 .2  bvs .3
-@40f6 50 02                             // test_program.s:998 bvc .3
-@40f8 80 08                             // test_program.s:1000 .4  bra .5
-@40fa d0 fc                             // test_program.s:1002 .3  bne .4
-@40fc f0 fa                             // test_program.s:1003 beq .4
-@40fe 30 f4                             // test_program.s:1005 .1  bmi .2
-@4100 10 f2                             // test_program.s:1006 bpl .2
-@4102 28                                // test_program.s:1009 plp
-@4103 60                                // test_program.s:1010 rts
-@4104 00                                // test_program.s:1011 .byte 00
-@41ef 0f 99 28                          // test_program.s:1016 bbr 0, branch_bit_test, .1
-@41f2 8f 99 25                          // test_program.s:1017 bbs 0, branch_bit_test, .1
-@41f5 2f 99 1c                          // test_program.s:1019 .2  bbr 2, branch_bit_test, .3
-@41f8 af 99 19                          // test_program.s:1020 bbs 2, branch_bit_test, .3
-@41fb 4f 99 10                          // test_program.s:1022 .4  bbr 4, branch_bit_test, .5
-@41fe cf 99 0d                          // test_program.s:1023 bbs 4, branch_bit_test, .5
-@4201 6f 99 04                          // test_program.s:1025 .6  bbr 6, branch_bit_test, .7
-@4204 ef 99 01                          // test_program.s:1026 bbs 6, branch_bit_test, .7
-@4207 60                                // test_program.s:1028 .8  rts
-@4208 7f 99 fc                          // test_program.s:1030 .7  bbr 7, branch_bit_test, .8
-@420b ff 99 f9                          // test_program.s:1031 bbs 7, branch_bit_test, .8
-@420e 5f 99 f0                          // test_program.s:1033 .5  bbr 5, branch_bit_test, .6
-@4211 df 99 ed                          // test_program.s:1034 bbs 5, branch_bit_test, .6
-@4214 3f 99 e4                          // test_program.s:1036 .3  bbr 3, branch_bit_test, .4
-@4217 bf 99 e1                          // test_program.s:1037 bbs 3, branch_bit_test, .4
-@421a 1f 99 d8                          // test_program.s:1039 .1  bbr 1, branch_bit_test, .2
-@421d 9f 99 d5                          // test_program.s:1040 bbs 1, branch_bit_test, .2
-@4220 00                                // test_program.s:1042 brk         ; Unreachable
-@4221 08                                // test_program.s:1045 php
-@4222 28                                // test_program.s:1046 plp
-@4223 40                                // test_program.s:1047 rti
-@4224 00                                // test_program.s:1048 brk         ; Unreachable
-@4225 4c 21 42                          // test_program.s:1051 jmp int_handler
-@4228 00                                // test_program.s:1052 brk         ; Unreachable
-@4694 87                                // test_program.s:1055 sta_abs_test:   .byte $87, $91, $20
+@060d a9 01                             // test_program.s:623 lda #1
+@060f 18                                // test_program.s:624 clc
+@0610 6a                                // test_program.s:625 ror
+@0611 08                                // test_program.s:626 php
+@0612 8d 00 ff                          // test_program.s:627 sta value_dump
+@0615 2a                                // test_program.s:628 rol
+@0616 08                                // test_program.s:629 php
+@0617 8d 00 ff                          // test_program.s:630 sta value_dump
+@061a 38                                // test_program.s:631 sec
+@061b 6a                                // test_program.s:632 ror
+@061c 08                                // test_program.s:633 php
+@061d 8d 00 ff                          // test_program.s:634 sta value_dump
+@0620 18                                // test_program.s:635 clc
+@0621 2a                                // test_program.s:636 rol
+@0622 08                                // test_program.s:637 php
+@0623 8d 00 ff                          // test_program.s:638 sta value_dump
+@0626 a0 02                             // test_program.s:642 ldy #$02
+@0628 8d 94 46                          // test_program.s:643 sta sta_abs_test
+@062b 1a                                // test_program.s:644 inc
+@062c 9d 94 46                          // test_program.s:645 sta sta_abs_test,x
+@062f 1a                                // test_program.s:646 inc
+@0630 99 94 46                          // test_program.s:647 sta sta_abs_test,y
+@0633 1a                                // test_program.s:648 inc
+@0634 85 2a                             // test_program.s:649 sta sta_zp_test
+@0636 1a                                // test_program.s:650 inc
+@0637 95 2a                             // test_program.s:651 sta sta_zp_test,x
+@0639 1a                                // test_program.s:652 inc
+@063a 81 2a                             // test_program.s:653 sta (sta_zp_test,x)
+@063c 1a                                // test_program.s:654 inc
+@063d 92 2a                             // test_program.s:655 sta (sta_zp_test)
+@063f 1a                                // test_program.s:656 inc
+@0640 91 2a                             // test_program.s:657 sta (sta_zp_test),y
+@0642 1a                                // test_program.s:658 inc
+@0643 a2 80                             // test_program.s:659 ldx #$80
+@0645 9d 94 46                          // test_program.s:660 sta sta_abs_test,x
+@0648 1a                                // test_program.s:661 inc
+@0649 a0 ff                             // test_program.s:662 ldy #$ff
+@064b 99 94 46                          // test_program.s:663 sta sta_abs_test,y
+@064e 1a                                // test_program.s:664 inc
+@064f 91 2a                             // test_program.s:665 sta (sta_zp_test),y
+@0651 08                                // test_program.s:666 php
+@0652 8e 94 46                          // test_program.s:670 stx sta_abs_test
+@0655 e8                                // test_program.s:671 inx
+@0656 86 2b                             // test_program.s:672 stx sta_zp_test+1
+@0658 e8                                // test_program.s:673 inx
+@0659 96 2b                             // test_program.s:674 stx sta_zp_test+1,y
+@065b 08                                // test_program.s:675 php
+@065c a2 02                             // test_program.s:679 ldx #$2
+@065e 8c 94 46                          // test_program.s:680 sty sta_abs_test
+@0661 c8                                // test_program.s:681 iny
+@0662 84 2a                             // test_program.s:682 sty sta_zp_test
+@0664 c8                                // test_program.s:683 iny
+@0665 94 2a                             // test_program.s:684 sty sta_zp_test,x
+@0667 08                                // test_program.s:685 php
+@0668 9c 94 46                          // test_program.s:689 stz sta_abs_test
+@066b 9e 94 46                          // test_program.s:690 stz sta_abs_test,x
+@066e 64 2a                             // test_program.s:691 stz sta_zp_test
+@0670 74 2a                             // test_program.s:692 stz sta_zp_test,x
+@0672 08                                // test_program.s:693 php
+@0673 a9 85                             // test_program.s:697 lda #$85
+@0675 20 ab 07                          // test_program.s:698 jsr transfer_tests
+@0678 a9 00                             // test_program.s:699 lda #$00
+@067a 20 ab 07                          // test_program.s:700 jsr transfer_tests
+@067d ba                                // test_program.s:702 tsx
+@067e 20 c9 07                          // test_program.s:703 jsr dump_state
+@0681 a2 ff                             // test_program.s:704 ldx #$ff
+@0683 a9 00                             // test_program.s:705 lda #$00
+@0685 9a                                // test_program.s:706 txs
+@0686 20 c9 07                          // test_program.s:707 jsr dump_state
+@0689 a9 89                             // test_program.s:711 lda #$89
+@068b 1c 15 7d                          // test_program.s:712 trb trb_abs_test
+@068e 20 c9 07                          // test_program.s:713 jsr dump_state
+@0691 1c 16 7d                          // test_program.s:714 trb trb_abs_test+1
+@0694 20 c9 07                          // test_program.s:715 jsr dump_state
+@0697 0c 17 7d                          // test_program.s:717 tsb tsb_abs_test
+@069a 20 c9 07                          // test_program.s:718 jsr dump_state
+@069d 14 66                             // test_program.s:720 trb trb_zp_test
+@069f 20 c9 07                          // test_program.s:721 jsr dump_state
+@06a2 14 67                             // test_program.s:722 trb trb_zp_test+1
+@06a4 20 c9 07                          // test_program.s:723 jsr dump_state
+@06a7 04 68                             // test_program.s:725 tsb tsb_zp_test
+@06a9 20 c9 07                          // test_program.s:726 jsr dump_state
+@06ac a9 00                             // test_program.s:728 lda #$00
+@06ae 0c 16 7d                          // test_program.s:729 tsb trb_abs_test+1
+@06b1 20 c9 07                          // test_program.s:730 jsr dump_state
+@06b4 04 69                             // test_program.s:731 tsb tsb_zp_test+1
+@06b6 20 c9 07                          // test_program.s:732 jsr dump_state
+@06b9 20 00 f8                          // test_program.s:735 jsr regression1_apple2_disassembly
+@06bc a9 06                             // test_program.s:739 lda #$6
+@06be 8d fe 02                          // test_program.s:740 sta IRQ_TRIGGER_COUNT
+@06c1 8d ff 02                          // test_program.s:741 sta IRQ_TRIGGER_DELAY
+@06c4 ea                                // test_program.s:742 nop
+@06c5 ea                                // test_program.s:743 nop
+@06c6 ea                                // test_program.s:744 nop
+@06c7 ea                                // test_program.s:745 nop
+@06c8 ea                                // test_program.s:746 nop
+@06c9 ea                                // test_program.s:747 nop
+@06ca ea                                // test_program.s:748 nop
+@06cb ea                                // test_program.s:749 nop
+@06cc ea                                // test_program.s:750 nop
+@06cd ea                                // test_program.s:751 nop
+@06ce a9 1e                             // test_program.s:753 lda #30
+@06d0 8d fe 02                          // test_program.s:754 sta IRQ_TRIGGER_COUNT
+@06d3 a2 04                             // test_program.s:755 ldx #4
+@06d5 8e ff 02                          // test_program.s:756 stx IRQ_TRIGGER_DELAY
+@06d8 ea                                // test_program.s:757 nop
+@06d9 ea                                // test_program.s:758 nop
+@06da ea                                // test_program.s:759 nop
+@06db ea                                // test_program.s:760 nop
+@06dc 58                                // test_program.s:761 cli
+@06dd ea                                // test_program.s:762 nop
+@06de ea                                // test_program.s:763 nop
+@06df ea                                // test_program.s:764 nop
+@06e0 ea                                // test_program.s:765 nop
+@06e1 ea                                // test_program.s:766 nop
+@06e2 ea                                // test_program.s:767 nop
+@06e3 a9 28                             // test_program.s:771 lda #40
+@06e5 8d fa 02                          // test_program.s:772 sta NMI_TRIGGER_COUNT
+@06e8 8d fe 02                          // test_program.s:773 sta IRQ_TRIGGER_COUNT
+@06eb a2 0f                             // test_program.s:774 ldx #15
+@06ed a0 0b                             // test_program.s:775 ldy #11
+@06ef 8e ff 02                          // test_program.s:776 stx IRQ_TRIGGER_DELAY
+@06f2 8c fb 02                          // test_program.s:777 sty NMI_TRIGGER_DELAY
+@06f5 ea                                // test_program.s:779 nop
+@06f6 ea                                // test_program.s:780 nop
+@06f7 ea                                // test_program.s:781 nop
+@06f8 ea                                // test_program.s:782 nop
+@06f9 ea                                // test_program.s:783 nop
+@06fa ea                                // test_program.s:784 nop
+@06fb ea                                // test_program.s:785 nop
+@06fc ea                                // test_program.s:786 nop
+@06fd ea                                // test_program.s:787 nop
+@06fe ea                                // test_program.s:788 nop
+@06ff ea                                // test_program.s:789 nop
+@0700 ea                                // test_program.s:790 nop
+@0701 ea                                // test_program.s:791 nop
+@0702 ea                                // test_program.s:792 nop
+@0703 ea                                // test_program.s:793 nop
+@0704 ea                                // test_program.s:794 nop
+@0705 b8                                // test_program.s:798 clv
+@0706 a9 0a                             // test_program.s:800 lda #10
+@0708 8d 80 02                          // test_program.s:801 sta READY_TRIGGER_COUNT
+@070b a9 02                             // test_program.s:802 lda #2
+@070d 8d 82 02                          // test_program.s:803 sta SO_TRIGGER_COUNT
+@0710 a2 09                             // test_program.s:804 ldx #9
+@0712 a0 1e                             // test_program.s:805 ldy #30
+@0714 8e 81 02                          // test_program.s:806 stx READY_TRIGGER_DELAY
+@0717 8c 83 02                          // test_program.s:807 sty SO_TRIGGER_DELAY
+@071a 50 fe                             // test_program.s:810 bvc so_test_loop
+@071c a9 31                             // test_program.s:814 lda #(stp_test_cont1 % 256)
+@071e 8d fc ff                          // test_program.s:815 sta reset_vector
+@0721 a9 07                             // test_program.s:816 lda #(stp_test_cont1 / 256)
+@0723 8d fd ff                          // test_program.s:817 sta reset_vector+1
+@0726 a9 04                             // test_program.s:818 lda #$04
+@0728 8d fc 02                          // test_program.s:819 sta RESET_TRIGGER_COUNT
+@072b a9 10                             // test_program.s:820 lda #$10
+@072d 8d fd 02                          // test_program.s:821 sta RESET_TRIGGER_DELAY
+@0730 db                                // test_program.s:823 stp
+@0731 20 c9 07                          // test_program.s:826 jsr dump_state
+@0734 a9 55                             // test_program.s:828 lda #(stp_test_cont2 % 256)
+@0736 8d fc ff                          // test_program.s:829 sta reset_vector
+@0739 a9 07                             // test_program.s:830 lda #(stp_test_cont2 / 256)
+@073b 8d fd ff                          // test_program.s:831 sta reset_vector+1
+@073e a9 ff                             // test_program.s:833 lda #$ff
+@0740 48                                // test_program.s:834 pha
+@0741 28                                // test_program.s:835 plp
+@0742 20 c9 07                          // test_program.s:836 jsr dump_state
+@0745 a9 04                             // test_program.s:838 lda #$04
+@0747 8d fc 02                          // test_program.s:839 sta RESET_TRIGGER_COUNT
+@074a 8d fd 02                          // test_program.s:840 sta RESET_TRIGGER_DELAY
+@074d ea                                // test_program.s:842 nop
+@074e ea                                // test_program.s:843 nop
+@074f ea                                // test_program.s:844 nop
+@0750 ea                                // test_program.s:845 nop
+@0751 ea                                // test_program.s:846 nop
+@0752 ea                                // test_program.s:847 nop
+@0753 ea                                // test_program.s:848 nop
+@0754 ea                                // test_program.s:849 nop
+@0755 a9 00                             // test_program.s:853 lda #$00
+@0757 b8                                // test_program.s:854 clv
+@0758 18                                // test_program.s:855 clc
+@0759 20 c9 07                          // test_program.s:856 jsr dump_state
+@075c a9 7d                             // test_program.s:858 lda #(stp_test_cont3 % 256)
+@075e 8d fc ff                          // test_program.s:859 sta reset_vector
+@0761 a9 07                             // test_program.s:860 lda #(stp_test_cont3 / 256)
+@0763 8d fd ff                          // test_program.s:861 sta reset_vector+1
+@0766 a9 00                             // test_program.s:863 lda #$00
+@0768 48                                // test_program.s:864 pha
+@0769 28                                // test_program.s:865 plp
+@076a 20 c9 07                          // test_program.s:866 jsr dump_state
+@076d a9 04                             // test_program.s:868 lda #$04
+@076f 8d fc 02                          // test_program.s:869 sta RESET_TRIGGER_COUNT
+@0772 8d fd 02                          // test_program.s:870 sta RESET_TRIGGER_DELAY
+@0775 ea                                // test_program.s:872 nop
+@0776 ea                                // test_program.s:873 nop
+@0777 ea                                // test_program.s:874 nop
+@0778 ea                                // test_program.s:875 nop
+@0779 ea                                // test_program.s:876 nop
+@077a ea                                // test_program.s:877 nop
+@077b ea                                // test_program.s:878 nop
+@077c ea                                // test_program.s:879 nop
+@077d a9 00                             // test_program.s:883 lda #$00
+@077f b8                                // test_program.s:884 clv
+@0780 18                                // test_program.s:885 clc
+@0781 20 c9 07                          // test_program.s:886 jsr dump_state
+@0784 58                                // test_program.s:890 cli
+@0785 a9 06                             // test_program.s:891 lda #6
+@0787 8d fe 02                          // test_program.s:892 sta IRQ_TRIGGER_COUNT
+@078a a9 0a                             // test_program.s:893 lda #10
+@078c 8d ff 02                          // test_program.s:894 sta IRQ_TRIGGER_DELAY
+@078f cb                                // test_program.s:895 wai
+@0790 78                                // test_program.s:897 sei
+@0791 a9 06                             // test_program.s:898 lda #6
+@0793 8d fe 02                          // test_program.s:899 sta IRQ_TRIGGER_COUNT
+@0796 a9 0a                             // test_program.s:900 lda #10
+@0798 8d ff 02                          // test_program.s:901 sta IRQ_TRIGGER_DELAY
+@079b cb                                // test_program.s:902 wai
+@079c a9 06                             // test_program.s:904 lda #6
+@079e 8d fa 02                          // test_program.s:905 sta NMI_TRIGGER_COUNT
+@07a1 a9 0a                             // test_program.s:906 lda #10
+@07a3 8d fb 02                          // test_program.s:907 sta NMI_TRIGGER_DELAY
+@07a6 cb                                // test_program.s:908 wai
+@07a7 8d 00 02                          // test_program.s:911 sta FINISHED_TRIGGER
+@07aa 00                                // test_program.s:912 .byte 00
+@07ab 20 c9 07                          // test_program.s:915 jsr dump_state
+@07ae a0 01                             // test_program.s:916 ldy #$01
+@07b0 a8                                // test_program.s:917 tay
+@07b1 20 c9 07                          // test_program.s:918 jsr dump_state
+@07b4 a2 02                             // test_program.s:919 ldx #$02
+@07b6 aa                                // test_program.s:920 tax
+@07b7 20 c9 07                          // test_program.s:921 jsr dump_state
+@07ba 49 ff                             // test_program.s:922 eor #$ff
+@07bc a0 01                             // test_program.s:923 ldy #$01
+@07be 98                                // test_program.s:924 tya
+@07bf 20 c9 07                          // test_program.s:925 jsr dump_state
+@07c2 a2 01                             // test_program.s:926 ldx #$01
+@07c4 8a                                // test_program.s:927 txa
+@07c5 20 c9 07                          // test_program.s:928 jsr dump_state
+@07c8 60                                // test_program.s:929 rts
+@07c9 08                                // test_program.s:933 php
+@07ca 8d 00 ff                          // test_program.s:934 sta value_dump
+@07cd 8e 00 ff                          // test_program.s:935 stx value_dump
+@07d0 8c 00 ff                          // test_program.s:936 sty value_dump
+@07d3 28                                // test_program.s:937 plp
+@07d4 60                                // test_program.s:938 rts
+@07d5 a2 ff                             // test_program.s:941 ldx #$ff
+@07d7 9a                                // test_program.s:942 txs
+@07d8 a9 03                             // test_program.s:943 lda #start/256
+@07da 48                                // test_program.s:944 pha
+@07db a9 00                             // test_program.s:945 lda #start%256
+@07dd 48                                // test_program.s:946 pha
+@07de a9 44                             // test_program.s:947 lda #INTMASK+OVERFLOW
+@07e0 48                                // test_program.s:948 pha
+@07e1 40                                // test_program.s:949 rti
+@07e2 00                                // test_program.s:950 brk         ; Unreachable
+@0a4f 8f                                // test_program.s:954 .byte $8f           ; cmp (zp) test
+@0a71 25                                // test_program.s:957 .byte $25           ; cmp (zp),y test
+@13d5 dd                                // test_program.s:960 .byte $dd           ; adc (zp,x) test
+@1690 6b                                // test_program.s:964 .byte $6b
+@16aa 03                                // test_program.s:967 .byte $03           ; bit abs,x
+@1a10 6d                                // test_program.s:971 .byte $6d
+@1a32 d7                                // test_program.s:974 .byte $d7           ; ldx abs,y
+@26ff 03 a3                             // test_program.s:978 .word jmp_dest2
+@2701 00                                // test_program.s:979 .byte 0
+@2702 11 a3                             // test_program.s:980 .word jmp_dest4
+@2746 07 05                             // test_program.s:983 .word jmp_test_continues
+@274f 0b a3                             // test_program.s:986 .word jmp_dest5
+@27b8 13 a3                             // test_program.s:990 .word jmp_dest1
+@27ba 00                                // test_program.s:991 .byte 0
+@27bb 07 a3                             // test_program.s:992 .word jmp_dest3
+@27ff 07 a3                             // test_program.s:995 .word jmp_dest3
+@2808 07 a3                             // test_program.s:998 .word jmp_dest3
+@3787 b8                                // test_program.s:1002 .byte $b8
+@37a1 6f                                // test_program.s:1005 .byte $6f
+@37a9 0e                                // test_program.s:1008 .byte $0e
+@40ef 08                                // test_program.s:1013 php
+@40f0 b0 0c                             // test_program.s:1014 bcs .1
+@40f2 90 0a                             // test_program.s:1015 bcc .1
+@40f4 70 04                             // test_program.s:1017 .2  bvs .3
+@40f6 50 02                             // test_program.s:1018 bvc .3
+@40f8 80 08                             // test_program.s:1020 .4  bra .5
+@40fa d0 fc                             // test_program.s:1022 .3  bne .4
+@40fc f0 fa                             // test_program.s:1023 beq .4
+@40fe 30 f4                             // test_program.s:1025 .1  bmi .2
+@4100 10 f2                             // test_program.s:1026 bpl .2
+@4102 28                                // test_program.s:1029 plp
+@4103 60                                // test_program.s:1030 rts
+@4104 00                                // test_program.s:1031 .byte 00
+@41ef 0f 99 28                          // test_program.s:1036 bbr 0, branch_bit_test, .1
+@41f2 8f 99 25                          // test_program.s:1037 bbs 0, branch_bit_test, .1
+@41f5 2f 99 1c                          // test_program.s:1039 .2  bbr 2, branch_bit_test, .3
+@41f8 af 99 19                          // test_program.s:1040 bbs 2, branch_bit_test, .3
+@41fb 4f 99 10                          // test_program.s:1042 .4  bbr 4, branch_bit_test, .5
+@41fe cf 99 0d                          // test_program.s:1043 bbs 4, branch_bit_test, .5
+@4201 6f 99 04                          // test_program.s:1045 .6  bbr 6, branch_bit_test, .7
+@4204 ef 99 01                          // test_program.s:1046 bbs 6, branch_bit_test, .7
+@4207 60                                // test_program.s:1048 .8  rts
+@4208 7f 99 fc                          // test_program.s:1050 .7  bbr 7, branch_bit_test, .8
+@420b ff 99 f9                          // test_program.s:1051 bbs 7, branch_bit_test, .8
+@420e 5f 99 f0                          // test_program.s:1053 .5  bbr 5, branch_bit_test, .6
+@4211 df 99 ed                          // test_program.s:1054 bbs 5, branch_bit_test, .6
+@4214 3f 99 e4                          // test_program.s:1056 .3  bbr 3, branch_bit_test, .4
+@4217 bf 99 e1                          // test_program.s:1057 bbs 3, branch_bit_test, .4
+@421a 1f 99 d8                          // test_program.s:1059 .1  bbr 1, branch_bit_test, .2
+@421d 9f 99 d5                          // test_program.s:1060 bbs 1, branch_bit_test, .2
+@4220 00                                // test_program.s:1062 brk         ; Unreachable
+@4221 08                                // test_program.s:1065 php
+@4222 28                                // test_program.s:1066 plp
+@4223 40                                // test_program.s:1067 rti
+@4224 00                                // test_program.s:1068 brk         ; Unreachable
+@4225 4c 21 42                          // test_program.s:1071 jmp int_handler
+@4228 00                                // test_program.s:1072 brk         ; Unreachable
+@4694 87                                // test_program.s:1075 sta_abs_test:   .byte $87, $91, $20
 @4695 91
 @4696 20
-@55aa a2 03                             // test_program.s:1059 ldx #$3
-@55ac 6c b8 27                          // test_program.s:1061 jmp (jmp_ind_test1)
-@55af 00                                // test_program.s:1062 brk         ; Unreachable
-@5ee6 3f                                // test_program.s:1065 .byte $3f                       ; eor (zp,x) test
-@61da 7b                                // test_program.s:1068 dec_abs_test    .byte $7b
-@61ff fe                                // test_program.s:1071 inc_abs_test    .byte $fe, $30, $22, $48        ; inc abs, int abs,x tests
+@55aa a2 03                             // test_program.s:1079 ldx #$3
+@55ac 6c b8 27                          // test_program.s:1081 jmp (jmp_ind_test1)
+@55af 00                                // test_program.s:1082 brk         ; Unreachable
+@5ee6 3f                                // test_program.s:1085 .byte $3f                       ; eor (zp,x) test
+@61da 7b                                // test_program.s:1088 dec_abs_test    .byte $7b
+@61ff fe                                // test_program.s:1091 inc_abs_test    .byte $fe, $30, $22, $48        ; inc abs, int abs,x tests
 @6200 30
 @6201 22
 @6202 48
-@627a 01                                // test_program.s:1074 .byte $01 ; dec abs,x test
-@6d21 74                                // test_program.s:1077 lda_abs_test    .byte $74
-@6d51 c7                                // test_program.s:1079 .byte $c7       ; lda abs,y
-@6de1 08                                // test_program.s:1081 .byte $08       ; lda abs,x
-@7088 29                                // test_program.s:1084 .byte $29       ; eor (zp)
-@70aa 50                                // test_program.s:1086 .byte $50       ; eor (zp),y
-@7ace 65                                // test_program.s:1089 adc_abs_test:   .byte $65, $ca, $26, $6b
+@627a 01                                // test_program.s:1094 .byte $01 ; dec abs,x test
+@6d21 74                                // test_program.s:1097 lda_abs_test    .byte $74
+@6d51 c7                                // test_program.s:1099 .byte $c7       ; lda abs,y
+@6de1 08                                // test_program.s:1101 .byte $08       ; lda abs,x
+@7088 29                                // test_program.s:1104 .byte $29       ; eor (zp)
+@70aa 50                                // test_program.s:1106 .byte $50       ; eor (zp),y
+@7ace 65                                // test_program.s:1109 adc_abs_test:   .byte $65, $ca, $26, $6b
 @7acf ca
 @7ad0 26
 @7ad1 6b
-@7d15 d7                                // test_program.s:1092 trb_abs_test:   .byte $d7, $36
+@7d15 d7                                // test_program.s:1112 trb_abs_test:   .byte $d7, $36
 @7d16 36
-@7d17 a5                                // test_program.s:1093 tsb_abs_test:   .byte $a5, $00
+@7d17 a5                                // test_program.s:1113 tsb_abs_test:   .byte $a5, $00
 @7d18 00
-@7ea8 9b                                // test_program.s:1097 .byte $9b
-@7f9d 49                                // test_program.s:1100 .byte $49                   ; lsr abs,x
-@8510 56                                // test_program.s:1103 asl_abs_test:   .byte $56
-@85d0 40                                // test_program.s:1105 .byte $40       ; asl abs,x test
-@a303 7c b8 27                          // test_program.s:1109 jmp (jmp_ind_test1,x)
-@a306 00                                // test_program.s:1110 brk             ; Unreachable
-@a307 7c ff 26                          // test_program.s:1113 jmp (jmp_ind_test2,x)
-@a30a 00                                // test_program.s:1114 brk
-@a30b a2 47                             // test_program.s:1117 ldx #$47
-@a30d 4c 13 a3                          // test_program.s:1118 jmp jmp_dest1
-@a310 00                                // test_program.s:1119 brk             ; Unreachable
-@a311 a2 50                             // test_program.s:1122 ldx #$50
-@a313 6c ff 26                          // test_program.s:1125 jmp (jmp_ind_test2)
-@a316 00                                // test_program.s:1126 brk             ; Unreachable
-@ae38 bf                                // test_program.s:1129 lda_indirect_test .byte $bf
-@ae68 20                                // test_program.s:1131 .byte $20       ; lda (zp),y test
-@af28 22                                // test_program.s:1133 .byte $22       ; lda (zp),y test
-@c213 25                                // test_program.s:1136 .byte $25                   ; adc (zp,x) test
-@d074 17                                // test_program.s:1139 eor_abs_test    .byte $17
-@d096 11                                // test_program.s:1142 .byte $11        ; eor abs,y
-@d114 49                                // test_program.s:1145 .byte $49       ; eor abs,x test
-@d2cc 38                                // test_program.s:1148 .byte $38                   ; cmp (zp,x) test
-@d588 15                                // test_program.s:1151 .byte $15                   ; adc (zp,x) test
-@d589 8e                                // test_program.s:1152 .byte $8e, $9b, $f5         ; adc (zp),y test
+@7ea8 9b                                // test_program.s:1117 .byte $9b
+@7f9d 49                                // test_program.s:1120 .byte $49                   ; lsr abs,x
+@8510 56                                // test_program.s:1123 asl_abs_test:   .byte $56
+@85d0 40                                // test_program.s:1125 .byte $40       ; asl abs,x test
+@a303 7c b8 27                          // test_program.s:1129 jmp (jmp_ind_test1,x)
+@a306 00                                // test_program.s:1130 brk             ; Unreachable
+@a307 7c ff 26                          // test_program.s:1133 jmp (jmp_ind_test2,x)
+@a30a 00                                // test_program.s:1134 brk
+@a30b a2 47                             // test_program.s:1137 ldx #$47
+@a30d 4c 13 a3                          // test_program.s:1138 jmp jmp_dest1
+@a310 00                                // test_program.s:1139 brk             ; Unreachable
+@a311 a2 50                             // test_program.s:1142 ldx #$50
+@a313 6c ff 26                          // test_program.s:1145 jmp (jmp_ind_test2)
+@a316 00                                // test_program.s:1146 brk             ; Unreachable
+@ae38 bf                                // test_program.s:1149 lda_indirect_test .byte $bf
+@ae68 20                                // test_program.s:1151 .byte $20       ; lda (zp),y test
+@af28 22                                // test_program.s:1153 .byte $22       ; lda (zp),y test
+@c213 25                                // test_program.s:1156 .byte $25                   ; adc (zp,x) test
+@d074 17                                // test_program.s:1159 eor_abs_test    .byte $17
+@d096 11                                // test_program.s:1162 .byte $11        ; eor abs,y
+@d114 49                                // test_program.s:1165 .byte $49       ; eor abs,x test
+@d2cc 38                                // test_program.s:1168 .byte $38                   ; cmp (zp,x) test
+@d588 15                                // test_program.s:1171 .byte $15                   ; adc (zp,x) test
+@d589 8e                                // test_program.s:1172 .byte $8e, $9b, $f5         ; adc (zp),y test
 @d58a 9b
 @d58b f5
-@e308 ff                                // test_program.s:1156 .byte $ff
-@e3fd 93                                // test_program.s:1159 .byte $93                   ; ldy abs,x
-@f9f8 cd                                // test_program.s:1163 .byte $cd, $71, $e4
+@e308 ff                                // test_program.s:1176 .byte $ff
+@e3fd 93                                // test_program.s:1179 .byte $93                   ; ldy abs,x
+@f800 a9 a9                             // test_program.s:1184 lda #$a9    ; Should have registered as LDA immediate, registers as ???
+@f802 20 82 f8                          // test_program.s:1185 jsr .0
+@f805 a9 85                             // test_program.s:1186 lda #$85    ; Should have registered as STA zp, registers as ???
+@f807 20 82 f8                          // test_program.s:1187 jsr .0
+@f80a a9 ad                             // test_program.s:1188 lda #$ad    ; Should have registered as LDA abs, registers as LDA zp
+@f80c 20 82 f8                          // test_program.s:1189 jsr .0
+@f80f 60                                // test_program.s:1191 rts
+@f810 00                                // test_program.s:1192 brk         ; Unreachable
+@f882 a8                                // test_program.s:1197 tay
+@f883 4a                                // test_program.s:1198 lsr
+@f884 90 09                             // test_program.s:1199 bcc .1
+@f886 6a                                // test_program.s:1200 ror
+@f887 b0 10                             // test_program.s:1201 bcs .2
+@f889 c9 a2                             // test_program.s:1202 cmp #$A2
+@f88b f0 0c                             // test_program.s:1203 beq .2
+@f88d 29 87                             // test_program.s:1204 and #$87
+@f88f 4a                                // test_program.s:1206 lsr
+@f890 aa                                // test_program.s:1207 tax
+@f891 bd b1 f8                          // test_program.s:1208 lda FMT1,x
+@f894 20 a8 f8                          // test_program.s:1209 jsr .8
+@f897 d0 04                             // test_program.s:1210 bne .5
+@f899 a0 80                             // test_program.s:1212 ldy #$80
+@f89b a9 00                             // test_program.s:1213 lda #$00
+@f89d aa                                // test_program.s:1215 tax
+@f89e bd f5 f8                          // test_program.s:1216 lda FMT2,x
+@f8a1 85 2e                             // test_program.s:1217 sta $2e ; F8.MASK
+@f8a3 29 03                             // test_program.s:1218 and #$03
+@f8a5 85 2f                             // test_program.s:1219 sta $2f ; LENGTH
+@f8a7 60                                // test_program.s:1221 rts
+@f8a8 90 04                             // test_program.s:1223 .8       bcc     .9
+@f8aa 4a                                // test_program.s:1224 lsr     A
+@f8ab 4a                                // test_program.s:1225 lsr     A
+@f8ac 4a                                // test_program.s:1226 lsr     A
+@f8ad 4a                                // test_program.s:1227 lsr     A
+@f8ae 29 0f                             // test_program.s:1228 .9      and     #$0f
+@f8b0 60                                // test_program.s:1229 rts
+@f8b1 04                                // test_program.s:1231 FMT1        .byte   $04,$20,$54,$30,$0d,$80,$04,$90,$03,$22,$54,$33,$0d,$80,$04,$90
+@f8b2 20
+@f8b3 54
+@f8b4 30
+@f8b5 0d
+@f8b6 80
+@f8b7 04
+@f8b8 90
+@f8b9 03
+@f8ba 22
+@f8bb 54
+@f8bc 33
+@f8bd 0d
+@f8be 80
+@f8bf 04
+@f8c0 90
+@f8c1 04                                // test_program.s:1232 .byte   $04,$20,$54,$33,$0d,$80,$04,$90,$04,$20,$54,$3b,$0d,$80,$04,$90
+@f8c2 20
+@f8c3 54
+@f8c4 33
+@f8c5 0d
+@f8c6 80
+@f8c7 04
+@f8c8 90
+@f8c9 04
+@f8ca 20
+@f8cb 54
+@f8cc 3b
+@f8cd 0d
+@f8ce 80
+@f8cf 04
+@f8d0 90
+@f8d1 00                                // test_program.s:1233 .byte   $00,$22,$44,$33,$0d,$c8,$44,$00,$11,$22,$44,$33,$0d,$c8,$44,$a9
+@f8d2 22
+@f8d3 44
+@f8d4 33
+@f8d5 0d
+@f8d6 c8
+@f8d7 44
+@f8d8 00
+@f8d9 11
+@f8da 22
+@f8db 44
+@f8dc 33
+@f8dd 0d
+@f8de c8
+@f8df 44
+@f8e0 a9
+@f8e1 01                                // test_program.s:1234 .byte   $01,$22,$44,$33,$0d,$80,$04,$90,$01,$22,$44,$33,$0d,$80,$04,$90
+@f8e2 22
+@f8e3 44
+@f8e4 33
+@f8e5 0d
+@f8e6 80
+@f8e7 04
+@f8e8 90
+@f8e9 01
+@f8ea 22
+@f8eb 44
+@f8ec 33
+@f8ed 0d
+@f8ee 80
+@f8ef 04
+@f8f0 90
+@f8f1 26                                // test_program.s:1235 .byte   $26,$31,$87,$9a
+@f8f2 31
+@f8f3 87
+@f8f4 9a
+@f8f5 00                                // test_program.s:1236 FMT2        .data   $00,$21,$81,$82,$00,$00,$59,$4d,$91,$92,$86,$4a,$85,$9d
+@f8f6 21
+@f8f7 81
+@f8f8 82
+@f8f9 00
+@f8fa 00
+@f8fb 59
+@f8fc 4d
+@f8fd 91
+@f8fe 92
+@f8ff 86
+@f900 4a
+@f901 85
+@f902 9d
+@f9f8 cd                                // test_program.s:1240 .byte $cd, $71, $e4
 @f9f9 71
 @f9fa e4
-@fffa 25 42                             // test_program.s:1166 nmi_vector:     .word nmi_handler
-@fffc b9 07                             // test_program.s:1167 reset_vector:   .word reset_handler
-@fffe 21 42                             // test_program.s:1168 irq_vector:     .word int_handler
+@fffa 25 42                             // test_program.s:1243 nmi_vector:     .word nmi_handler
+@fffc d5 07                             // test_program.s:1244 reset_vector:   .word reset_handler
+@fffe 21 42                             // test_program.s:1245 irq_vector:     .word int_handler

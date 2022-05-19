@@ -1811,7 +1811,7 @@ endtask
 task do_op_ror_acc_first();
     alu_op = control_signals::AluOp_shift_right_logical;
     alu_a_source = bus_sources::AluASourceCtl_A;
-    alu_carry_source = bus_sources::AluCarrySource_Zero;
+    alu_carry_source = bus_sources::AluCarrySource_Carry;
 
     ctrl_signals[control_signals::UpdateFlagC] = 1;
     ctrl_signals[control_signals::UseAluFlags] = 1;

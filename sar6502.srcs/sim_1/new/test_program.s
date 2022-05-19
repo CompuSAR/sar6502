@@ -460,7 +460,7 @@ inc_loop:
 
     jmp jmp_tests
     brk                 ; Unreachable
-jmp_test_done:
+jmp_test_continues:
     php
 
 
@@ -620,6 +620,23 @@ pull_test_loop2:
     ror rol_zp_test+1,x
     php
 
+    lda #1
+    clc
+    ror
+    php
+    sta value_dump
+    rol
+    php
+    sta value_dump
+    sec
+    ror
+    php
+    sta value_dump
+    clc
+    rol
+    php
+    sta value_dump
+
 
     ; STA test
     ldy #$02
@@ -715,80 +732,7 @@ pull_test_loop2:
     jsr dump_state
 
 
-    ; STP test
-    lda #(stp_test_cont1 % 256)
-    sta reset_vector
-    lda #(stp_test_cont1 / 256)
-    sta reset_vector+1
-    lda #$04
-    sta RESET_TRIGGER_COUNT
-    lda #$10
-    sta RESET_TRIGGER_DELAY
-
-    stp
-
-stp_test_cont1:
-    jsr dump_state
-
-    lda #(stp_test_cont2 % 256)
-    sta reset_vector
-    lda #(stp_test_cont2 / 256)
-    sta reset_vector+1
-
-    lda #$ff
-    pha
-    plp
-    jsr dump_state
-
-    lda #$04
-    sta RESET_TRIGGER_COUNT
-    sta RESET_TRIGGER_DELAY
-
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-
-stp_test_cont2:
-    ; We don't care about the status flags, only D and I
-    lda #$00
-    clv
-    clc
-    jsr dump_state
-
-    lda #(stp_test_cont3 % 256)
-    sta reset_vector
-    lda #(stp_test_cont3 / 256)
-    sta reset_vector+1
-
-    lda #$00
-    pha
-    plp
-    jsr dump_state
-
-    lda #$04
-    sta RESET_TRIGGER_COUNT
-    sta RESET_TRIGGER_DELAY
-
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-
-stp_test_cont3:
-    ; We don't care about the status flags, only D and I
-    lda #$00
-    clv
-    clc
-    jsr dump_state
+    jsr regression1_apple2_disassembly
 
 
     ; IRQ test
@@ -864,6 +808,82 @@ stp_test_cont3:
 
 so_test_loop:
     bvc so_test_loop
+    
+
+    ; STP test
+    lda #(stp_test_cont1 % 256)
+    sta reset_vector
+    lda #(stp_test_cont1 / 256)
+    sta reset_vector+1
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    lda #$10
+    sta RESET_TRIGGER_DELAY
+
+    stp
+
+stp_test_cont1:
+    jsr dump_state
+
+    lda #(stp_test_cont2 % 256)
+    sta reset_vector
+    lda #(stp_test_cont2 / 256)
+    sta reset_vector+1
+
+    lda #$ff
+    pha
+    plp
+    jsr dump_state
+
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    sta RESET_TRIGGER_DELAY
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+stp_test_cont2:
+    ; We don't care about the status flags, only D and I
+    lda #$00
+    clv
+    clc
+    jsr dump_state
+
+    lda #(stp_test_cont3 % 256)
+    sta reset_vector
+    lda #(stp_test_cont3 / 256)
+    sta reset_vector+1
+
+    lda #$00
+    pha
+    plp
+    jsr dump_state
+
+    lda #$04
+    sta RESET_TRIGGER_COUNT
+    sta RESET_TRIGGER_DELAY
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+stp_test_cont3:
+    ; We don't care about the status flags, only D and I
+    lda #$00
+    clv
+    clc
+    jsr dump_state
 
 
     ; WAI tests
@@ -960,7 +980,7 @@ jmp_ind_test2:
     .word jmp_dest4
 
     .org $2746
-    .word jmp_test_done
+    .word jmp_test_continues
 
     .org $274f
     .word jmp_dest5
@@ -1157,6 +1177,63 @@ ldy_abs_test:
 
     .org $e3fd
     .byte $93                   ; ldy abs,x
+
+
+    .org $f800
+regression1_apple2_disassembly:
+    lda #$a9    ; Should have registered as LDA immediate, registers as ???
+    jsr .0
+    lda #$85    ; Should have registered as STA zp, registers as ???
+    jsr .0
+    lda #$ad    ; Should have registered as LDA abs, registers as LDA zp
+    jsr .0
+
+    rts
+    brk         ; Unreachable
+
+    .org $f882
+    ; Apple 2 autostart ROM INSDS1 routine
+.0
+    tay
+    lsr
+    bcc .1
+    ror
+    bcs .2
+    cmp #$A2
+    beq .2
+    and #$87
+.1  ; IEVEN
+    lsr
+    tax
+    lda FMT1,x
+    jsr .8
+    bne .5
+.2  ; ERR
+    ldy #$80
+    lda #$00
+.5  ; GETFMT
+    tax
+    lda FMT2,x
+    sta $2e ; F8.MASK
+    and #$03
+    sta $2f ; LENGTH
+
+    rts
+
+.8       bcc     .9
+            lsr     A
+            lsr     A
+            lsr     A
+            lsr     A
+.9      and     #$0f
+            rts
+
+FMT1        .byte   $04,$20,$54,$30,$0d,$80,$04,$90,$03,$22,$54,$33,$0d,$80,$04,$90
+            .byte   $04,$20,$54,$33,$0d,$80,$04,$90,$04,$20,$54,$3b,$0d,$80,$04,$90
+            .byte   $00,$22,$44,$33,$0d,$c8,$44,$00,$11,$22,$44,$33,$0d,$c8,$44,$a9
+            .byte   $01,$22,$44,$33,$0d,$80,$04,$90,$01,$22,$44,$33,$0d,$80,$04,$90
+            .byte   $26,$31,$87,$9a
+FMT2        .data   $00,$21,$81,$82,$00,$00,$59,$4d,$91,$92,$86,$4a,$85,$9d
 
     .org $f9f8
 rol_abs_test:

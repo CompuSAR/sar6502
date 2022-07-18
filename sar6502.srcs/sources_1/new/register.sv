@@ -48,7 +48,7 @@ module register(
         output reg [7:0]data_out = 0
     );
 
-always_ff@(negedge clock)
+always_ff@(posedge clock)
 begin
     if( latch && ready )
         data_out <= data_in;

@@ -43,7 +43,7 @@ module program_counter(
         input ctl_load,
         input clock,
 
-        input ready,
+        input ready, // XXX Is needed?
 
         output [15:0] address_out
     );
@@ -52,7 +52,7 @@ logic [15:0] address_stored = 0;
 
 assign address_out = ctl_load ? address_in : address_stored;
 
-always_ff@(negedge clock) begin
+always_ff@(posedge clock) begin
     if( ready ) begin
         if( ctl_advance )
             address_stored <= address_out + 1;

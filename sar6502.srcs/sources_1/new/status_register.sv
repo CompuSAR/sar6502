@@ -65,7 +65,7 @@ logic prev_so = 0;
 
 assign data_out = { negative, overflow, 1'b1, output_b, decimal, irq_mask, zero, carry };
 
-always_ff@(negedge clock)
+always_ff@(posedge clock)
 begin
     if( ready ) begin
         if( update_n )

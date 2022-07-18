@@ -9,25 +9,6 @@ typedef enum logic[31:0] {
     LOAD_X,
     LOAD_Y,
     LOAD_SP,
-    LOAD_DataLow,
-    LOAD_DataHigh,
-
-    PC_LOAD,
-    PC_ADVANCE,
-
-    UpdateFlagC,
-    UpdateFlagZ,
-    UpdateFlagI,
-    UpdateFlagD,
-    OutputFlagB,
-    UpdateFlagV,
-    UpdateFlagN,
-
-    LastLoadSignal,
-
-    UseAluFlags,
-    CalculateFlagZ,
-    AluBInverse,
 
     CtrlSignals_EndMarker
 } ctrl_signals;
@@ -37,7 +18,7 @@ localparam ctrl_signals_last = CtrlSignals_EndMarker-1;
 typedef enum logic[31:0] {
     AluOp_INVALID = 'X,
 
-    AluOp_pass = 0,
+    AluOp_pass = 0, // Is it really needed?
     AluOp_add,
     AluOp_and,
     AluOp_or,

@@ -43,7 +43,7 @@ module program_counter(
         input ctl_load,
         input clock,
 
-        input ready, // XXX Is needed?
+        input ready,
 
         output [15:0] address_out
     );

@@ -39,21 +39,63 @@
 
 module sar6502#(parameter CPU_VARIANT = 0)
 (
-    input phi2,
-    input [7:0] data_in,
-    input RES,
-    input rdy,
-    input IRQ,
-    input NMI,
-    input SO,
+    input clock,
+
     output [15:0] address,
     output [7:0] data_out,
-    output rW,
-    output VP,
-    output ML,
+    output write,
+
+    input [7:0] data_in,
+    input ready,
+
+    input reset,
+    input interrupt,
+    input nmi,
+
+    input set_overflow,
+    output memory_lock,
+
+    output vector_pull,
     output sync,
 
     output incompatible        // Address bus is deliberately incompatible with our base CPU
-    );
+);
+
+logic [7:0] data_bus;
+logic [7:0] address_bus_low, address_bus_high;
+assign address = {address_bus_high, address_bus_low};
+logic [control_signals::ctrl_signals_last:0] control_signals;
+
+register        reg_a(.clock(clock), .data_in(data_bus), .ready(ready)),
+                reg_x(.clock(clock), .data_in(data_bus), .ready(ready)),
+                reg_y(.clock(clock), .data_in(data_bus), .ready(ready)),
+                reg_s(.clock(clock), .data_in(data_bus), .ready(ready));
+program_counter reg_pc(.clock(clock), .ready(ready));
+
+decoder decoder(
+    .clock(clock),
+    .reset(reset),
+    .memory_in(data_in)
+);
+
+assign incompatible = decoder.incompatible;
+assign write = decoder.write;
+assign memory_lock = decoder.memory_lock;
+assign vector_pull = decoder.vector_pull;
+assign sync = decoder.sync;
+
+always_comb begin
+    case(decoder.addr_bus_low_src)
+        bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pc.address_out[7:0];
+        bus_sources::AddrBusLowSrc_FC: address_bus_low = 8'hfc;
+        default: address_bus_low = 8'hXX;
+    endcase
+
+    case(decoder.addr_bus_high_src)
+        bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pc.address_out[15:8];
+        bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
+        default: address_bus_high = 8'hXX;
+    endcase
+end
 
 endmodule

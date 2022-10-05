@@ -14,6 +14,8 @@ localparam DataBusSourceCtlLast = DataBusSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
     AddrBusLowSrc_Invalid = 'X,
+    AddrBusLowSrc_PC = 0,
+    AddrBusLowSrc_FC,
 
     AddrBusLowSrc_End_Marker
 } AddressBusLowSourceCtl;
@@ -22,6 +24,8 @@ localparam AddressBusLowSourceCtlLast = AddrBusLowSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
     AddrBusHighSrc_Invalid = 'X,
+    AddrBusHighSrc_PC = 0,
+    AddrBusHighSrc_FF,
 
     AddrBusHighSrc_End_Marker
 } AddressBusHighSourceCtl;

@@ -77,41 +77,51 @@ localparam tMDS = 25;       // Write data delay time (max)
 localparam tDHW = 10;       // Write data hold time (min)
 
 logic clock;
-logic [15:0] address_bus;
-logic [7:0] data_in, data_out;
-
-logic read_Write, vector_pull, memory_lock, sync, incompatible;
+logic [7:0] data_in;
+logic [15:0] address_latched;
 
 typedef enum { SigReset, SigIrq, SigNmi, SigSo, SigReady, Sig_NumElements } signal_types;
 logic signals[Sig_NumElements-1:0];
 
 sar6502#(.CPU_VARIANT(2)) cpu(
-    .phi2(clock),
+    .clock(clock),
     .data_in(data_in),
-    .RES( !signals[SigReset] ),
-    .rdy( !signals[SigReady] ),
-    .IRQ( !signals[SigIrq] ),
-    .NMI( !signals[SigNmi] ),
-    .SO( !signals[SigSo] ),
+    .ready( signals[SigReady] ),
 
-    .address(address_bus),
-    .data_out(data_out),
-    .rW(read_Write),
-    .VP(vector_pull),
-    .ML(memory_lock),
-    .sync(sync),
-    .incompatible(incompatible)
+    .reset( signals[SigReset] ),
+    .interrupt( signals[SigIrq] ),
+    .nmi( signals[SigNmi] ),
+    .set_overflow( signals[SigSo] )
 );
 
 logic [7:0]memory[65536];
 logic [35:0]test_plan[30000];
+
+logic [7:0]prev_data_out;
+logic [15:0]prev_address;
+logic prev_write, prev_memory_lock, prev_vector_pull, prev_sync, prev_incompatible;
 
 struct {
     int delay;
     int count;
 } pending_signals[Sig_NumElements-1:0];
 
-logic [15:0]address_latched;
+always_ff@(posedge clock) begin
+    if( cpu.write==1 ) begin
+        memory[cpu.address] <= cpu.data_out;
+        data_in <= 8'bX;
+    end else begin
+        data_in <= memory[cpu.address];
+    end
+
+    prev_data_out <= cpu.data_out;
+    prev_address <= cpu.address;
+    prev_write <= cpu.write;
+    prev_memory_lock <= cpu.memory_lock;
+    prev_vector_pull <= cpu.vector_pull;
+    prev_sync <= cpu.sync;
+    prev_incompatible <= cpu.incompatible;
+end
 
 initial begin
     // Clock and memory read handling
@@ -129,14 +139,9 @@ initial begin
     pending_signals[SigReset].count = 5;
 
     forever begin
-        #tDHR data_in = 8'bX;
-        #(tPWL-tDHR) clock = 1;
-        address_latched = address_bus;
+        #tPWL clock = 1;
         clock_high();
-        #(tPWH-tDSR) data_in=memory[address_latched];
-        #tDSR
-        clock_low();
-        clock = 0;
+        #tPWH clock = 0;
     end
 end
 
@@ -161,12 +166,15 @@ task clock_high();
     end
 endtask
 
-task clock_low();
+always_ff@(posedge clock)
+    verify();
+
+task verify();
     automatic logic [35:0]plan_line;
 begin
     // Verification
     if( cycle_num==0 ) begin
-        if( address_bus !== 16'hfffc )
+        if( prev_address !== 16'hfffc )
             // Waiting to begin
             return;
         else
@@ -182,7 +190,7 @@ begin
         end
     endcase
 
-    if( address_bus[15:8]===8'h02 && read_Write===1'b0 )
+    if( prev_address[15:8]===8'h02 && prev_write===1'b1 )
         perform_io();
 
     cycle_num++;
@@ -191,24 +199,24 @@ endtask
 
 task verify_cycle( input logic [35:0]plan_line );
 begin
-    if( !incompatible || read_Write==0 || plan_line[0]==0 ) begin
-        assert_state( address_bus, plan_line[31:16], "Address bus" );
+    if( !prev_incompatible || prev_write==1 || plan_line[0]==0 ) begin
+        assert_state( prev_address, plan_line[31:16], "Address bus" );
     end else
-        $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, address_bus, plan_line[31:16]);
-    assert_state( read_Write, plan_line[0], "Read/write" );
-    assert_state( sync, plan_line[1], "Sync" );
+        $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, prev_address, plan_line[31:16]);
+    assert_state( prev_write, !plan_line[0], "Read/write" );
+    assert_state( prev_sync, plan_line[1], "Sync" );
     if( plan_line[2]==1 ) // Due to bug in wd65c02, allow our ML to be active while theirs isn't.
-        assert_state( memory_lock, !plan_line[2], "Memory lock" );
-    assert_state( vector_pull, !plan_line[3], "Vector pull" );
+        assert_state( prev_memory_lock, plan_line[2], "Memory lock" );
+    assert_state( prev_vector_pull, plan_line[3], "Vector pull" );
 
-    if( read_Write ) begin
+    if( !prev_write ) begin
         // Read
-        if( !incompatible )
+        if( !prev_incompatible )
             assert_state( data_in, plan_line[15:8], "Data in" );
     end else begin
         // Write
-        memory[address_bus] = data_out;
-        assert_state( data_out, plan_line[15:8], "Data out" );
+        memory[prev_address] = prev_data_out;
+        assert_state( prev_data_out, plan_line[15:8], "Data out" );
     end
 end
 endtask
@@ -218,28 +226,28 @@ task assert_state( input logic [15:0]actual, input logic [15:0]expected, input s
         return;
 
     $display("Verification failed on cycle %d time %t pin %s: expected %x, received %x on address %04x",
-        cycle_num, $time, name, expected, actual, address_bus);
+        cycle_num, $time, name, expected, actual, prev_address);
     $finish();
 endtask
 
 task perform_io();
-    $display("Cycle %d: IO writing %x to %x", cycle_num, data_out, address_bus);
+    $display("Cycle %d: IO writing %x to %x", cycle_num, prev_data_out, prev_address);
 
-    casex( address_bus[7:0] )
+    casex( prev_address[7:0] )
         8'h00: begin
             $display("Test finished successfully");
             $finish();
         end
-        8'h80: pending_signals[SigReady].count = data_out;
-        8'h81: pending_signals[SigReady].delay = data_out;
-        8'h82: pending_signals[SigSo].count = data_out;
-        8'h83: pending_signals[SigSo].delay = data_out;
-        8'hfa: pending_signals[SigNmi].count = data_out;
-        8'hfb: pending_signals[SigNmi].delay = data_out;
-        8'hfc: pending_signals[SigReset].count = data_out;
-        8'hfd: pending_signals[SigReset].delay = data_out;
-        8'hfe: pending_signals[SigIrq].count = data_out;
-        8'hff: pending_signals[SigIrq].delay = data_out;
+        8'h80: pending_signals[SigReady].count = prev_data_out;
+        8'h81: pending_signals[SigReady].delay = prev_data_out;
+        8'h82: pending_signals[SigSo].count = prev_data_out;
+        8'h83: pending_signals[SigSo].delay = prev_data_out;
+        8'hfa: pending_signals[SigNmi].count = prev_data_out;
+        8'hfb: pending_signals[SigNmi].delay = prev_data_out;
+        8'hfc: pending_signals[SigReset].count = prev_data_out;
+        8'hfd: pending_signals[SigReset].delay = prev_data_out;
+        8'hfe: pending_signals[SigIrq].count = prev_data_out;
+        8'hff: pending_signals[SigIrq].delay = prev_data_out;
     endcase
 endtask
 

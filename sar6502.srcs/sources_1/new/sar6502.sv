@@ -117,11 +117,12 @@ always_comb begin
     endcase
 
     case(decoder.special_bus_src)
-        bus_sources::SpecialBusSrc_RegA: data_bus = reg_a.data_out;
-        bus_sources::SpecialBusSrc_RegX: data_bus = reg_x.data_out;
-        bus_sources::SpecialBusSrc_RegY: data_bus = reg_y.data_out;
-        bus_sources::SpecialBusSrc_RegS: data_bus = reg_sp.data_out;
-        default: data_bus = 8'hXX;
+        bus_sources::SpecialBusSrc_RegA: special_bus = reg_a.data_out;
+        bus_sources::SpecialBusSrc_RegX: special_bus = reg_x.data_out;
+        bus_sources::SpecialBusSrc_RegY: special_bus = reg_y.data_out;
+        bus_sources::SpecialBusSrc_RegS: special_bus = reg_sp.data_out;
+        bus_sources::SpecialBusSrc_Mem: special_bus = data_in;
+        default: special_bus = 8'hXX;
     endcase
 
     case(decoder.pcl_bus_src)

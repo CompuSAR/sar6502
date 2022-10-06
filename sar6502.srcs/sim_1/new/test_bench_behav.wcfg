@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="800.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,562.001 ns"></ZoomEndTime>
-      <Cursor1Time time="1,435.000 ns"></Cursor1Time>
+      <ZoomStartTime time="906.666 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,624.667 ns"></ZoomEndTime>
+      <Cursor1Time time="1,505.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="203"></NameColumnWidth>
-      <ValueColumnWidth column_width="60"></ValueColumnWidth>
+      <NameColumnWidth column_width="207"></NameColumnWidth>
+      <ValueColumnWidth column_width="100"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="21" />
+   <WVObjectSize size="28" />
    <wvobject type="logic" fp_name="/test_bench/cpu/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -119,5 +119,33 @@
       <obj_property name="ElementShortName">data_out[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
       <obj_property name="label">DL</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/addr_bus_low_src">
+      <obj_property name="ElementShortName">addr_bus_low_src[31:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_bus_low_src[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/addr_bus_high_src">
+      <obj_property name="ElementShortName">addr_bus_high_src[31:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_bus_high_src[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/data_bus_src">
+      <obj_property name="ElementShortName">data_bus_src[31:0]</obj_property>
+      <obj_property name="ObjectShortName">data_bus_src[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/special_bus_src">
+      <obj_property name="ElementShortName">special_bus_src[31:0]</obj_property>
+      <obj_property name="ObjectShortName">special_bus_src[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/test_bench/cpu/decoder/pcl_bus_src">
+      <obj_property name="ElementShortName">pcl_bus_src</obj_property>
+      <obj_property name="ObjectShortName">pcl_bus_src</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/test_bench/cpu/decoder/pch_bus_src">
+      <obj_property name="ElementShortName">pch_bus_src</obj_property>
+      <obj_property name="ObjectShortName">pch_bus_src</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/alu_op">
+      <obj_property name="ElementShortName">alu_op[31:0]</obj_property>
+      <obj_property name="ObjectShortName">alu_op[31:0]</obj_property>
    </wvobject>
 </wave_config>

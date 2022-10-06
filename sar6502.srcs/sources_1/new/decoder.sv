@@ -84,24 +84,26 @@ module decoder#(parameter CPU_VARIANT = 0)
 localparam MAX_OPCODE_CYCLES = 16;
 
 localparam
-    CycleInvalid = 16'bxxxxxxxx_xxxxxxxx,
-    CycleDecode  = 16'b00000000_00000000,
-    CycleAddr1  = 16'b00000000_00000001,
-    CycleAddr2   = 16'b00000000_00000010,
-    CycleAddr3   = 16'b00000000_00000100,
-    CycleAddr4   = 16'b00000000_00001000,
-    CycleAddr5   = 16'b00000000_00010000,
-    CycleAddr6   = 16'b00000000_00100000,
-    CycleAddr7   = 16'b00000000_01000000,
-    CycleAddr8   = 16'b00000000_10000000,
-    FirstOpCycle = 16'b00000001_00000000,
-    CycleOp2     = 16'b00000010_00000000,
-    CycleOp3     = 16'b00000100_00000000,
-    CycleOp4     = 16'b00001000_00000000,
-    CycleOp5     = 16'b00010000_00000000,
-    CycleOp6     = 16'b00100000_00000000,
-    CycleOp7     = 16'b01000000_00000000,
-    CycleOp8     = 16'b10000000_00000000;
+    CycleInvalid  = 16'bxxxxxxxx_xxxxxxxx,
+    CycleDecode   = 16'b00000000_00000000,
+    CycleAddr1    = 16'b00000000_00000001,
+    CycleAddr2    = 16'b00000000_00000010,
+    CycleAddr3    = 16'b00000000_00000100,
+    CycleAddr4    = 16'b00000000_00001000,
+    CycleAddr5    = 16'b00000000_00010000,
+    CycleAddr6    = 16'b00000000_00100000,
+    CycleAddr7    = 16'b00000000_01000000,
+    CycleAddr8    = 16'b00000000_10000000,
+    CycleAddrMask = 16'b00000000_11111111,
+
+    FirstOpCycle  = 16'b00000001_00000000,
+    CycleOp2      = 16'b00000010_00000000,
+    CycleOp3      = 16'b00000100_00000000,
+    CycleOp4      = 16'b00001000_00000000,
+    CycleOp5      = 16'b00010000_00000000,
+    CycleOp6      = 16'b00100000_00000000,
+    CycleOp7      = 16'b01000000_00000000,
+    CycleOp8      = 16'b10000000_00000000;
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = FirstOpCycle, op_cycle_next;
 logic [7:0] current_opcode = 8'hdb, next_opcode;
 
@@ -173,15 +175,33 @@ always_comb begin
             next_opcode = 8'h00;
             op_cycle_next = CycleAddr1;
         end else begin
-            do_decode();
+            next_opcode = memory_in;
+
+            addr_bus_pc();
+            do_address(memory_in);
         end
-    end else
+    end else if( (op_cycle&CycleAddrMask)!=0 )
+        do_address(current_opcode);
+    else
         do_opcode();
 end
 
-task do_decode();
-    case(memory_in)
+task addr_bus_pc();
+    addr_bus_low_src = bus_sources::AddrBusLowSrc_PC;
+    addr_bus_high_src = bus_sources::AddrBusHighSrc_PC;
+endtask
+
+task advance_pc();
+    ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+    ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
+    pcl_bus_src = bus_sources::PcLowSrc_Incrementor;
+    pch_bus_src = bus_sources::PcHighSrc_Incrementor;
+endtask
+
+task do_address(input [7:0] opcode);
+    case(opcode)
         8'h00: op_brk_decode();
+        8'ha2: addr_mode_immediate();           // LDX #
         default: set_invalid_state();
     endcase
 endtask
@@ -189,19 +209,26 @@ endtask
 task do_opcode();
     case(current_opcode)
         8'h00: op_brk();
-        8'hdb: do_stp();
+        8'ha2: op_ldx();                        // LDX #
+        8'hdb: op_stp();
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_immediate();
+    case(op_cycle)
+        CycleDecode: begin
+            op_cycle_next = FirstOpCycle;
+            advance_pc();
+        end
         default: set_invalid_state();
     endcase
 endtask
 
 task next_instruction();
     sync = 1'b1;
-    addr_bus_low_src = bus_sources::AddrBusLowSrc_PC;
-    addr_bus_high_src = bus_sources::AddrBusHighSrc_PC;
-    ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
-    ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
-    pcl_bus_src = bus_sources::PcLowSrc_Incrementor;
-    pch_bus_src = bus_sources::PcHighSrc_Incrementor;
+    addr_bus_pc();
+    advance_pc();
 
     op_cycle_next = CycleDecode;
 endtask
@@ -232,7 +259,21 @@ task op_brk();
     endcase
 endtask
 
-task do_stp();
+task op_ldx();
+    case(op_cycle)
+        FirstOpCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+            // TODO status flags
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_stp();
     op_cycle_next = FirstOpCycle;
 endtask
 

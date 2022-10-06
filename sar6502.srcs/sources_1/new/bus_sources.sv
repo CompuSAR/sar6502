@@ -50,6 +50,8 @@ typedef enum logic[31:0] {
     SpecialBusSrc_RegY,
     SpecialBusSrc_RegS,
 
+    SpecialBusSrc_Mem,
+
     SpecialBusSrc_End_Marker
 } SpecialBusSourceCtl;
 

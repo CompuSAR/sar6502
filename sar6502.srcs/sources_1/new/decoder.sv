@@ -51,6 +51,7 @@ module decoder#(parameter CPU_VARIANT = 0)
     output bus_sources::SpecialBusSourceCtl special_bus_src,
     output bus_sources::PcLowSourceCtl pcl_bus_src,
     output bus_sources::PcHighSourceCtl pch_bus_src,
+    output bus_sources::PcNextSourceCtl pc_next_src,
     output bus_sources::AluASrcCtl alu_a_src,
     output bus_sources::AluBSrcCtl alu_b_src,
 
@@ -127,6 +128,7 @@ begin
     alu_b_src = bus_sources::AluBSrc_Invalid;
     pcl_bus_src = bus_sources::PcLowSrc_Invalid;
     pch_bus_src = bus_sources::PcHighSrc_Invalid;
+    pc_next_src = bus_sources::PcNextSrc_Invalid;
 
     alu_op = control_signals::AluOp_Invalid;
 
@@ -173,7 +175,7 @@ always_comb begin
             // Interrupt pending
             int_state_next = IntStateNone;
             next_opcode = 8'h00;
-            op_cycle_next = CycleAddr1;
+            op_cycle_next = FirstOpCycle;
         end else begin
             next_opcode = memory_in;
 
@@ -201,6 +203,7 @@ task advance_pc();
     ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
     pcl_bus_src = bus_sources::PcLowSrc_Incrementor;
     pch_bus_src = bus_sources::PcHighSrc_Incrementor;
+    pc_next_src = bus_sources::PcNextSrc_Pc;
 endtask
 
 task stack_pointer_push();
@@ -227,7 +230,8 @@ endtask
 
 task do_address(input [7:0] opcode);
     case(opcode)
-        8'h00: op_brk_decode();
+        8'h00: addr_mode_stack(opcode);         // BRK
+        8'h20: addr_mode_stack(opcode);         // JSR
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h9a: addr_mode_implied();             // TXS
@@ -241,6 +245,7 @@ endtask
 task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
+        8'h20: op_jsr();
         8'h40: op_rti();
         8'h48: op_pha();
         8'h9a: op_txs();
@@ -288,9 +293,6 @@ task next_instruction();
     op_cycle_next = CycleDecode;
 endtask
 
-task op_brk_decode();
-endtask
-
 task op_brk();
     case(op_cycle)
         FirstOpCycle: begin
@@ -310,7 +312,44 @@ task op_brk();
             next_instruction();
 
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
         end
+    endcase
+endtask
+
+task op_jsr();
+    case(op_cycle)
+        FirstOpCycle: begin
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+            advance_pc();
+
+            addr_bus_stack();
+        end
+        CycleOp2: begin
+            addr_bus_stack();
+            data_bus_src = bus_sources::DataBusSrc_PcHigh;
+            write = 1;
+
+            stack_pointer_push();
+        end
+        CycleOp3: begin
+            addr_bus_stack();
+            data_bus_src = bus_sources::DataBusSrc_PcLow;
+            write = 1;
+
+            stack_pointer_push();
+        end
+        CycleOp4: begin
+            addr_bus_pc();
+        end
+        CycleOp5: begin
+            next_instruction();
+
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+        default: set_invalid_state();
     endcase
 endtask
 
@@ -415,6 +454,7 @@ task op_rti();
             next_instruction();
 
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
         end
         default: set_invalid_state();
     endcase

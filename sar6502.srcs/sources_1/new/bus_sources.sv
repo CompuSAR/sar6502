@@ -8,7 +8,9 @@ typedef enum logic[31:0] {
     DataBusSrc_RegA,
     DataBusSrc_Mem,
     DataBusSrc_Alu,
-    DataBusSrc_Special
+    DataBusSrc_Special,
+    DataBusSrc_PcLow,
+    DataBusSrc_PcHigh
 } DataBusSourceCtl;
 
 typedef enum logic[31:0] {
@@ -60,18 +62,25 @@ typedef enum logic {
     AluBSrc_DataBus
 } AluBSrcCtl;
 
-typedef enum logic {
+typedef enum logic[31:0] {
     PcLowSrc_Invalid = 'X,
 
     PcLowSrc_Mem = 1'b0,
     PcLowSrc_Incrementor
 } PcLowSourceCtl;
 
-typedef enum logic {
+typedef enum logic[31:0] {
     PcHighSrc_Invalid = 'X,
 
     PcHighSrc_Mem = 1'b0,
     PcHighSrc_Incrementor
 } PcHighSourceCtl;
+
+typedef enum logic {
+    PcNextSrc_Invalid = 'X,
+
+    PcNextSrc_Pc = 1'b0,
+    PcNextSrc_Bus
+} PcNextSourceCtl;
 
 endpackage // bus_sources

@@ -69,7 +69,6 @@ logic [7:0] pcl_in, pch_in;
 assign address = {address_bus_high, address_bus_low};
 logic [control_signals::ctrl_signals_last:0] control_signals;
 logic [15:0] pc_next;
-assign pc_next = {address_bus_high, address_bus_low} + 16'h1;
 logic [7:0] alu_a_input, alu_b_input;
 
 register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
@@ -162,6 +161,8 @@ always_comb begin
         bus_sources::DataBusSrc_Mem: data_bus = data_in;
         bus_sources::DataBusSrc_Alu: data_bus = alu.result;
         bus_sources::DataBusSrc_Special: data_bus = special_bus;
+        bus_sources::DataBusSrc_PcLow: data_bus = reg_pcl.data_out;
+        bus_sources::DataBusSrc_PcHigh: data_bus = reg_pch.data_out;
         default: data_bus = 8'hXX;
     endcase
 
@@ -175,6 +176,12 @@ always_comb begin
         bus_sources::AluBSrc_Zero: alu_b_input = 8'h00;
         bus_sources::AluBSrc_DataBus: alu_b_input = data_bus;
         default: alu_b_input = 8'hXX;
+    endcase
+
+    case(decoder.pc_next_src)
+        bus_sources::PcNextSrc_Pc: pc_next = {reg_pch.data_out, reg_pcl.data_out} + 1;
+        bus_sources::PcNextSrc_Bus: pc_next = {address_bus_high, address_bus_low} + 1;
+        default: pc_next = 16'hXX;
     endcase
 
     case(decoder.pcl_bus_src)

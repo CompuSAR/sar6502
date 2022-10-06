@@ -42,7 +42,7 @@ module alu(
         input [7:0]b,
         input carry_in,
         input inverse_b,
-        input control_signals::alu_control control,
+        input control_signals::alu_control op,
 
         output logic [7:0]result,
         output logic carry_out,
@@ -62,7 +62,7 @@ begin
     else
         effective_b = b;
 
-    case(control)
+    case(op)
         control_signals::AluOp_pass:                     result = a;
         control_signals::AluOp_add:                      do_plus();
         control_signals::AluOp_and:                      result = a & effective_b;

@@ -86,7 +86,7 @@ logic signals[Sig_NumElements-1:0];
 sar6502#(.CPU_VARIANT(2)) cpu(
     .clock(clock),
     .data_in(data_in),
-    .ready( signals[SigReady] ),
+    .ready( !signals[SigReady] ),
 
     .reset( signals[SigReset] ),
     .interrupt( signals[SigIrq] ),

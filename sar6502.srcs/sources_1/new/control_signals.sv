@@ -9,6 +9,9 @@ typedef enum logic[31:0] {
     LOAD_X,
     LOAD_Y,
     LOAD_SP,
+    LOAD_DL,
+    LOAD_PCL,
+    LOAD_PCH,
 
     CtrlSignals_EndMarker
 } ctrl_signals;

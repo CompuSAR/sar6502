@@ -63,18 +63,27 @@ module sar6502#(parameter CPU_VARIANT = 0)
 
 logic [7:0] data_bus;
 logic [7:0] address_bus_low, address_bus_high;
+logic [7:0] special_bus;
+logic [7:0] pcl_in, pch_in;
 assign address = {address_bus_high, address_bus_low};
 logic [control_signals::ctrl_signals_last:0] control_signals;
+logic [15:0] pc_next;
+assign pc_next = {address_bus_high, address_bus_low} + 16'h1;
 
-register        reg_a(.clock(clock), .data_in(data_bus), .ready(ready)),
-                reg_x(.clock(clock), .data_in(data_bus), .ready(ready)),
-                reg_y(.clock(clock), .data_in(data_bus), .ready(ready)),
-                reg_s(.clock(clock), .data_in(data_bus), .ready(ready));
-program_counter reg_pc(.clock(clock), .ready(ready));
+register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
+                reg_x(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
+                reg_y(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_Y]), .ready(ready)),
+                reg_sp(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_SP]), .ready(ready)),
+                reg_pcl(.clock(clock), .data_in(pcl_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCL]), .ready(ready)),
+                reg_pch(.clock(clock), .data_in(pch_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCH]), .ready(ready)),
+                reg_dl(.clock(clock), .data_in(data_in), .latch(decoder.ctrl_signals[control_signals::LOAD_DL]), .ready(ready));
+
+alu alu(.a(data_bus), .b(special_bus), .op(decoder.alu_op));
 
 decoder decoder(
     .clock(clock),
     .reset(reset),
+    .ready(ready),
     .memory_in(data_in)
 );
 
@@ -86,15 +95,45 @@ assign sync = decoder.sync;
 
 always_comb begin
     case(decoder.addr_bus_low_src)
-        bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pc.address_out[7:0];
+        bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pcl.data_out;
+        bus_sources::AddrBusLowSrc_DL: address_bus_low = reg_dl.data_out;
+        bus_sources::AddrBusLowSrc_F8: address_bus_low = 8'hf8;
+        bus_sources::AddrBusLowSrc_F9: address_bus_low = 8'hf9;
+        bus_sources::AddrBusLowSrc_FA: address_bus_low = 8'hfa;
+        bus_sources::AddrBusLowSrc_FB: address_bus_low = 8'hfb;
         bus_sources::AddrBusLowSrc_FC: address_bus_low = 8'hfc;
+        bus_sources::AddrBusLowSrc_FD: address_bus_low = 8'hfd;
+        bus_sources::AddrBusLowSrc_FE: address_bus_low = 8'hfe;
+        bus_sources::AddrBusLowSrc_FF: address_bus_low = 8'hff;
         default: address_bus_low = 8'hXX;
     endcase
 
     case(decoder.addr_bus_high_src)
-        bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pc.address_out[15:8];
+        bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pch.data_out;
+        bus_sources::AddrBusHighSrc_One: address_bus_high = 8'h01;
+        bus_sources::AddrBusHighSrc_DataIn: address_bus_high = data_in;
         bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
         default: address_bus_high = 8'hXX;
+    endcase
+
+    case(decoder.special_bus_src)
+        bus_sources::SpecialBusSrc_RegA: data_bus = reg_a.data_out;
+        bus_sources::SpecialBusSrc_RegX: data_bus = reg_x.data_out;
+        bus_sources::SpecialBusSrc_RegY: data_bus = reg_y.data_out;
+        bus_sources::SpecialBusSrc_RegS: data_bus = reg_sp.data_out;
+        default: data_bus = 8'hXX;
+    endcase
+
+    case(decoder.pcl_bus_src)
+        bus_sources::PcLowSrc_DataLatch: pcl_in = reg_dl.data_out;
+        bus_sources::PcLowSrc_Incrementor: pcl_in = pc_next[7:0];
+        default: pcl_in = 7'hXX;
+    endcase
+
+    case(decoder.pch_bus_src)
+        bus_sources::PcHighSrc_AddressBus: pch_in = address_bus_high;
+        bus_sources::PcHighSrc_Incrementor: pch_in = pc_next[15:8];
+        default: pch_in = 7'hXX;
     endcase
 end
 

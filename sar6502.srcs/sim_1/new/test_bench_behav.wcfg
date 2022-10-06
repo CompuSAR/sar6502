@@ -6,21 +6,22 @@
       <db_ref path="test_bench_behav.wdb" id="1">
          <top_modules>
             <top_module name="bus_sources" />
+            <top_module name="control_signals" />
             <top_module name="glbl" />
             <top_module name="test_bench" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,973.023 ns"></ZoomEndTime>
-      <Cursor1Time time="3,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="800.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,562.001 ns"></ZoomEndTime>
+      <Cursor1Time time="1,435.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="207"></NameColumnWidth>
+      <NameColumnWidth column_width="203"></NameColumnWidth>
       <ValueColumnWidth column_width="60"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="21" />
    <wvobject type="logic" fp_name="/test_bench/cpu/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -76,5 +77,47 @@
    <wvobject type="logic" fp_name="/test_bench/cpu/incompatible">
       <obj_property name="ElementShortName">incompatible</obj_property>
       <obj_property name="ObjectShortName">incompatible</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_a/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Reg A</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_x/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Reg X</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_y/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">Reg Y</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_sp/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">SP</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_pcl/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">PC Low</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_pch/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">PC High</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/reg_dl/data_out">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+      <obj_property name="label">DL</obj_property>
    </wvobject>
 </wave_config>

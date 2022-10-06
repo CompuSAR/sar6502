@@ -45,7 +45,7 @@ module register(
 
         input ready,
 
-        output logic [7:0]data_out = 0
+        output logic [7:0]data_out
     );
 
 always_ff@(posedge clock)

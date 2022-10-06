@@ -41,11 +41,18 @@ module decoder#(parameter CPU_VARIANT = 0)
 (
     input clock,
     input reset,
+    input ready,
 
     input [7:0]memory_in,
 
     output bus_sources::AddressBusLowSourceCtl addr_bus_low_src,
     output bus_sources::AddressBusHighSourceCtl addr_bus_high_src,
+    output bus_sources::DataBusSourceCtl data_bus_src,
+    output bus_sources::SpecialBusSourceCtl special_bus_src,
+    output bus_sources::PcLowSourceCtl pcl_bus_src,
+    output bus_sources::PcHighSourceCtl pch_bus_src,
+
+    output control_signals::alu_control alu_op,
     /*
         input [7:0]status,
         input alu_carry,
@@ -56,19 +63,15 @@ module decoder#(parameter CPU_VARIANT = 0)
 
         input ready,
 
-        output bus_sources::DataBusSourceCtl data_bus_source,
-        output bus_sources::PcLowSourceCtl pc_low_source,
-        output bus_sources::PcHighSourceCtl pc_high_source,
         output bus_sources::DataLatchLowSourceCtl data_latch_low_source,
         output bus_sources::DataLatchHighSourceCtl data_latch_high_source,
         output bus_sources::StackPointerSourceCtl stack_pointer_source,
-        output control_signals::alu_control alu_op,
         output bus_sources::AluASourceCtl alu_a_source,
         output bus_sources::AluBSourceCtl alu_b_source,
         output bus_sources::AluCarrySourceCtl alu_carry_source,
-        output logic ctrl_signals[control_signals::ctrl_signals_last:0],
 
     */
+    output logic[control_signals::ctrl_signals_last:0] ctrl_signals,
 
     output logic sync,
     output logic write,
@@ -105,9 +108,11 @@ logic [7:0] current_opcode = 8'hdb, next_opcode;
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
 always_ff@(posedge clock) begin
-    op_cycle <= op_cycle_next;
-    current_opcode <= next_opcode;
-    int_state <= int_state_next;
+    if( ready ) begin
+        op_cycle <= op_cycle_next;
+        current_opcode <= next_opcode;
+        int_state <= int_state_next;
+    end
 end
 
 task set_invalid_state();
@@ -115,6 +120,15 @@ begin
     op_cycle_next = CycleInvalid;
     next_opcode = 8'hXX;
     incompatible = 1'bX;
+
+    addr_bus_low_src = bus_sources::AddrBusLowSrc_Invalid;
+    addr_bus_high_src = bus_sources::AddrBusHighSrc_Invalid;
+    data_bus_src = bus_sources::DataBusSrc_Invalid;
+    special_bus_src = bus_sources::SpecialBusSrc_Invalid;
+    pcl_bus_src = bus_sources::PcLowSrc_Invalid;
+    pch_bus_src = bus_sources::PcHighSrc_Invalid;
+
+    ctrl_signals = { control_signals::ctrl_signals_last+1{1'bX} };
 
     sync = 1'bX;
     write = 1'bX;
@@ -135,6 +149,8 @@ begin
     int_state_next = int_state;
     incompatible = 1'b0;
     advance_cycle();
+
+    ctrl_signals = { control_signals::ctrl_signals_last+1{1'b0} };
 
     sync = 1'b0;
     write = 1'b0;
@@ -178,13 +194,42 @@ task do_opcode();
     endcase
 endtask
 
+task next_instruction();
+    sync = 1'b1;
+    addr_bus_low_src = bus_sources::AddrBusLowSrc_PC;
+    addr_bus_high_src = bus_sources::AddrBusHighSrc_PC;
+    ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+    ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
+    pcl_bus_src = bus_sources::PcLowSrc_Incrementor;
+    pch_bus_src = bus_sources::PcHighSrc_Incrementor;
+
+    op_cycle_next = CycleDecode;
+endtask
+
 task op_brk_decode();
 endtask
 
 task op_brk();
-    addr_bus_low_src = bus_sources::AddrBusLowSrc_FC;
-    addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
-    vector_pull = 1'b1;
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_FC;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
+            vector_pull = 1'b1;
+        end
+        CycleOp2: begin
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_FD;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
+            vector_pull = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_DataIn;
+        end
+    endcase
 endtask
 
 task do_stp();

@@ -273,7 +273,6 @@ task addr_mode_stack(input [7:0] opcode);
     case(op_cycle)
         CycleDecode: begin
             op_cycle_next = FirstOpCycle;
-            do_opcode(opcode);
         end
         default: set_invalid_state();
     endcase
@@ -343,11 +342,8 @@ endtask
 
 task op_pha();
     case(op_cycle)
-        CycleDecode: begin
-            data_bus_src = bus_sources::DataBusSrc_RegA;
-            ctrl_signals[control_signals::LOAD_DataOut] = 1'b1;
-        end
         FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_RegA;
             write = 1'b1;
             addr_bus_stack();
 
@@ -362,9 +358,6 @@ endtask
 
 task op_rti();
     case(op_cycle)
-        CycleDecode: begin
-            // Dead cycle
-        end
         FirstOpCycle: begin
             addr_bus_stack();
 

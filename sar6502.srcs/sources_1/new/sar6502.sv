@@ -42,7 +42,7 @@ module sar6502#(parameter CPU_VARIANT = 0)
     input clock,
 
     output [15:0] address,
-    output logic[7:0] data_out,
+    output [7:0] data_out,
     output write,
 
     input [7:0] data_in,
@@ -62,6 +62,7 @@ module sar6502#(parameter CPU_VARIANT = 0)
 );
 
 logic [7:0] data_bus;
+assign data_out = data_bus;
 logic [7:0] address_bus_low, address_bus_high;
 logic [7:0] special_bus;
 logic [7:0] pcl_in, pch_in;
@@ -190,8 +191,6 @@ end
 
 always_ff@(posedge clock) begin
     if( ready ) begin
-        if( decoder.ctrl_signals[control_signals::LOAD_DataOut] )
-            data_out <= data_bus;
     end
 end
 

@@ -201,6 +201,7 @@ endtask
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: op_brk_decode();
+        8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
         default: set_invalid_state();
     endcase
@@ -209,8 +210,18 @@ endtask
 task do_opcode();
     case(current_opcode)
         8'h00: op_brk();
+        8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
         8'hdb: op_stp();
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_implied();
+    case(op_cycle)
+        CycleDecode: begin
+            op_cycle_next = FirstOpCycle;
+        end
         default: set_invalid_state();
     endcase
 endtask
@@ -275,6 +286,13 @@ endtask
 
 task op_stp();
     op_cycle_next = FirstOpCycle;
+endtask
+
+task op_txs();
+    special_bus_src = bus_sources::SpecialBusSrc_RegX;
+    ctrl_signals[control_signals::LOAD_SP] = 1'b1;
+
+    next_instruction();
 endtask
 
 endmodule

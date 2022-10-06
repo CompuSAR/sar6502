@@ -320,7 +320,10 @@ task op_lda();
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
 
-            // TODO status flags
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 
             next_instruction();
         end
@@ -334,7 +337,10 @@ task op_ldx();
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_X] = 1'b1;
 
-            // TODO status flags
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 
             next_instruction();
         end

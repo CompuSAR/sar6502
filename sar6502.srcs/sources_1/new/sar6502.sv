@@ -161,6 +161,7 @@ always_comb begin
         bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
         bus_sources::DataBusSrc_Mem: data_bus = data_in;
         bus_sources::DataBusSrc_Alu: data_bus = alu.result;
+        bus_sources::DataBusSrc_Special: data_bus = special_bus;
         default: data_bus = 8'hXX;
     endcase
 

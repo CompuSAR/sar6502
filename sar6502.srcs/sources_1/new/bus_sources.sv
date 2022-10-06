@@ -8,11 +8,8 @@ typedef enum logic[31:0] {
     DataBusSrc_RegA,
     DataBusSrc_Mem,
     DataBusSrc_Alu,
-
-    DataBusSrc_End_Marker
+    DataBusSrc_Special
 } DataBusSourceCtl;
-
-localparam DataBusSourceCtlLast = DataBusSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
     AddrBusLowSrc_Invalid = 'X,
@@ -27,24 +24,16 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_FC,
     AddrBusLowSrc_FD,
     AddrBusLowSrc_FE,
-    AddrBusLowSrc_FF,
-
-    AddrBusLowSrc_End_Marker
+    AddrBusLowSrc_FF
 } AddressBusLowSourceCtl;
-
-localparam AddressBusLowSourceCtlLast = AddrBusLowSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
     AddrBusHighSrc_Invalid = 'X,
     AddrBusHighSrc_PC = 0,
     AddrBusHighSrc_One,
     AddrBusHighSrc_Mem,
-    AddrBusHighSrc_FF,
-
-    AddrBusHighSrc_End_Marker
+    AddrBusHighSrc_FF
 } AddressBusHighSourceCtl;
-
-localparam AddressBusHighSourceCtlLast = AddrBusHighSrc_End_Marker - 1;
 
 typedef enum logic[31:0] {
     SpecialBusSrc_Invalid = 'X,
@@ -54,12 +43,8 @@ typedef enum logic[31:0] {
     SpecialBusSrc_RegSP,
 
     SpecialBusSrc_Mem,
-    SpecialBusSrc_ALU,
-
-    SpecialBusSrc_End_Marker
+    SpecialBusSrc_ALU
 } SpecialBusSourceCtl;
-
-localparam SpecialBusSourceCtlLast = SpecialBusSrc_End_Marker - 1;
 
 typedef enum logic {
     AluASrc_Invalid = 'X,

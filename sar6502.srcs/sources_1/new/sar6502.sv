@@ -87,6 +87,8 @@ alu alu(
     .inverse_b(decoder.ctrl_signals[control_signals::AluInverseB])
 );
 
+logic [7:0] last_alu_result;
+
 status_register reg_stat(
     .data_in(data_bus),
     .clock(clock),
@@ -108,10 +110,12 @@ status_register reg_stat(
     .so(set_overflow)
 );
 
-decoder decoder(
+decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(
     .clock(clock),
     .reset(reset),
     .ready(ready),
+    .status(reg_stat.data_out),
+    .alu_carry_out(alu.carry_out),
     .memory_in(data_in)
 );
 
@@ -126,6 +130,7 @@ always_comb begin
         bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pcl.data_out;
         bus_sources::AddrBusLowSrc_DL: address_bus_low = reg_dl.data_out;
         bus_sources::AddrBusLowSrc_SP: address_bus_low = reg_sp.data_out;
+        bus_sources::AddrBusLowSrc_ALU: address_bus_low = last_alu_result;
         bus_sources::AddrBusLowSrc_F8: address_bus_low = 8'hf8;
         bus_sources::AddrBusLowSrc_F9: address_bus_low = 8'hf9;
         bus_sources::AddrBusLowSrc_FA: address_bus_low = 8'hfa;
@@ -141,6 +146,7 @@ always_comb begin
         bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pch.data_out;
         bus_sources::AddrBusHighSrc_One: address_bus_high = 8'h01;
         bus_sources::AddrBusHighSrc_Mem: address_bus_high = data_in;
+        bus_sources::AddrBusHighSrc_ALU: address_bus_high = last_alu_result;
         bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
         default: address_bus_high = 8'hXX;
     endcase
@@ -170,6 +176,8 @@ always_comb begin
     case(decoder.alu_a_src)
         bus_sources::AluASrc_RegA: alu_a_input = reg_a.data_out;
         bus_sources::AluASrc_RegSp: alu_a_input = reg_sp.data_out;
+        bus_sources::AluASrc_PcLow: alu_a_input = reg_pcl.data_out;
+        bus_sources::AluASrc_PcHigh: alu_a_input = reg_pch.data_out;
         default: alu_a_input = 8'hXX;
     endcase
 
@@ -187,6 +195,7 @@ always_comb begin
 
     case(decoder.pcl_bus_src)
         bus_sources::PcLowSrc_Mem: pcl_in = data_in;
+        bus_sources::PcLowSrc_ALU: pcl_in = last_alu_result;
         bus_sources::PcLowSrc_Incrementor: pcl_in = pc_next[7:0];
         default: pcl_in = 7'hXX;
     endcase
@@ -200,6 +209,7 @@ end
 
 always_ff@(posedge clock) begin
     if( ready ) begin
+        last_alu_result <= alu.result;
     end
 end
 

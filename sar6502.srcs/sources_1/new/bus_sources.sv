@@ -19,6 +19,7 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_PC = 0,
     AddrBusLowSrc_DL,
     AddrBusLowSrc_SP,
+    AddrBusLowSrc_ALU,
 
     AddrBusLowSrc_F8 = 'hF8,
     AddrBusLowSrc_F9,
@@ -35,6 +36,7 @@ typedef enum logic[31:0] {
     AddrBusHighSrc_PC = 0,
     AddrBusHighSrc_One,
     AddrBusHighSrc_Mem,
+    AddrBusHighSrc_ALU,
     AddrBusHighSrc_FF
 } AddressBusHighSourceCtl;
 
@@ -49,11 +51,13 @@ typedef enum logic[31:0] {
     SpecialBusSrc_ALU
 } SpecialBusSourceCtl;
 
-typedef enum logic {
+typedef enum logic[31:0] {
     AluASrc_Invalid = 'X,
 
-    AluASrc_RegA = 1'b0,
-    AluASrc_RegSp
+    AluASrc_RegA = 0,
+    AluASrc_RegSp,
+    AluASrc_PcLow,
+    AluASrc_PcHigh
 } AluASrcCtl;
 
 typedef enum logic {
@@ -66,14 +70,15 @@ typedef enum logic {
 typedef enum logic[31:0] {
     PcLowSrc_Invalid = 'X,
 
-    PcLowSrc_Mem = 1'b0,
+    PcLowSrc_Mem = 0,
+    PcLowSrc_ALU,
     PcLowSrc_Incrementor
 } PcLowSourceCtl;
 
 typedef enum logic[31:0] {
     PcHighSrc_Invalid = 'X,
 
-    PcHighSrc_Mem = 1'b0,
+    PcHighSrc_Mem = 0,
     PcHighSrc_Incrementor
 } PcHighSourceCtl;
 

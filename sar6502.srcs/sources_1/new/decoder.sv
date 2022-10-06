@@ -42,6 +42,10 @@ module decoder#(parameter CPU_VARIANT = 0)
     input clock,
     input reset,
     input ready,
+    input [7:0]status,
+    input alu_carry_out,
+        input IRQ,
+        input NMI,
 
     input [7:0]memory_in,
 
@@ -57,16 +61,7 @@ module decoder#(parameter CPU_VARIANT = 0)
 
     output control_signals::alu_control alu_op,
     output logic alu_carry_in,
-    /*
-        input [7:0]status,
-        input alu_carry,
-        input clock,
-        input RESET,
-        input IRQ,
-        input NMI,
 
-        input ready,
-    */
     output logic[control_signals::ctrl_signals_last:0] ctrl_signals,
 
     output logic sync,
@@ -102,6 +97,7 @@ localparam
     CycleOp8      = 16'b10000000_00000000;
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = FirstOpCycle, op_cycle_next;
 logic [7:0] current_opcode = 8'hdb, next_opcode;
+logic jump_negative;
 
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
@@ -110,6 +106,7 @@ always_ff@(posedge clock) begin
         op_cycle <= op_cycle_next;
         current_opcode <= next_opcode;
         int_state <= int_state_next;
+        jump_negative <= memory_in[7];
     end
 end
 
@@ -232,13 +229,22 @@ task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: addr_mode_stack(opcode);         // BRK
         8'h08: addr_mode_stack(opcode);         // PHP
+        8'h10: addr_mode_pc_rel();              // BPL
         8'h20: addr_mode_stack(opcode);         // JSR
+        8'h30: addr_mode_pc_rel();              // BMI
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
+        8'h50: addr_mode_pc_rel();              // BVC
+        8'h70: addr_mode_pc_rel();              // BVS
+        8'h80: addr_mode_pc_rel();              // BRA
+        8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha9: addr_mode_immediate();           // LDA #
+        8'hb0: addr_mode_pc_rel();              // BCS
+        8'hd0: addr_mode_pc_rel();              // BNE
         8'hea: addr_mode_implied();             // NOP
+        8'hf0: addr_mode_pc_rel();              // BEQ
         default: set_invalid_state();
     endcase
 endtask
@@ -247,14 +253,23 @@ task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
         8'h08: op_php();
+        8'h10: op_bpl();
         8'h20: op_jsr();
+        8'h30: op_bmi();
         8'h40: op_rti();
         8'h48: op_pha();
+        8'h50: op_bvc();
+        8'h70: op_bvs();
+        8'h80: op_bra();
+        8'h90: op_bcc();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
         8'ha9: op_lda();                        // LDA #
+        8'hb0: op_bcs();
+        8'hd0: op_bne();
         8'hdb: op_stp();
         8'hea: op_nop();
+        8'hf0: op_beq();
         default: set_invalid_state();
     endcase
 endtask
@@ -278,6 +293,16 @@ task addr_mode_immediate();
     endcase
 endtask
 
+task addr_mode_pc_rel();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+            op_cycle_next = FirstOpCycle;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
 task addr_mode_stack(input [7:0] opcode);
     case(op_cycle)
         CycleDecode: begin
@@ -294,6 +319,96 @@ task next_instruction();
 
     op_cycle_next = CycleDecode;
 endtask
+
+task branch_opcode(input condition);
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_pc();
+
+            if( !condition )
+                next_instruction();
+            else begin
+                alu_a_src = bus_sources::AluASrc_PcLow;
+                alu_b_src = bus_sources::AluBSrc_DataBus;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+                alu_op = control_signals::AluOp_add;
+                alu_carry_in = 1'b0;
+            end
+        end
+        CycleOp2: begin
+            if( (jump_negative && alu_carry_out) || (!jump_negative && !alu_carry_out) ) begin
+                // Didn't cross a page boundary
+                next_instruction();
+
+                addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+                pc_next_src = bus_sources::PcNextSrc_Bus;
+            end else begin
+                addr_bus_pc();
+
+                if( CPU_VARIANT==0 ) begin
+                    // Bug compatibility with the MOS6502.
+                    addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+                end
+
+                ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+                pcl_bus_src = bus_sources::PcLowSrc_ALU;
+
+                alu_a_src = bus_sources::AluASrc_PcHigh;
+                alu_b_src = bus_sources::AluBSrc_Zero;
+                alu_op = control_signals::AluOp_add;
+                if( jump_negative ) begin
+                    ctrl_signals[control_signals::AluInverseB] = 1'b1;
+                    alu_carry_in = 1'b0;
+                end else begin
+                    alu_carry_in = 1'b1;
+                end
+            end
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_ALU;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+    endcase
+endtask
+
+task op_bcc();
+    branch_opcode(! status[control_signals::FlagsCarry]);
+endtask
+
+task op_bcs();
+    branch_opcode(status[control_signals::FlagsCarry]);
+endtask
+
+task op_beq();
+    branch_opcode(status[control_signals::FlagsZero]);
+endtask
+
+task op_bne();
+    branch_opcode(!status[control_signals::FlagsZero]);
+endtask
+
+task op_bmi();
+    branch_opcode(status[control_signals::FlagsNegative]);
+endtask
+
+task op_bpl();
+    branch_opcode(!status[control_signals::FlagsNegative]);
+endtask
+
+task op_bvc();
+    branch_opcode(!status[control_signals::FlagsOverflow]);
+endtask
+
+task op_bvs();
+    branch_opcode(status[control_signals::FlagsOverflow]);
+endtask
+
+task op_bra();
+    branch_opcode(1'b1);
+endtask
+
 
 task op_brk();
     case(op_cycle)

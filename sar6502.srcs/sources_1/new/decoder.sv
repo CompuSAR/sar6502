@@ -53,6 +53,7 @@ module decoder#(parameter CPU_VARIANT = 0)
     output bus_sources::PcHighSourceCtl pch_bus_src,
 
     output control_signals::alu_control alu_op,
+    output logic alu_carry_in,
     /*
         input [7:0]status,
         input alu_carry,
@@ -122,6 +123,7 @@ begin
     op_cycle_next = CycleInvalid;
     next_opcode = 8'hXX;
     incompatible = 1'bX;
+    alu_carry_in = 1'bX;
 
     addr_bus_low_src = bus_sources::AddrBusLowSrc_Invalid;
     addr_bus_high_src = bus_sources::AddrBusHighSrc_Invalid;
@@ -129,6 +131,8 @@ begin
     special_bus_src = bus_sources::SpecialBusSrc_Invalid;
     pcl_bus_src = bus_sources::PcLowSrc_Invalid;
     pch_bus_src = bus_sources::PcHighSrc_Invalid;
+
+    alu_op = control_signals::AluOp_Invalid;
 
     ctrl_signals = { control_signals::ctrl_signals_last+1{1'bX} };
 
@@ -183,12 +187,17 @@ always_comb begin
     end else if( (op_cycle&CycleAddrMask)!=0 )
         do_address(current_opcode);
     else
-        do_opcode();
+        do_opcode(current_opcode);
 end
 
 task addr_bus_pc();
     addr_bus_low_src = bus_sources::AddrBusLowSrc_PC;
     addr_bus_high_src = bus_sources::AddrBusHighSrc_PC;
+endtask
+
+task addr_bus_stack();
+    addr_bus_low_src = bus_sources::AddrBusLowSrc_SP;
+    addr_bus_high_src = bus_sources::AddrBusHighSrc_One;
 endtask
 
 task advance_pc();
@@ -201,6 +210,7 @@ endtask
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: op_brk_decode();
+        8'h48: addr_mode_stack(opcode);         // PHA
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha9: addr_mode_immediate();           // LDA #
@@ -208,9 +218,10 @@ task do_address(input [7:0] opcode);
     endcase
 endtask
 
-task do_opcode();
-    case(current_opcode)
+task do_opcode(input [7:0]opcode);
+    case(opcode)
         8'h00: op_brk();
+        8'h48: op_pha();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
         8'ha9: op_lda();                        // LDA #
@@ -233,6 +244,16 @@ task addr_mode_immediate();
         CycleDecode: begin
             op_cycle_next = FirstOpCycle;
             advance_pc();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_stack(input [7:0] opcode);
+    case(op_cycle)
+        CycleDecode: begin
+            op_cycle_next = FirstOpCycle;
+            do_opcode(opcode);
         end
         default: set_invalid_state();
     endcase
@@ -295,6 +316,33 @@ task op_ldx();
             // TODO status flags
 
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_pha();
+    case(op_cycle)
+        CycleDecode: begin
+            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            data_bus_src = bus_sources::DataBusSrc_RegA;
+            ctrl_signals[control_signals::LOAD_DataOut] = 1'b1;
+        end
+        FirstOpCycle: begin
+            write = 1'b1;
+            addr_bus_stack();
+
+            special_bus_src = bus_sources::SpecialBusSrc_RegSP;
+            data_bus_src = bus_sources::DataBusSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            alu_carry_in = 1'b0;
+        end
+        CycleOp2: begin
+            next_instruction();
+
+            special_bus_src = bus_sources::SpecialBusSrc_ALU;
+            ctrl_signals[control_signals::LOAD_SP] = 1'b1;
         end
         default: set_invalid_state();
     endcase

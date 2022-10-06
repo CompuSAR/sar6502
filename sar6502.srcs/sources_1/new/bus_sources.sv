@@ -5,7 +5,7 @@ package bus_sources;
 typedef enum logic[31:0] {
     DataBusSrc_Invalid = 'X,
     DataBusSrc_Zero = 0,
-    DataBusSrc_One,
+    DataBusSrc_RegA,
 
     DataBusSrc_End_Marker
 } DataBusSourceCtl;
@@ -16,6 +16,7 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_Invalid = 'X,
     AddrBusLowSrc_PC = 0,
     AddrBusLowSrc_DL,
+    AddrBusLowSrc_SP,
 
     AddrBusLowSrc_F8 = 'hF8,
     AddrBusLowSrc_F9,
@@ -48,9 +49,10 @@ typedef enum logic[31:0] {
     SpecialBusSrc_RegA = 0,
     SpecialBusSrc_RegX,
     SpecialBusSrc_RegY,
-    SpecialBusSrc_RegS,
+    SpecialBusSrc_RegSP,
 
     SpecialBusSrc_Mem,
+    SpecialBusSrc_ALU,
 
     SpecialBusSrc_End_Marker
 } SpecialBusSourceCtl;

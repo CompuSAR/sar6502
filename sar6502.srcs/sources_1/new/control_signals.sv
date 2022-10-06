@@ -13,13 +13,17 @@ typedef enum logic[31:0] {
     LOAD_PCL,
     LOAD_PCH,
 
+    LOAD_DataOut,
+
+    AluInverseB,
+
     CtrlSignals_EndMarker
 } ctrl_signals;
 
 localparam ctrl_signals_last = CtrlSignals_EndMarker-1;
 
 typedef enum logic[31:0] {
-    AluOp_INVALID = 'X,
+    AluOp_Invalid = 'X,
 
     AluOp_pass = 0, // Is it really needed?
     AluOp_add,

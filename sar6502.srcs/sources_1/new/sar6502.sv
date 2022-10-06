@@ -42,7 +42,7 @@ module sar6502#(parameter CPU_VARIANT = 0)
     input clock,
 
     output [15:0] address,
-    output [7:0] data_out,
+    output logic[7:0] data_out,
     output write,
 
     input [7:0] data_in,
@@ -69,6 +69,7 @@ assign address = {address_bus_high, address_bus_low};
 logic [control_signals::ctrl_signals_last:0] control_signals;
 logic [15:0] pc_next;
 assign pc_next = {address_bus_high, address_bus_low} + 16'h1;
+logic [7:0] alu_result;
 
 register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
                 reg_x(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
@@ -78,7 +79,13 @@ register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_
                 reg_pch(.clock(clock), .data_in(pch_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCH]), .ready(ready)),
                 reg_dl(.clock(clock), .data_in(data_in), .latch(decoder.ctrl_signals[control_signals::LOAD_DL]), .ready(ready));
 
-alu alu(.a(data_bus), .b(special_bus), .op(decoder.alu_op));
+alu alu(
+    .a(special_bus),
+    .b(data_bus),
+    .op(decoder.alu_op),
+    .carry_in(decoder.alu_carry_in),
+    .inverse_b(decoder.ctrl_signals[control_signals::AluInverseB])
+);
 
 decoder decoder(
     .clock(clock),
@@ -97,6 +104,7 @@ always_comb begin
     case(decoder.addr_bus_low_src)
         bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pcl.data_out;
         bus_sources::AddrBusLowSrc_DL: address_bus_low = reg_dl.data_out;
+        bus_sources::AddrBusLowSrc_SP: address_bus_low = reg_sp.data_out;
         bus_sources::AddrBusLowSrc_F8: address_bus_low = 8'hf8;
         bus_sources::AddrBusLowSrc_F9: address_bus_low = 8'hf9;
         bus_sources::AddrBusLowSrc_FA: address_bus_low = 8'hfa;
@@ -120,9 +128,16 @@ always_comb begin
         bus_sources::SpecialBusSrc_RegA: special_bus = reg_a.data_out;
         bus_sources::SpecialBusSrc_RegX: special_bus = reg_x.data_out;
         bus_sources::SpecialBusSrc_RegY: special_bus = reg_y.data_out;
-        bus_sources::SpecialBusSrc_RegS: special_bus = reg_sp.data_out;
+        bus_sources::SpecialBusSrc_RegSP: special_bus = reg_sp.data_out;
         bus_sources::SpecialBusSrc_Mem: special_bus = data_in;
+        bus_sources::SpecialBusSrc_ALU: special_bus = alu_result;
         default: special_bus = 8'hXX;
+    endcase
+
+    case(decoder.data_bus_src)
+        bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
+        bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
+        default: data_bus = 8'hXX;
     endcase
 
     case(decoder.pcl_bus_src)
@@ -136,6 +151,15 @@ always_comb begin
         bus_sources::PcHighSrc_Incrementor: pch_in = pc_next[15:8];
         default: pch_in = 7'hXX;
     endcase
+end
+
+always_ff@(posedge clock) begin
+    if( ready ) begin
+        if( decoder.ctrl_signals[control_signals::LOAD_DataOut] )
+            data_out <= data_bus;
+
+        alu_result <= alu.result;
+    end
 end
 
 endmodule

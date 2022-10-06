@@ -203,6 +203,7 @@ task do_address(input [7:0] opcode);
         8'h00: op_brk_decode();
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
+        8'ha9: addr_mode_immediate();           // LDA #
         default: set_invalid_state();
     endcase
 endtask
@@ -212,6 +213,7 @@ task do_opcode();
         8'h00: op_brk();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
+        8'ha9: op_lda();                        // LDA #
         8'hdb: op_stp();
         default: set_invalid_state();
     endcase
@@ -267,6 +269,20 @@ task op_brk();
             addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
             addr_bus_high_src = bus_sources::AddrBusHighSrc_DataIn;
         end
+    endcase
+endtask
+
+task op_lda();
+    case(op_cycle)
+        FirstOpCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            // TODO status flags
+
+            next_instruction();
+        end
+        default: set_invalid_state();
     endcase
 endtask
 

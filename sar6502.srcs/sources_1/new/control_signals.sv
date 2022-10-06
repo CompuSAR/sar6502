@@ -17,6 +17,17 @@ typedef enum logic[31:0] {
 
     AluInverseB,
 
+    StatUpdateC,
+    StatUpdateZ,
+    StatUpdateI,
+    StatUpdateD,
+    StatOutputB,
+    StatUpdateV,
+    StatUpdateN,
+
+    StatUseAlu,
+    StatCalcZero,
+
     CtrlSignals_EndMarker
 } ctrl_signals;
 

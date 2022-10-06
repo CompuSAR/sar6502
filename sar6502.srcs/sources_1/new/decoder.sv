@@ -51,6 +51,8 @@ module decoder#(parameter CPU_VARIANT = 0)
     output bus_sources::SpecialBusSourceCtl special_bus_src,
     output bus_sources::PcLowSourceCtl pcl_bus_src,
     output bus_sources::PcHighSourceCtl pch_bus_src,
+    output bus_sources::AluASrcCtl alu_a_src,
+    output bus_sources::AluBSrcCtl alu_b_src,
 
     output control_signals::alu_control alu_op,
     output logic alu_carry_in,
@@ -63,14 +65,6 @@ module decoder#(parameter CPU_VARIANT = 0)
         input NMI,
 
         input ready,
-
-        output bus_sources::DataLatchLowSourceCtl data_latch_low_source,
-        output bus_sources::DataLatchHighSourceCtl data_latch_high_source,
-        output bus_sources::StackPointerSourceCtl stack_pointer_source,
-        output bus_sources::AluASourceCtl alu_a_source,
-        output bus_sources::AluBSourceCtl alu_b_source,
-        output bus_sources::AluCarrySourceCtl alu_carry_source,
-
     */
     output logic[control_signals::ctrl_signals_last:0] ctrl_signals,
 
@@ -129,6 +123,8 @@ begin
     addr_bus_high_src = bus_sources::AddrBusHighSrc_Invalid;
     data_bus_src = bus_sources::DataBusSrc_Invalid;
     special_bus_src = bus_sources::SpecialBusSrc_Invalid;
+    alu_a_src = bus_sources::AluASrc_Invalid;
+    alu_b_src = bus_sources::AluBSrc_Invalid;
     pcl_bus_src = bus_sources::PcLowSrc_Invalid;
     pch_bus_src = bus_sources::PcHighSrc_Invalid;
 
@@ -207,9 +203,32 @@ task advance_pc();
     pch_bus_src = bus_sources::PcHighSrc_Incrementor;
 endtask
 
+task stack_pointer_push();
+    alu_a_src = bus_sources::AluASrc_RegSp;
+    alu_b_src = bus_sources::AluBSrc_Zero;
+    alu_op = control_signals::AluOp_add;
+    ctrl_signals[control_signals::AluInverseB] = 1'b1;
+    alu_carry_in = 1'b0;
+
+    special_bus_src = bus_sources::SpecialBusSrc_ALU;
+    ctrl_signals[control_signals::LOAD_SP] = 1'b1;
+endtask
+
+task stack_pointer_pop();
+    alu_a_src = bus_sources::AluASrc_RegSp;
+    alu_b_src = bus_sources::AluBSrc_Zero;
+    alu_op = control_signals::AluOp_add;
+    ctrl_signals[control_signals::AluInverseB] = 1'b0;
+    alu_carry_in = 1'b1;
+
+    special_bus_src = bus_sources::SpecialBusSrc_ALU;
+    ctrl_signals[control_signals::LOAD_SP] = 1'b1;
+endtask
+
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: op_brk_decode();
+        8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
@@ -221,6 +240,7 @@ endtask
 task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
+        8'h40: op_rti();
         8'h48: op_pha();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
@@ -324,7 +344,6 @@ endtask
 task op_pha();
     case(op_cycle)
         CycleDecode: begin
-            special_bus_src = bus_sources::SpecialBusSrc_RegA;
             data_bus_src = bus_sources::DataBusSrc_RegA;
             ctrl_signals[control_signals::LOAD_DataOut] = 1'b1;
         end
@@ -332,17 +351,60 @@ task op_pha();
             write = 1'b1;
             addr_bus_stack();
 
-            special_bus_src = bus_sources::SpecialBusSrc_RegSP;
-            data_bus_src = bus_sources::DataBusSrc_Zero;
-            alu_op = control_signals::AluOp_add;
-            ctrl_signals[control_signals::AluInverseB] = 1'b1;
-            alu_carry_in = 1'b0;
+            stack_pointer_push();
         end
         CycleOp2: begin
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
 
-            special_bus_src = bus_sources::SpecialBusSrc_ALU;
-            ctrl_signals[control_signals::LOAD_SP] = 1'b1;
+task op_rti();
+    case(op_cycle)
+        CycleDecode: begin
+            // Dead cycle
+        end
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            // Read status flag
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp3: begin
+            // Store status flag
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateI] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateD] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateV] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+
+            // Read PC LSB
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp4: begin
+            ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+            pcl_bus_src = bus_sources::PcLowSrc_Mem;
+
+            // Read PC MSB
+            addr_bus_stack();
+        end
+        CycleOp5: begin
+            ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
+            pch_bus_src = bus_sources::PcHighSrc_Mem;
+
+            next_instruction();
+
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_DataIn;
         end
         default: set_invalid_state();
     endcase

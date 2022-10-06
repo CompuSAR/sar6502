@@ -6,6 +6,8 @@ typedef enum logic[31:0] {
     DataBusSrc_Invalid = 'X,
     DataBusSrc_Zero = 0,
     DataBusSrc_RegA,
+    DataBusSrc_Mem,
+    DataBusSrc_Alu,
 
     DataBusSrc_End_Marker
 } DataBusSourceCtl;
@@ -60,16 +62,30 @@ typedef enum logic[31:0] {
 localparam SpecialBusSourceCtlLast = SpecialBusSrc_End_Marker - 1;
 
 typedef enum logic {
+    AluASrc_Invalid = 'X,
+
+    AluASrc_RegA = 1'b0,
+    AluASrc_RegSp
+} AluASrcCtl;
+
+typedef enum logic {
+    AluBSrc_Invalid = 'X,
+
+    AluBSrc_Zero = 1'b0,
+    AluBSrc_DataBus
+} AluBSrcCtl;
+
+typedef enum logic {
     PcLowSrc_Invalid = 'X,
 
-    PcLowSrc_DataLatch = 1'b0,
+    PcLowSrc_Mem = 1'b0,
     PcLowSrc_Incrementor
 } PcLowSourceCtl;
 
 typedef enum logic {
     PcHighSrc_Invalid = 'X,
 
-    PcHighSrc_AddressBus = 1'b0,
+    PcHighSrc_Mem = 1'b0,
     PcHighSrc_Incrementor
 } PcHighSourceCtl;
 

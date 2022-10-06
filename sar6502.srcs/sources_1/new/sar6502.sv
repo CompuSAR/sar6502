@@ -69,6 +69,7 @@ assign address = {address_bus_high, address_bus_low};
 logic [control_signals::ctrl_signals_last:0] control_signals;
 logic [15:0] pc_next;
 assign pc_next = {address_bus_high, address_bus_low} + 16'h1;
+logic [7:0] alu_a_input, alu_b_input;
 logic [7:0] alu_result;
 
 register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
@@ -80,11 +81,32 @@ register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_
                 reg_dl(.clock(clock), .data_in(data_in), .latch(decoder.ctrl_signals[control_signals::LOAD_DL]), .ready(ready));
 
 alu alu(
-    .a(special_bus),
-    .b(data_bus),
+    .a(alu_a_input),
+    .b(alu_b_input),
     .op(decoder.alu_op),
     .carry_in(decoder.alu_carry_in),
     .inverse_b(decoder.ctrl_signals[control_signals::AluInverseB])
+);
+
+status_register reg_stat(
+    .data_in(data_bus),
+    .clock(clock),
+    .alu_carry(alu.carry_out),
+    .alu_overflow(alu.overflow_out),
+
+    .update_c(decoder.ctrl_signals[control_signals::StatUpdateC]),
+    .update_z(decoder.ctrl_signals[control_signals::StatUpdateZ]),
+    .update_i(decoder.ctrl_signals[control_signals::StatUpdateI]),
+    .update_d(decoder.ctrl_signals[control_signals::StatUpdateD]),
+    .output_b(decoder.ctrl_signals[control_signals::StatOutputB]),
+    .update_v(decoder.ctrl_signals[control_signals::StatUpdateV]),
+    .update_n(decoder.ctrl_signals[control_signals::StatUpdateN]),
+
+    .use_alu_flags(decoder.ctrl_signals[control_signals::StatUseAlu]),
+    .calculate_zero(decoder.ctrl_signals[control_signals::StatCalcZero]),
+
+    .ready(ready),
+    .so(set_overflow)
 );
 
 decoder decoder(
@@ -130,24 +152,38 @@ always_comb begin
         bus_sources::SpecialBusSrc_RegY: special_bus = reg_y.data_out;
         bus_sources::SpecialBusSrc_RegSP: special_bus = reg_sp.data_out;
         bus_sources::SpecialBusSrc_Mem: special_bus = data_in;
-        bus_sources::SpecialBusSrc_ALU: special_bus = alu_result;
+        bus_sources::SpecialBusSrc_ALU: special_bus = alu.result;
         default: special_bus = 8'hXX;
     endcase
 
     case(decoder.data_bus_src)
         bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
         bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
+        bus_sources::DataBusSrc_Mem: data_bus = data_in;
+        bus_sources::DataBusSrc_Alu: data_bus = alu.result;
         default: data_bus = 8'hXX;
     endcase
 
+    case(decoder.alu_a_src)
+        bus_sources::AluASrc_RegA: alu_a_input = reg_a.data_out;
+        bus_sources::AluASrc_RegSp: alu_a_input = reg_sp.data_out;
+        default: alu_a_input = 8'hXX;
+    endcase
+
+    case(decoder.alu_b_src)
+        bus_sources::AluBSrc_Zero: alu_b_input = 8'h00;
+        bus_sources::AluBSrc_DataBus: alu_b_input = data_bus;
+        default: alu_b_input = 8'hXX;
+    endcase
+
     case(decoder.pcl_bus_src)
-        bus_sources::PcLowSrc_DataLatch: pcl_in = reg_dl.data_out;
+        bus_sources::PcLowSrc_Mem: pcl_in = data_in;
         bus_sources::PcLowSrc_Incrementor: pcl_in = pc_next[7:0];
         default: pcl_in = 7'hXX;
     endcase
 
     case(decoder.pch_bus_src)
-        bus_sources::PcHighSrc_AddressBus: pch_in = address_bus_high;
+        bus_sources::PcHighSrc_Mem: pch_in = data_in;
         bus_sources::PcHighSrc_Incrementor: pch_in = pc_next[15:8];
         default: pch_in = 7'hXX;
     endcase

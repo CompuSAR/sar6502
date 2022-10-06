@@ -231,6 +231,7 @@ endtask
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: addr_mode_stack(opcode);         // BRK
+        8'h08: addr_mode_stack(opcode);         // PHP
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
@@ -245,6 +246,7 @@ endtask
 task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
+        8'h08: op_php();
         8'h20: op_jsr();
         8'h40: op_rti();
         8'h48: op_pha();
@@ -400,6 +402,23 @@ task op_pha();
     case(op_cycle)
         FirstOpCycle: begin
             data_bus_src = bus_sources::DataBusSrc_RegA;
+            write = 1'b1;
+            addr_bus_stack();
+
+            stack_pointer_push();
+        end
+        CycleOp2: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_php();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Status;
+            ctrl_signals[control_signals::StatOutputB] = 1'b1;
             write = 1'b1;
             addr_bus_stack();
 

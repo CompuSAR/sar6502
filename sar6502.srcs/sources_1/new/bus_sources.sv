@@ -6,6 +6,7 @@ typedef enum logic[31:0] {
     DataBusSrc_Invalid = 'X,
     DataBusSrc_Zero = 0,
     DataBusSrc_RegA,
+    DataBusSrc_Status,
     DataBusSrc_Mem,
     DataBusSrc_Alu,
     DataBusSrc_Special,

@@ -158,6 +158,7 @@ always_comb begin
     case(decoder.data_bus_src)
         bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
         bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
+        bus_sources::DataBusSrc_Status: data_bus = reg_stat.data_out;
         bus_sources::DataBusSrc_Mem: data_bus = data_in;
         bus_sources::DataBusSrc_Alu: data_bus = alu.result;
         bus_sources::DataBusSrc_Special: data_bus = special_bus;

@@ -298,7 +298,8 @@ task op_brk();
             vector_pull = 1'b1;
         end
         CycleOp2: begin
-            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+            pcl_bus_src = bus_sources::PcLowSrc_Mem;
+            ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
 
             addr_bus_low_src = bus_sources::AddrBusLowSrc_FD;
             addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
@@ -307,8 +308,7 @@ task op_brk();
         CycleOp3: begin
             next_instruction();
 
-            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
-            addr_bus_high_src = bus_sources::AddrBusHighSrc_DataIn;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
         end
     endcase
 endtask
@@ -404,7 +404,7 @@ task op_rti();
 
             next_instruction();
 
-            addr_bus_high_src = bus_sources::AddrBusHighSrc_DataIn;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
         end
         default: set_invalid_state();
     endcase

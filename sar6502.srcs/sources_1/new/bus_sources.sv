@@ -38,7 +38,7 @@ typedef enum logic[31:0] {
     AddrBusHighSrc_Invalid = 'X,
     AddrBusHighSrc_PC = 0,
     AddrBusHighSrc_One,
-    AddrBusHighSrc_DataIn,
+    AddrBusHighSrc_Mem,
     AddrBusHighSrc_FF,
 
     AddrBusHighSrc_End_Marker

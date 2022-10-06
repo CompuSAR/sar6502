@@ -70,7 +70,6 @@ logic [control_signals::ctrl_signals_last:0] control_signals;
 logic [15:0] pc_next;
 assign pc_next = {address_bus_high, address_bus_low} + 16'h1;
 logic [7:0] alu_a_input, alu_b_input;
-logic [7:0] alu_result;
 
 register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
                 reg_x(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
@@ -141,7 +140,7 @@ always_comb begin
     case(decoder.addr_bus_high_src)
         bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pch.data_out;
         bus_sources::AddrBusHighSrc_One: address_bus_high = 8'h01;
-        bus_sources::AddrBusHighSrc_DataIn: address_bus_high = data_in;
+        bus_sources::AddrBusHighSrc_Mem: address_bus_high = data_in;
         bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
         default: address_bus_high = 8'hXX;
     endcase
@@ -193,8 +192,6 @@ always_ff@(posedge clock) begin
     if( ready ) begin
         if( decoder.ctrl_signals[control_signals::LOAD_DataOut] )
             data_out <= data_bus;
-
-        alu_result <= alu.result;
     end
 end
 

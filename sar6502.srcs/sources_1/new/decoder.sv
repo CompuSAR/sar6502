@@ -244,6 +244,7 @@ task do_address(input [7:0] opcode);
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
+        8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hea: addr_mode_implied();             // NOP
@@ -272,6 +273,7 @@ task do_opcode(input [7:0]opcode);
         8'ha2: op_ldx();                        // LDX #
         8'ha5: op_lda();                        // LDA zp
         8'ha9: op_lda();                        // LDA #
+        8'had: op_lda();                        // LDA abs
         8'hb0: op_bcs();
         8'hd0: op_bne();
         8'hdb: op_stp();

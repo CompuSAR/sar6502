@@ -84,7 +84,7 @@ localparam
     CycleAddr5    = 16'b00000000_00010000,
     CycleAddr6    = 16'b00000000_00100000,
     CycleAddr7    = 16'b00000000_01000000,
-    CycleAddr8    = 16'b00000000_10000000,
+    LastAddrCycle = 16'b00000000_10000000,
     CycleAddrMask = 16'b00000000_11111111,
 
     FirstOpCycle  = 16'b00000001_00000000,
@@ -242,6 +242,7 @@ task do_address(input [7:0] opcode);
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
+        8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hd0: addr_mode_pc_rel();              // BNE
@@ -268,6 +269,7 @@ task do_opcode(input [7:0]opcode);
         8'h90: op_bcc();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
+        8'ha5: op_lda();                        // LDA zp
         8'ha9: op_lda();                        // LDA #
         8'hb0: op_bcs();
         8'hd0: op_bne();
@@ -311,6 +313,23 @@ task addr_mode_stack(input [7:0] opcode);
     case(op_cycle)
         CycleDecode: begin
             op_cycle_next = FirstOpCycle;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_zp();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+            op_cycle_next = LastAddrCycle;
+        end
+        LastAddrCycle: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_Mem;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            do_opcode(current_opcode);
         end
         default: set_invalid_state();
     endcase
@@ -476,6 +495,7 @@ endtask
 
 task op_lda();
     case(op_cycle)
+        LastAddrCycle: ;        // Nothing to do here
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_A] = 1'b1;

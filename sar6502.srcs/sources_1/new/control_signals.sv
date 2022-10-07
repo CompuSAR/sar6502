@@ -12,6 +12,7 @@ typedef enum logic[31:0] {
     LOAD_DL,
     LOAD_PCL,
     LOAD_PCH,
+    LOAD_OL,
 
     AluInverseB,
 

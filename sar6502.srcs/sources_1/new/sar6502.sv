@@ -77,7 +77,11 @@ register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_
                 reg_sp(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_SP]), .ready(ready)),
                 reg_pcl(.clock(clock), .data_in(pcl_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCL]), .ready(ready)),
                 reg_pch(.clock(clock), .data_in(pch_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCH]), .ready(ready)),
-                reg_dl(.clock(clock), .data_in(data_in), .latch(decoder.ctrl_signals[control_signals::LOAD_DL]), .ready(ready));
+                // Data latch
+                reg_dl(.clock(clock), .data_in(data_in), .latch(decoder.ctrl_signals[control_signals::LOAD_DL]), .ready(ready)),
+                // Output latch
+                reg_oll(.clock(clock), .data_in(address_bus_low), .latch(decoder.ctrl_signals[control_signals::LOAD_OL]), .ready(ready)),
+                reg_olh(.clock(clock), .data_in(address_bus_high), .latch(decoder.ctrl_signals[control_signals::LOAD_OL]), .ready(ready));
 
 alu alu(
     .a(alu_a_input),
@@ -128,7 +132,9 @@ assign sync = decoder.sync;
 always_comb begin
     case(decoder.addr_bus_low_src)
         bus_sources::AddrBusLowSrc_PC: address_bus_low = reg_pcl.data_out;
+        bus_sources::AddrBusLowSrc_Mem: address_bus_low = data_in;
         bus_sources::AddrBusLowSrc_DL: address_bus_low = reg_dl.data_out;
+        bus_sources::AddrBusLowSrc_OL: address_bus_low = reg_oll.data_out;
         bus_sources::AddrBusLowSrc_SP: address_bus_low = reg_sp.data_out;
         bus_sources::AddrBusLowSrc_ALU: address_bus_low = last_alu_result;
         bus_sources::AddrBusLowSrc_F8: address_bus_low = 8'hf8;
@@ -143,10 +149,12 @@ always_comb begin
     endcase
 
     case(decoder.addr_bus_high_src)
-        bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pch.data_out;
+        bus_sources::AddrBusHighSrc_Zero: address_bus_high = 8'h00;
         bus_sources::AddrBusHighSrc_One: address_bus_high = 8'h01;
+        bus_sources::AddrBusHighSrc_PC: address_bus_high = reg_pch.data_out;
         bus_sources::AddrBusHighSrc_Mem: address_bus_high = data_in;
         bus_sources::AddrBusHighSrc_ALU: address_bus_high = last_alu_result;
+        bus_sources::AddrBusHighSrc_OL: address_bus_high = reg_olh.data_out;
         bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
         default: address_bus_high = 8'hXX;
     endcase

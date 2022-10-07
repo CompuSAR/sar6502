@@ -184,7 +184,7 @@ always_comb begin
 
     case(decoder.alu_a_src)
         bus_sources::AluASrc_RegA: alu_a_input = reg_a.data_out;
-        bus_sources::AluASrc_RegX: alu_a_input = reg_x.data_out;
+        bus_sources::AluASrc_Special: alu_a_input = special_bus;
         bus_sources::AluASrc_RegSp: alu_a_input = reg_sp.data_out;
         bus_sources::AluASrc_PcLow: alu_a_input = reg_pcl.data_out;
         bus_sources::AluASrc_PcHigh: alu_a_input = reg_pch.data_out;

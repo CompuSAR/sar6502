@@ -231,6 +231,7 @@ task do_address(input [7:0] opcode);
         8'h08: addr_mode_stack(opcode);         // PHP
         8'h10: addr_mode_pc_rel();              // BPL
         8'h20: addr_mode_stack(opcode);         // JSR
+        8'h28: addr_mode_stack(opcode);         // PLP
         8'h30: addr_mode_pc_rel();              // BMI
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
@@ -255,6 +256,7 @@ task do_opcode(input [7:0]opcode);
         8'h08: op_php();
         8'h10: op_bpl();
         8'h20: op_jsr();
+        8'h28: op_plp();
         8'h30: op_bmi();
         8'h40: op_rti();
         8'h48: op_pha();
@@ -541,6 +543,32 @@ task op_php();
         end
         CycleOp2: begin
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_plp();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            addr_bus_stack();
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            // Store status flag
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateI] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateD] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateV] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
         end
         default: set_invalid_state();
     endcase

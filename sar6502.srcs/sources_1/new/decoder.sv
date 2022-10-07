@@ -235,6 +235,7 @@ task do_address(input [7:0] opcode);
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h50: addr_mode_pc_rel();              // BVC
+        8'h5a: addr_mode_stack(opcode);         // PHY
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h70: addr_mode_pc_rel();              // BVS
         8'h80: addr_mode_pc_rel();              // BRA
@@ -266,6 +267,7 @@ task do_opcode(input [7:0]opcode);
         8'h40: op_rti();
         8'h48: op_pha();
         8'h50: op_bvc();
+        8'h5a: op_phy();
         8'h60: op_rts();
         8'h70: op_bvs();
         8'h80: op_bra();
@@ -606,6 +608,23 @@ task op_phx();
     case(op_cycle)
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            write = 1'b1;
+            addr_bus_stack();
+        end
+        CycleOp2: begin
+            next_instruction();
+
+            stack_pointer_push();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_phy();
+    case(op_cycle)
+        FirstOpCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_RegY;
             data_bus_src = bus_sources::DataBusSrc_Special;
             write = 1'b1;
             addr_bus_stack();

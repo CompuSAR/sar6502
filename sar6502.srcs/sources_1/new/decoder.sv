@@ -238,9 +238,10 @@ task do_address(input [7:0] opcode);
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h70: addr_mode_pc_rel();              // BVS
         8'h80: addr_mode_pc_rel();              // BRA
-        8'h8d: addr_mode_adsolute();            // STA
+        8'h8d: addr_mode_adsolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
+        8'ha0: addr_mode_immediate();           // LDY #
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
@@ -270,6 +271,7 @@ task do_opcode(input [7:0]opcode);
         8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
         8'h9a: op_txs();
+        8'ha0: op_ldy();                        // LDY #
         8'ha2: op_ldx();                        // LDX #
         8'ha5: op_lda();                        // LDA zp
         8'ha9: op_lda();                        // LDA #
@@ -543,6 +545,23 @@ task op_ldx();
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_ldy();
+    case(op_cycle)
+        FirstOpCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_Y] = 1'b1;
 
             data_bus_src = bus_sources::DataBusSrc_Special;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;

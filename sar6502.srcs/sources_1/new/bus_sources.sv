@@ -64,7 +64,8 @@ typedef enum logic[31:0] {
     AluASrc_RegSp,
     AluASrc_PcLow,
     AluASrc_PcHigh,
-    AluASrc_Mem
+    AluASrc_Mem,
+    AluASrc_ALU
 } AluASrcCtl;
 
 typedef enum logic {

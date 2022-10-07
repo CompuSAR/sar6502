@@ -189,6 +189,7 @@ always_comb begin
         bus_sources::AluASrc_PcLow: alu_a_input = reg_pcl.data_out;
         bus_sources::AluASrc_PcHigh: alu_a_input = reg_pch.data_out;
         bus_sources::AluASrc_Mem: alu_a_input = data_in;
+        bus_sources::AluASrc_ALU: alu_a_input = last_alu_result;
         default: alu_a_input = 8'hXX;
     endcase
 

@@ -249,6 +249,7 @@ task do_address(input [7:0] opcode);
         8'h9a: addr_mode_implied();             // TXS
         8'h9c: addr_mode_adsolute();            // STZ abs
         8'ha0: addr_mode_immediate();           // LDY #
+        8'ha1: addr_mode_zp_x_ind();            // LDA (zp,x)
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
@@ -291,6 +292,7 @@ task do_opcode(input [7:0]opcode);
         8'h9a: op_txs();
         8'h9c: op_stz();                        // STZ abs
         8'ha0: op_ldy();                        // LDY #
+        8'ha1: op_lda();                        // LDA (zp,x)
         8'ha2: op_ldx();                        // LDX #
         8'ha5: op_lda();                        // LDA zp
         8'ha9: op_lda();                        // LDA #
@@ -479,6 +481,48 @@ task addr_mode_zp();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_zp_x_ind();
+    case(op_cycle)
+        CycleDecode: begin
+        end
+        CycleAddr1: begin
+            addr_bus_pc();
+            advance_pc();
+
+            alu_a_src = bus_sources::AluASrc_Special;
+            special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b0;
+        end
+        CycleAddr2: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            alu_a_src = bus_sources::AluASrc_ALU;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+        end
+        CycleAddr4: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
         end
         default: set_invalid_state();

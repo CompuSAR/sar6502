@@ -236,6 +236,7 @@ task do_address(input [7:0] opcode);
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h50: addr_mode_pc_rel();              // BVC
+        8'h60: addr_mode_stack(opcode);         // RTS
         8'h70: addr_mode_pc_rel();              // BVS
         8'h80: addr_mode_pc_rel();              // BRA
         8'h90: addr_mode_pc_rel();              // BCC
@@ -261,6 +262,7 @@ task do_opcode(input [7:0]opcode);
         8'h40: op_rti();
         8'h48: op_pha();
         8'h50: op_bvc();
+        8'h60: op_rts();
         8'h70: op_bvs();
         8'h80: op_bra();
         8'h90: op_bcc();
@@ -617,6 +619,43 @@ task op_rti();
 
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_rts();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            // Read PC LSB
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp3: begin
+            ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+            pcl_bus_src = bus_sources::PcLowSrc_Mem;
+
+            // Read PC MSB
+            addr_bus_stack();
+        end
+        CycleOp4: begin
+            ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
+            pch_bus_src = bus_sources::PcHighSrc_Mem;
+
+            addr_bus_pc();
+            advance_pc();
+
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+        CycleOp5: begin
+            next_instruction();
         end
         default: set_invalid_state();
     endcase

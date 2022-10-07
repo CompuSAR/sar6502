@@ -107,9 +107,11 @@ start:
     jsr flags_dump
     lda lda_zp_test     ; Make sure we don't treat the operand as an opcode
     jsr flags_dump
+    sta value_dump
 
     lda lda_abs_test
     jsr flags_dump
+    sta value_dump
 
     ldx #$c0
     ldy #$30
@@ -142,21 +144,32 @@ start:
 
     ; Test addressing modes
     lda lda_abs_test
+    sta value_dump
     lda lda_abs_test,x          ; No page transition
+    sta value_dump
     lda lda_abs_test-$c0,x      ; With page transition
+    sta value_dump
     lda lda_abs_test,y          ; No page transition
+    sta value_dump
     lda lda_abs_test-$30,y      ; With page transition
+    sta value_dump
     lda lda_zp_test
+    sta value_dump
     .if c02
     lda (lda_zp_test+$100-$c0,x)
+    sta value_dump
     .endif
     lda lda_zp_test+$100-$c0,x
+    sta value_dump
     .if c02
     lda (lda_zp_test)
+    sta value_dump
     .endif
     lda (lda_zp_test),y         ; No page transition
+    sta value_dump
     ldy #$f0
     lda (lda_zp_test),y         ; With page transition
+    sta value_dump
 
 
     ; ASL test

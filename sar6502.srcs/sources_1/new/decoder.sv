@@ -253,6 +253,7 @@ task do_address(input [7:0] opcode);
         8'ha9: addr_mode_immediate();           // LDA #
         8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
+        8'hb1: addr_mode_zp_ind_y();            // LDA (zp),y
         8'hb2: addr_mode_zp_ind();              // LDA (zp)
         8'hb5: addr_mode_zp_x();                // LDA zp,x
         8'hb8: addr_mode_implied();             // CLV
@@ -298,6 +299,7 @@ task do_opcode(input [7:0]opcode);
         8'ha9: op_lda();                        // LDA #
         8'had: op_lda();                        // LDA abs
         8'hb0: op_bcs();
+        8'hb1: op_lda();                        // LDA (zp),y
         8'hb2: op_lda();                        // LDA (zp)
         8'hb5: op_lda();                        // LDA zp,x
         8'hb8: op_clv();
@@ -488,6 +490,7 @@ task addr_mode_zp();
 endtask
 
 task addr_mode_zp_ind();
+    // TODO addressing mode not available on MOS6502
     case(op_cycle)
         CycleDecode: begin
         end
@@ -583,6 +586,61 @@ task addr_mode_zp_x_ind();
         CycleAddr4: begin
             addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            op_cycle_next = FirstOpCycle;
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_zp_ind_y();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+        end
+        CycleAddr1: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_Mem;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+        end
+        CycleAddr2: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            alu_a_src = bus_sources::AluASrc_RegY;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b0;
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            if( alu_carry_out ) begin
+                if( CPU_VARIANT!=0 )
+                    incompatible = 1; // BUG adapt to 65c02 bus semantics
+
+                alu_a_src = bus_sources::AluASrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_Zero;
+                alu_op = control_signals::AluOp_add;
+                alu_carry_in = 1'b1;
+            end else begin
+                op_cycle_next = FirstOpCycle;
+                do_opcode(current_opcode);
+            end
+        end
+        CycleAddr4: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_OL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_ALU;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
             op_cycle_next = FirstOpCycle;

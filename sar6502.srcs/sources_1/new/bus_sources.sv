@@ -52,15 +52,15 @@ typedef enum logic[31:0] {
     SpecialBusSrc_RegY,
     SpecialBusSrc_RegSP,
 
-    SpecialBusSrc_Mem,
-    SpecialBusSrc_ALU
+    SpecialBusSrc_Mem
 } SpecialBusSourceCtl;
 
 typedef enum logic[31:0] {
     AluASrc_Invalid = 'X,
 
     AluASrc_RegA = 0,
-    AluASrc_Special,
+    AluASrc_RegX,
+    AluASrc_RegY,
     AluASrc_RegSp,
     AluASrc_PcLow,
     AluASrc_PcHigh,

@@ -210,7 +210,6 @@ task stack_pointer_push();
     ctrl_signals[control_signals::AluInverseB] = 1'b1;
     alu_carry_in = 1'b0;
 
-    special_bus_src = bus_sources::SpecialBusSrc_ALU;
     ctrl_signals[control_signals::LOAD_SP] = 1'b1;
 endtask
 
@@ -221,7 +220,6 @@ task stack_pointer_pop();
     ctrl_signals[control_signals::AluInverseB] = 1'b0;
     alu_carry_in = 1'b1;
 
-    special_bus_src = bus_sources::SpecialBusSrc_ALU;
     ctrl_signals[control_signals::LOAD_SP] = 1'b1;
 endtask
 
@@ -349,8 +347,7 @@ task addr_mode_abs_x();
             addr_bus_pc();
             advance_pc();
 
-            alu_a_src = bus_sources::AluASrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            alu_a_src = bus_sources::AluASrc_RegX;
             alu_b_src = bus_sources::AluBSrc_DataBus;
             data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
@@ -397,8 +394,7 @@ task addr_mode_abs_y();
             addr_bus_pc();
             advance_pc();
 
-            alu_a_src = bus_sources::AluASrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegY;
+            alu_a_src = bus_sources::AluASrc_RegY;
             alu_b_src = bus_sources::AluBSrc_DataBus;
             data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
@@ -497,8 +493,7 @@ task addr_mode_zp_x();
             addr_bus_pc();
             advance_pc();
 
-            alu_a_src = bus_sources::AluASrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            alu_a_src = bus_sources::AluASrc_RegX;
             alu_b_src = bus_sources::AluBSrc_DataBus;
             data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
@@ -525,8 +520,7 @@ task addr_mode_zp_x_ind();
             addr_bus_pc();
             advance_pc();
 
-            alu_a_src = bus_sources::AluASrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            alu_a_src = bus_sources::AluASrc_RegX;
             alu_b_src = bus_sources::AluBSrc_DataBus;
             data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
@@ -1073,7 +1067,10 @@ task op_stp();
 endtask
 
 task op_txs();
-    special_bus_src = bus_sources::SpecialBusSrc_RegX;
+    alu_op = control_signals::AluOp_add;
+    alu_a_src = bus_sources::AluASrc_RegX;
+    alu_b_src = bus_sources::AluBSrc_Zero;
+    alu_carry_in = 1'b0;
     ctrl_signals[control_signals::LOAD_SP] = 1'b1;
 
     next_instruction();

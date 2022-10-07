@@ -74,7 +74,7 @@ logic [7:0] alu_a_input, alu_b_input;
 register        reg_a(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
                 reg_x(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
                 reg_y(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_Y]), .ready(ready)),
-                reg_sp(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_SP]), .ready(ready)),
+                reg_sp(.clock(clock), .data_in(alu.result), .latch(decoder.ctrl_signals[control_signals::LOAD_SP]), .ready(ready)),
                 reg_pcl(.clock(clock), .data_in(pcl_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCL]), .ready(ready)),
                 reg_pch(.clock(clock), .data_in(pch_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCH]), .ready(ready)),
                 // Data latch
@@ -92,12 +92,13 @@ alu alu(
 );
 
 logic [7:0] last_alu_result;
+logic last_alu_carry, last_alu_overflow;
 
 status_register reg_stat(
     .data_in(data_bus),
     .clock(clock),
-    .alu_carry(alu.carry_out),
-    .alu_overflow(alu.overflow_out),
+    .alu_carry(last_alu_carry),
+    .alu_overflow(last_alu_overflow),
 
     .update_c(decoder.ctrl_signals[control_signals::StatUpdateC]),
     .update_z(decoder.ctrl_signals[control_signals::StatUpdateZ]),
@@ -119,7 +120,7 @@ decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(
     .reset(reset),
     .ready(ready),
     .status(reg_stat.data_out),
-    .alu_carry_out(alu.carry_out),
+    .alu_carry_out(last_alu_carry),
     .memory_in(data_in)
 );
 
@@ -165,7 +166,6 @@ always_comb begin
         bus_sources::SpecialBusSrc_RegY: special_bus = reg_y.data_out;
         bus_sources::SpecialBusSrc_RegSP: special_bus = reg_sp.data_out;
         bus_sources::SpecialBusSrc_Mem: special_bus = data_in;
-        bus_sources::SpecialBusSrc_ALU: special_bus = alu.result;
         default: special_bus = 8'hXX;
     endcase
 
@@ -175,7 +175,7 @@ always_comb begin
         bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
         bus_sources::DataBusSrc_Status: data_bus = reg_stat.data_out;
         bus_sources::DataBusSrc_Mem: data_bus = data_in;
-        bus_sources::DataBusSrc_Alu: data_bus = alu.result;
+        bus_sources::DataBusSrc_Alu: data_bus = last_alu_result;
         bus_sources::DataBusSrc_Special: data_bus = special_bus;
         bus_sources::DataBusSrc_PcLow: data_bus = reg_pcl.data_out;
         bus_sources::DataBusSrc_PcHigh: data_bus = reg_pch.data_out;
@@ -184,7 +184,8 @@ always_comb begin
 
     case(decoder.alu_a_src)
         bus_sources::AluASrc_RegA: alu_a_input = reg_a.data_out;
-        bus_sources::AluASrc_Special: alu_a_input = special_bus;
+        bus_sources::AluASrc_RegX: alu_a_input = reg_x.data_out;
+        bus_sources::AluASrc_RegY: alu_a_input = reg_y.data_out;
         bus_sources::AluASrc_RegSp: alu_a_input = reg_sp.data_out;
         bus_sources::AluASrc_PcLow: alu_a_input = reg_pcl.data_out;
         bus_sources::AluASrc_PcHigh: alu_a_input = reg_pch.data_out;
@@ -222,6 +223,8 @@ end
 always_ff@(posedge clock) begin
     if( ready ) begin
         last_alu_result <= alu.result;
+        last_alu_carry <= alu.carry_out;
+        last_alu_overflow <= alu.overflow_out;
     end
 end
 

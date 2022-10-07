@@ -232,6 +232,7 @@ task do_address(input [7:0] opcode);
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h28: addr_mode_stack(opcode);         // PLP
         8'h30: addr_mode_pc_rel();              // BMI
+        8'h38: addr_mode_implied();             // SEC
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h50: addr_mode_pc_rel();              // BVC
@@ -265,6 +266,7 @@ task do_opcode(input [7:0]opcode);
         8'h20: op_jsr();
         8'h28: op_plp();
         8'h30: op_bmi();
+        8'h38: op_sec();
         8'h40: op_rti();
         8'h48: op_pha();
         8'h50: op_bvc();
@@ -762,6 +764,18 @@ task op_rts();
             pc_next_src = bus_sources::PcNextSrc_Bus;
         end
         CycleOp5: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_sec();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();

@@ -253,6 +253,7 @@ task do_address(input [7:0] opcode);
         8'ha9: addr_mode_immediate();           // LDA #
         8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
+        8'hb2: addr_mode_zp_ind();              // LDA (zp)
         8'hb5: addr_mode_zp_x();                // LDA zp,x
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
@@ -297,6 +298,7 @@ task do_opcode(input [7:0]opcode);
         8'ha9: op_lda();                        // LDA #
         8'had: op_lda();                        // LDA abs
         8'hb0: op_bcs();
+        8'hb2: op_lda();                        // LDA (zp)
         8'hb5: op_lda();                        // LDA zp,x
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
@@ -479,6 +481,43 @@ task addr_mode_zp();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_zp_ind();
+    case(op_cycle)
+        CycleDecode: begin
+        end
+        CycleAddr1: begin
+            advance_pc();
+
+            // Fetch base address LSB
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_Mem;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            // Calc MSB address
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+        end
+        CycleAddr2: begin
+            // Fetch base address MSB
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
+
+            // Store base address LSB
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
         end
         default: set_invalid_state();

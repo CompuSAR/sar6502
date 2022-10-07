@@ -242,6 +242,7 @@ task do_address(input [7:0] opcode);
         8'h8d: addr_mode_adsolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
+        8'h9c: addr_mode_adsolute();            // STZ abs
         8'ha0: addr_mode_immediate();           // LDY #
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
@@ -274,6 +275,7 @@ task do_opcode(input [7:0]opcode);
         8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
         8'h9a: op_txs();
+        8'h9c: op_stz();                        // STZ abs
         8'ha0: op_ldy();                        // LDY #
         8'ha2: op_ldx();                        // LDX #
         8'ha5: op_lda();                        // LDA zp
@@ -771,6 +773,19 @@ task op_sta();
         LastAddrCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegA;
             data_bus_src = bus_sources::DataBusSrc_Special;
+            write = 1'b1;
+        end
+        FirstOpCycle: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_stz();
+    case(op_cycle)
+        LastAddrCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Zero;
             write = 1'b1;
         end
         FirstOpCycle: begin

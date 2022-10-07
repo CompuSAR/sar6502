@@ -248,6 +248,7 @@ task do_address(input [7:0] opcode);
         8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hd0: addr_mode_pc_rel();              // BNE
+        8'hda: addr_mode_stack(opcode);         // PHX
         8'hea: addr_mode_implied();             // NOP
         8'hf0: addr_mode_pc_rel();              // BEQ
         default: set_invalid_state();
@@ -279,6 +280,7 @@ task do_opcode(input [7:0]opcode);
         8'hb0: op_bcs();
         8'hd0: op_bne();
         8'hdb: op_stp();
+        8'hda: op_phx();
         8'hea: op_nop();
         8'hf0: op_beq();
         default: set_invalid_state();
@@ -586,14 +588,32 @@ endtask
 task op_pha();
     case(op_cycle)
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_RegA;
+            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            data_bus_src = bus_sources::DataBusSrc_Special;
             write = 1'b1;
             addr_bus_stack();
-
-            stack_pointer_push();
         end
         CycleOp2: begin
             next_instruction();
+
+            stack_pointer_push();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_phx();
+    case(op_cycle)
+        FirstOpCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            write = 1'b1;
+            addr_bus_stack();
+        end
+        CycleOp2: begin
+            next_instruction();
+
+            stack_pointer_push();
         end
         default: set_invalid_state();
     endcase

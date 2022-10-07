@@ -60,9 +60,11 @@ typedef enum logic[31:0] {
     AluASrc_Invalid = 'X,
 
     AluASrc_RegA = 0,
+    AluASrc_RegX,
     AluASrc_RegSp,
     AluASrc_PcLow,
-    AluASrc_PcHigh
+    AluASrc_PcHigh,
+    AluASrc_Mem
 } AluASrcCtl;
 
 typedef enum logic {

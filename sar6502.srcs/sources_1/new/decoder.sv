@@ -76,6 +76,7 @@ localparam MAX_OPCODE_CYCLES = 16;
 
 localparam
     CycleInvalid  = 16'bxxxxxxxx_xxxxxxxx,
+    CycleAnyAddr  = 16'b00000000_xxxxxxxx,
     CycleDecode   = 16'b00000000_00000001,
     CycleAddr1    = 16'b00000000_00000010,
     CycleAddr2    = 16'b00000000_00000100,
@@ -254,6 +255,7 @@ task do_address(input [7:0] opcode);
         8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hb8: addr_mode_implied();             // CLV
+        8'hbd: addr_mode_abs_x();               // LDA
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd8: addr_mode_implied();             // CLD
         8'hda: addr_mode_stack(opcode);         // PHX
@@ -294,6 +296,7 @@ task do_opcode(input [7:0]opcode);
         8'had: op_lda();                        // LDA abs
         8'hb0: op_bcs();
         8'hb8: op_clv();
+        8'hbd: op_lda();                        // LDA abs,x
         8'hd0: op_bne();
         8'hd8: op_cld();
         8'hdb: op_stp();
@@ -323,6 +326,53 @@ task addr_mode_adsolute();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_abs_x();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+        end
+        CycleAddr1: begin
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+
+            addr_bus_pc();
+            advance_pc();
+
+            alu_a_src = bus_sources::AluASrc_RegX;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b0;
+        end
+        CycleAddr2: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            if( alu_carry_out ) begin
+                if( CPU_VARIANT!=0 )
+                    incompatible = 1'b1; // TODO implement 65c02 behavior
+
+                alu_a_src = bus_sources::AluASrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_Zero;
+                alu_carry_in = 1'b1;
+                alu_op = control_signals::AluOp_add;
+            end else begin
+                op_cycle_next = FirstOpCycle;
+                do_opcode(current_opcode);
+            end
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_OL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_ALU;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
         end
         default: set_invalid_state();
@@ -591,8 +641,8 @@ task op_jsr();
 endtask
 
 task op_lda();
-    case(op_cycle)
-        LastAddrCycle: ;        // Nothing to do here
+    casex(op_cycle)
+        CycleAnyAddr: ;        // Nothing to do here
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
@@ -867,8 +917,8 @@ task op_sei();
 endtask
 
 task op_sta();
-    case(op_cycle)
-        LastAddrCycle: begin
+    casex(op_cycle)
+        CycleAnyAddr: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegA;
             data_bus_src = bus_sources::DataBusSrc_Special;
             write = 1'b1;
@@ -881,8 +931,8 @@ task op_sta();
 endtask
 
 task op_stz();
-    case(op_cycle)
-        LastAddrCycle: begin
+    casex(op_cycle)
+        CycleAnyAddr: begin
             data_bus_src = bus_sources::DataBusSrc_Zero;
             write = 1'b1;
         end

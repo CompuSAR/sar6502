@@ -76,14 +76,13 @@ localparam MAX_OPCODE_CYCLES = 16;
 
 localparam
     CycleInvalid  = 16'bxxxxxxxx_xxxxxxxx,
-    CycleDecode   = 16'b00000000_00000000,
-    CycleAddr1    = 16'b00000000_00000001,
-    CycleAddr2    = 16'b00000000_00000010,
-    CycleAddr3    = 16'b00000000_00000100,
-    CycleAddr4    = 16'b00000000_00001000,
-    CycleAddr5    = 16'b00000000_00010000,
-    CycleAddr6    = 16'b00000000_00100000,
-    CycleAddr7    = 16'b00000000_01000000,
+    CycleDecode   = 16'b00000000_00000001,
+    CycleAddr1    = 16'b00000000_00000010,
+    CycleAddr2    = 16'b00000000_00000100,
+    CycleAddr3    = 16'b00000000_00001000,
+    CycleAddr4    = 16'b00000000_00010000,
+    CycleAddr5    = 16'b00000000_00100000,
+    CycleAddr6    = 16'b00000000_01000000,
     LastAddrCycle = 16'b00000000_10000000,
     CycleAddrMask = 16'b00000000_11111111,
 
@@ -239,6 +238,7 @@ task do_address(input [7:0] opcode);
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h70: addr_mode_pc_rel();              // BVS
         8'h80: addr_mode_pc_rel();              // BRA
+        8'h8d: addr_mode_adsolute();            // STA
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
         8'ha2: addr_mode_immediate();           // LDX #
@@ -266,6 +266,7 @@ task do_opcode(input [7:0]opcode);
         8'h60: op_rts();
         8'h70: op_bvs();
         8'h80: op_bra();
+        8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
         8'h9a: op_txs();
         8'ha2: op_ldx();                        // LDX #
@@ -276,6 +277,30 @@ task do_opcode(input [7:0]opcode);
         8'hdb: op_stp();
         8'hea: op_nop();
         8'hf0: op_beq();
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_adsolute();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+        end
+        CycleAddr1: begin
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+
+            addr_bus_pc();
+            advance_pc();
+
+            op_cycle_next = LastAddrCycle;
+        end
+        LastAddrCycle: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            do_opcode(current_opcode);
+        end
         default: set_invalid_state();
     endcase
 endtask
@@ -675,6 +700,20 @@ task op_rts();
             pc_next_src = bus_sources::PcNextSrc_Bus;
         end
         CycleOp5: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_sta();
+    case(op_cycle)
+        LastAddrCycle: begin
+            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            write = 1'b1;
+        end
+        FirstOpCycle: begin
             next_instruction();
         end
         default: set_invalid_state();

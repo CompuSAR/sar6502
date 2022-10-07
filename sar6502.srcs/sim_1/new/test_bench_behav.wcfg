@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="4,117.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="4,835.501 ns"></ZoomEndTime>
-      <Cursor1Time time="5,425.000 ns"></Cursor1Time>
+      <ZoomStartTime time="10,765.833 ns"></ZoomStartTime>
+      <ZoomEndTime time="12,336.834 ns"></ZoomEndTime>
+      <Cursor1Time time="12,075.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="207"></NameColumnWidth>
-      <ValueColumnWidth column_width="100"></ValueColumnWidth>
+      <ValueColumnWidth column_width="96"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="40" />
+   <WVObjectSize size="41" />
    <wvobject type="logic" fp_name="/test_bench/cpu/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -34,6 +34,18 @@
       <obj_property name="ElementShortName">address[15:0]</obj_property>
       <obj_property name="ObjectShortName">address[15:0]</obj_property>
    </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/data_in">
+      <obj_property name="ElementShortName">data_in[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_in[7:0]</obj_property>
+      <obj_property name="CustomSignalColor">#800080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_bench/cpu/write">
+      <obj_property name="ElementShortName">write</obj_property>
+      <obj_property name="ObjectShortName">write</obj_property>
+      <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/data_out">
       <obj_property name="ElementShortName">data_out[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
@@ -41,16 +53,6 @@
    <wvobject type="array" fp_name="/test_bench/cpu/special_bus">
       <obj_property name="ElementShortName">special_bus[7:0]</obj_property>
       <obj_property name="ObjectShortName">special_bus[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/test_bench/cpu/write">
-      <obj_property name="ElementShortName">write</obj_property>
-      <obj_property name="ObjectShortName">write</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/test_bench/cpu/data_in">
-      <obj_property name="ElementShortName">data_in[7:0]</obj_property>
-      <obj_property name="ObjectShortName">data_in[7:0]</obj_property>
-      <obj_property name="CustomSignalColor">#800080</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/ready">
       <obj_property name="ElementShortName">ready</obj_property>
@@ -126,54 +128,6 @@
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
       <obj_property name="label">Status</obj_property>
       <obj_property name="isExpanded"></obj_property>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[7]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[7]</obj_property>
-         <obj_property name="ObjectShortName">[7]</obj_property>
-         <obj_property name="label">Negative</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[6]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[6]</obj_property>
-         <obj_property name="ObjectShortName">[6]</obj_property>
-         <obj_property name="label">Overflow</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[5]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[5]</obj_property>
-         <obj_property name="ObjectShortName">[5]</obj_property>
-         <obj_property name="label">NA</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[4]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[4]</obj_property>
-         <obj_property name="ObjectShortName">[4]</obj_property>
-         <obj_property name="label">Brk</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[3]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[3]</obj_property>
-         <obj_property name="ObjectShortName">[3]</obj_property>
-         <obj_property name="label">Interrupt mask</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[2]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[2]</obj_property>
-         <obj_property name="ObjectShortName">[2]</obj_property>
-         <obj_property name="label">Decimal</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[1]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[1]</obj_property>
-         <obj_property name="ObjectShortName">[1]</obj_property>
-         <obj_property name="label">Zero</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[0]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[0]</obj_property>
-         <obj_property name="ObjectShortName">[0]</obj_property>
-         <obj_property name="label">Carry</obj_property>
-      </wvobject>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/reg_dl/data_out">
       <obj_property name="DisplayName">label</obj_property>
@@ -252,5 +206,9 @@
    <wvobject type="logic" fp_name="/test_bench/cpu/alu/overflow_out">
       <obj_property name="ElementShortName">overflow_out</obj_property>
       <obj_property name="ObjectShortName">overflow_out</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/op_cycle_next">
+      <obj_property name="ElementShortName">op_cycle_next[15:0]</obj_property>
+      <obj_property name="ObjectShortName">op_cycle_next[15:0]</obj_property>
    </wvobject>
 </wave_config>

@@ -229,6 +229,7 @@ task do_address(input [7:0] opcode);
         8'h00: addr_mode_stack(opcode);         // BRK
         8'h08: addr_mode_stack(opcode);         // PHP
         8'h10: addr_mode_pc_rel();              // BPL
+        8'h18: addr_mode_implied();             // CLC
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h28: addr_mode_stack(opcode);         // PLP
         8'h30: addr_mode_pc_rel();              // BMI
@@ -236,9 +237,11 @@ task do_address(input [7:0] opcode);
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h50: addr_mode_pc_rel();              // BVC
+        8'h58: addr_mode_implied();             // CLI
         8'h5a: addr_mode_stack(opcode);         // PHY
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h70: addr_mode_pc_rel();              // BVS
+        8'h78: addr_mode_implied();             // SEI
         8'h80: addr_mode_pc_rel();              // BRA
         8'h8d: addr_mode_adsolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
@@ -250,10 +253,13 @@ task do_address(input [7:0] opcode);
         8'ha9: addr_mode_immediate();           // LDA #
         8'had: addr_mode_adsolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
+        8'hb8: addr_mode_implied();             // CLV
         8'hd0: addr_mode_pc_rel();              // BNE
+        8'hd8: addr_mode_implied();             // CLD
         8'hda: addr_mode_stack(opcode);         // PHX
         8'hea: addr_mode_implied();             // NOP
         8'hf0: addr_mode_pc_rel();              // BEQ
+        8'hf8: addr_mode_implied();             // SED
         default: set_invalid_state();
     endcase
 endtask
@@ -263,6 +269,7 @@ task do_opcode(input [7:0]opcode);
         8'h00: op_brk();
         8'h08: op_php();
         8'h10: op_bpl();
+        8'h18: op_clc();
         8'h20: op_jsr();
         8'h28: op_plp();
         8'h30: op_bmi();
@@ -270,9 +277,11 @@ task do_opcode(input [7:0]opcode);
         8'h40: op_rti();
         8'h48: op_pha();
         8'h50: op_bvc();
+        8'h58: op_cli();
         8'h5a: op_phy();
         8'h60: op_rts();
         8'h70: op_bvs();
+        8'h78: op_sei();
         8'h80: op_bra();
         8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
@@ -284,11 +293,14 @@ task do_opcode(input [7:0]opcode);
         8'ha9: op_lda();                        // LDA #
         8'had: op_lda();                        // LDA abs
         8'hb0: op_bcs();
+        8'hb8: op_clv();
         8'hd0: op_bne();
+        8'hd8: op_cld();
         8'hdb: op_stp();
         8'hda: op_phx();
         8'hea: op_nop();
         8'hf0: op_beq();
+        8'hf8: op_sed();
         default: set_invalid_state();
     endcase
 endtask
@@ -491,6 +503,54 @@ task op_brk();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             pc_next_src = bus_sources::PcNextSrc_Bus;
         end
+    endcase
+endtask
+
+task op_clc();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Zero;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_cld();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Zero;
+            ctrl_signals[control_signals::StatUpdateD] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_cli();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Zero;
+            ctrl_signals[control_signals::StatUpdateI] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_clv();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Zero;
+            ctrl_signals[control_signals::StatUpdateV] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
     endcase
 endtask
 
@@ -775,6 +835,30 @@ task op_sec();
         FirstOpCycle: begin
             data_bus_src = bus_sources::DataBusSrc_Ones;
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_sed();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::StatUpdateD] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_sei();
+    case(op_cycle)
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::StatUpdateI] = 1'b1;
 
             next_instruction();
         end

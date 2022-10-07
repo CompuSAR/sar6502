@@ -13,13 +13,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="10,765.833 ns"></ZoomStartTime>
-      <ZoomEndTime time="12,336.834 ns"></ZoomEndTime>
-      <Cursor1Time time="12,075.000 ns"></Cursor1Time>
+      <ZoomStartTime time="22,571.666 ns"></ZoomStartTime>
+      <ZoomEndTime time="24,147.667 ns"></ZoomEndTime>
+      <Cursor1Time time="23,007.666 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="207"></NameColumnWidth>
-      <ValueColumnWidth column_width="96"></ValueColumnWidth>
+      <NameColumnWidth column_width="201"></NameColumnWidth>
+      <ValueColumnWidth column_width="97"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="41" />
    <wvobject type="logic" fp_name="/test_bench/cpu/clock">

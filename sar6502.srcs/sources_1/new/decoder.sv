@@ -195,6 +195,11 @@ task addr_bus_stack();
     addr_bus_high_src = bus_sources::AddrBusHighSrc_One;
 endtask
 
+task addr_bus_ol();
+    addr_bus_low_src = bus_sources::AddrBusLowSrc_OL;
+    addr_bus_high_src = bus_sources::AddrBusHighSrc_OL;
+endtask
+
 task advance_pc();
     ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
     ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
@@ -227,6 +232,7 @@ task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: addr_mode_stack(opcode);         // BRK
         8'h08: addr_mode_stack(opcode);         // PHP
+        8'h0e: addr_mode_absolute();            // ASL abs
         8'h10: addr_mode_pc_rel();              // BPL
         8'h18: addr_mode_implied();             // CLC
         8'h20: addr_mode_stack(opcode);         // JSR
@@ -242,16 +248,16 @@ task do_address(input [7:0] opcode);
         8'h70: addr_mode_pc_rel();              // BVS
         8'h78: addr_mode_implied();             // SEI
         8'h80: addr_mode_pc_rel();              // BRA
-        8'h8d: addr_mode_adsolute();            // STA abs
+        8'h8d: addr_mode_absolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
-        8'h9c: addr_mode_adsolute();            // STZ abs
+        8'h9c: addr_mode_absolute();            // STZ abs
         8'ha0: addr_mode_immediate();           // LDY #
         8'ha1: addr_mode_zp_x_ind();            // LDA (zp,x)
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
-        8'had: addr_mode_adsolute();            // LDA abs
+        8'had: addr_mode_absolute();            // LDA abs
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hb1: addr_mode_zp_ind_y();            // LDA (zp),y
         8'hb2: addr_mode_zp_ind();              // LDA (zp)
@@ -273,9 +279,10 @@ task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
         8'h08: op_php();
+        8'h0e: op_asl();                        // ASL abs
         8'h10: op_bpl();
         8'h18: op_clc();
-        8'h20: op_jsr();
+        8'h20: op_jsr();                        // JSR abs
         8'h28: op_plp();
         8'h30: op_bmi();
         8'h38: op_sec();
@@ -316,7 +323,7 @@ task do_opcode(input [7:0]opcode);
     endcase
 endtask
 
-task addr_mode_adsolute();
+task addr_mode_absolute();
     case(op_cycle)
         CycleDecode: begin
             advance_pc();
@@ -708,6 +715,44 @@ task branch_opcode(input condition);
             addr_bus_high_src = bus_sources::AddrBusHighSrc_ALU;
             pc_next_src = bus_sources::PcNextSrc_Bus;
         end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_asl();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+            end
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_op = control_signals::AluOp_shift_left;
+            alu_carry_in = 1'b0;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
     endcase
 endtask
 
@@ -875,7 +920,8 @@ task op_lda();
 endtask
 
 task op_ldx();
-    case(op_cycle)
+    casex(op_cycle)
+        CycleAnyAddr: ;        // Nothing to do here
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_X] = 1'b1;

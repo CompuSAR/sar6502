@@ -242,9 +242,18 @@ task do_address(input [7:0] opcode);
         8'h18: addr_mode_implied();             // CLC
         8'h1e: addr_mode_abs_x();               // ASL abs,x
         8'h20: addr_mode_stack(opcode);         // JSR
+        8'h21: addr_mode_zp_x_ind();            // AND (zp,x)
+        8'h25: addr_mode_zp();                  // AND zp
         8'h28: addr_mode_stack(opcode);         // PLP
+        8'h29: addr_mode_immediate();           // AND #
+        8'h2d: addr_mode_absolute();            // AND abs
         8'h30: addr_mode_pc_rel();              // BMI
+        8'h31: addr_mode_zp_ind_y();            // AND (zp),y
+        8'h32: addr_mode_zp_ind();              // AND (zp)
+        8'h35: addr_mode_zp_x();                // AND zp,x
         8'h38: addr_mode_implied();             // SEC
+        8'h39: addr_mode_abs_y();               // AND abs,y
+        8'h3d: addr_mode_abs_x();               // AND abs,x
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h50: addr_mode_pc_rel();              // BVC
@@ -302,9 +311,18 @@ task do_opcode(input [7:0]opcode);
         8'h18: op_clc();
         8'h1e: op_asl();                        // ASL abs,x
         8'h20: op_jsr();                        // JSR abs
+        8'h21: op_and();                        // AND (zp),x
+        8'h25: op_and();                        // AND zp
         8'h28: op_plp();
+        8'h29: op_and();                        // AND #
+        8'h2d: op_and();                        // AND abs
         8'h30: op_bmi();
+        8'h31: op_and();                        // AND (zp),y
+        8'h32: op_and();                        // AND (zp)
+        8'h35: op_and();                        // AND zp,x
         8'h38: op_sec();
+        8'h39: op_and();                        // AND abs,y
+        8'h3d: op_and();                        // AND abs,x
         8'h40: op_rti();
         8'h48: op_pha();
         8'h50: op_bvc();
@@ -353,6 +371,15 @@ endtask
 
 task do_post();
     case(current_opcode)
+        8'h21: post_and();                        // AND (zp),x
+        8'h25: post_and();                        // AND zp
+        8'h29: post_and();                        // AND #
+        8'h2d: post_and();                        // AND abs
+        8'h31: post_and();                        // AND (zp),y
+        8'h32: post_and();                        // AND (zp)
+        8'h35: post_and();                        // AND zp,x
+        8'h39: post_and();                        // AND abs,y
+        8'h3d: post_and();                        // AND abs,x
         8'h61: post_adc();                        // ADC (zp,x)
         8'h65: post_adc();                        // ADC zp
         8'h69: post_adc();                        // ADC #
@@ -797,6 +824,32 @@ task post_adc();
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
             ctrl_signals[control_signals::StatUpdateV] = 1'b1;
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+endtask
+
+task op_and();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_and;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_and();
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
 endtask

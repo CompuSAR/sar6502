@@ -272,6 +272,7 @@ task do_address(input [7:0] opcode);
         8'h79: addr_mode_abs_y();               // ADC abs,y
         8'h7d: addr_mode_abs_x();               // ADC abs,x
         8'h80: addr_mode_pc_rel();              // BRA
+        8'h88: addr_mode_implied();             // DEY
         8'h8d: addr_mode_absolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
@@ -289,9 +290,12 @@ task do_address(input [7:0] opcode);
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
         8'hbd: addr_mode_abs_x();               // LDA abs,x
+        8'hc8: addr_mode_implied();             // INY
+        8'hca: addr_mode_implied();             // DEX
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd8: addr_mode_implied();             // CLD
         8'hda: addr_mode_stack(opcode);         // PHX
+        8'he8: addr_mode_implied();             // INX
         8'hea: addr_mode_implied();             // NOP
         8'hf0: addr_mode_pc_rel();              // BEQ
         8'hf8: addr_mode_implied();             // SED
@@ -341,6 +345,7 @@ task do_opcode(input [7:0]opcode);
         8'h79: op_adc();                        // ADC abs,y
         8'h7d: op_adc();                        // ADC abs,x
         8'h80: op_bra();
+        8'h88: op_dey();
         8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
         8'h9a: op_txs();
@@ -358,10 +363,13 @@ task do_opcode(input [7:0]opcode);
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
         8'hbd: op_lda();                        // LDA abs,x
+        8'hc8: op_iny();
+        8'hca: op_dex();
         8'hd0: op_bne();
         8'hd8: op_cld();
         8'hdb: op_stp();
         8'hda: op_phx();
+        8'he8: op_inx();
         8'hea: op_nop();
         8'hf0: op_beq();
         8'hf8: op_sed();
@@ -389,6 +397,10 @@ task do_post();
         8'h75: post_adc();                        // ADC zp,x
         8'h79: post_adc();                        // ADC abs,y
         8'h7d: post_adc();                        // ADC abs,x
+        8'h88: post_dey();
+        8'hca: post_dex();
+        8'hc8: post_iny();
+        8'he8: post_inx();
     endcase
 endtask
 
@@ -1025,6 +1037,104 @@ task op_clv();
     endcase
 endtask
 
+task op_dex();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegX;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            alu_carry_in = 1'b0;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_dex();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
+task op_dey();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegY;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            alu_carry_in = 1'b0;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_dey();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
+task op_inx();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegX;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_inx();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
+task op_iny();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegY;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_iny();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
 task op_jsr();
     case(op_cycle)
         FirstOpCycle: begin
@@ -1083,10 +1193,9 @@ task op_ldx();
     casex(op_cycle)
         CycleAnyAddr: ;        // Nothing to do here
         FirstOpCycle: begin
-            special_bus_src = bus_sources::SpecialBusSrc_Mem;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_X] = 1'b1;
 
-            data_bus_src = bus_sources::DataBusSrc_Special;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
@@ -1100,10 +1209,9 @@ endtask
 task op_ldy();
     case(op_cycle)
         FirstOpCycle: begin
-            special_bus_src = bus_sources::SpecialBusSrc_Mem;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_Y] = 1'b1;
 
-            data_bus_src = bus_sources::DataBusSrc_Special;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;

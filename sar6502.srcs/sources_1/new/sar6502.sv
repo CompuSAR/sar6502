@@ -72,8 +72,8 @@ logic [15:0] pc_next;
 logic [7:0] alu_a_input, alu_b_input;
 
 register        reg_a(.clock(clock), .data_in(data_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_A]), .ready(ready)),
-                reg_x(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
-                reg_y(.clock(clock), .data_in(special_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_Y]), .ready(ready)),
+                reg_x(.clock(clock), .data_in(data_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_X]), .ready(ready)),
+                reg_y(.clock(clock), .data_in(data_bus), .latch(decoder.ctrl_signals[control_signals::LOAD_Y]), .ready(ready)),
                 reg_sp(.clock(clock), .data_in(alu.result), .latch(decoder.ctrl_signals[control_signals::LOAD_SP]), .ready(ready)),
                 reg_pcl(.clock(clock), .data_in(pcl_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCL]), .ready(ready)),
                 reg_pch(.clock(clock), .data_in(pch_in), .latch(decoder.ctrl_signals[control_signals::LOAD_PCH]), .ready(ready)),
@@ -112,7 +112,7 @@ status_register reg_stat(
     .calculate_zero(decoder.ctrl_signals[control_signals::StatCalcZero]),
 
     .ready(ready),
-    .so(set_overflow)
+    .set_overflow(set_overflow)
 );
 
 decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(

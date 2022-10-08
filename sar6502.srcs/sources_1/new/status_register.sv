@@ -40,7 +40,7 @@
 
 module status_register(
         input [7:0] data_in,
-        output [7:0]data_out,
+        output logic[7:0]data_out,
         input clock,
         input alu_carry,
         input alu_overflow,
@@ -57,39 +57,55 @@ module status_register(
         input calculate_zero,
 
         input ready,
-        input so
+        input set_overflow
     );
 
 logic negative, overflow, decimal, irq_mask, zero, carry;
 logic prev_so = 0;
 
 assign data_out = { negative, overflow, 1'b1, output_b, decimal, irq_mask, zero, carry };
+logic[7:0] stored_flags;
+
+always_comb begin
+    negative =
+        update_n ?
+        data_in[control_signals::FlagsNegative] :
+        stored_flags[control_signals::FlagsNegative];
+
+    overflow =
+        update_v ?
+        (use_alu_flags ? alu_overflow : data_in[control_signals::FlagsOverflow]) :
+        stored_flags[control_signals::FlagsOverflow];
+    if( prev_so==0 && set_overflow==1 )
+        overflow = 1'b1;
+
+    decimal =
+        update_d ?
+        data_in[control_signals::FlagsDecimal] :
+        stored_flags[control_signals::FlagsDecimal];
+
+    irq_mask =
+        update_i ?
+        data_in[control_signals::FlagsIrqMask] :
+        stored_flags[control_signals::FlagsIrqMask];
+
+    zero =
+        update_z ?
+        (calculate_zero ? (data_in==0 ? 1'b1 : 1'b0) : data_in[control_signals::FlagsZero]) :
+        stored_flags[control_signals::FlagsZero];
+
+    carry =
+        update_c ?
+        ( use_alu_flags ? alu_carry : data_in[control_signals::FlagsCarry] ) :
+        stored_flags[control_signals::FlagsCarry];
+end
 
 always_ff@(posedge clock)
 begin
     if( ready ) begin
-        if( update_n )
-            negative <= data_in[7];
-        if( update_v )
-            overflow <= use_alu_flags ? alu_overflow : data_in[6];
-        if( update_d )
-            decimal <= data_in[3];
-        if( update_i )
-            irq_mask <= data_in[2];
-        if( update_z ) begin
-            if( calculate_zero )
-                zero <= data_in==0 ? 1 : 0;
-            else
-                zero <= data_in[1];
-        end
-        if( update_c )
-            carry <= use_alu_flags ? alu_carry : data_in[0];
+        stored_flags <= data_out;
+        prev_so <= set_overflow;
     end
-
-    if( prev_so==1 && so==0 )
-        overflow <= 1;
-
-    prev_so <= so;
 end
 
 endmodule

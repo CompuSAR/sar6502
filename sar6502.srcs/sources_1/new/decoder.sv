@@ -168,6 +168,8 @@ always_comb begin
         next_opcode = 8'h00;    // BRK instruction
         int_state_next = IntStateReset;
     end else if( op_cycle==CycleDecode ) begin
+        do_post();
+
         if( int_state!=IntStateNone ) begin
             // Interrupt pending
             int_state_next = IntStateNone;
@@ -249,8 +251,17 @@ task do_address(input [7:0] opcode);
         8'h58: addr_mode_implied();             // CLI
         8'h5a: addr_mode_stack(opcode);         // PHY
         8'h60: addr_mode_stack(opcode);         // RTS
+        8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
+        8'h65: addr_mode_zp();                  // ADC zp
+        8'h69: addr_mode_immediate();           // ADC #
+        8'h6d: addr_mode_absolute();            // ADC abs
         8'h70: addr_mode_pc_rel();              // BVS
+        8'h71: addr_mode_zp_ind_y();            // ADC (zp),y
+        8'h72: addr_mode_zp_ind();              // ADC (zp)
+        8'h75: addr_mode_zp_x();                // ADC zp,x
         8'h78: addr_mode_implied();             // SEI
+        8'h79: addr_mode_abs_y();               // ADC abs,y
+        8'h7d: addr_mode_abs_x();               // ADC abs,x
         8'h80: addr_mode_pc_rel();              // BRA
         8'h8d: addr_mode_absolute();            // STA abs
         8'h90: addr_mode_pc_rel();              // BCC
@@ -300,8 +311,17 @@ task do_opcode(input [7:0]opcode);
         8'h58: op_cli();
         8'h5a: op_phy();
         8'h60: op_rts();
+        8'h61: op_adc();                        // ADC (zp,x)
+        8'h65: op_adc();                        // ADC zp
+        8'h69: op_adc();                        // ADC #
+        8'h6d: op_adc();                        // ADC abs
         8'h70: op_bvs();
+        8'h71: op_adc();                        // ADC (zp),y
+        8'h72: op_adc();                        // ADC (zp)
+        8'h75: op_adc();                        // ADC zp,x
         8'h78: op_sei();
+        8'h79: op_adc();                        // ADC abs,y
+        8'h7d: op_adc();                        // ADC abs,x
         8'h80: op_bra();
         8'h8d: op_sta();                        // STA abs
         8'h90: op_bcc();
@@ -328,6 +348,20 @@ task do_opcode(input [7:0]opcode);
         8'hf0: op_beq();
         8'hf8: op_sed();
         default: set_invalid_state();
+    endcase
+endtask
+
+task do_post();
+    case(current_opcode)
+        8'h61: post_adc();                        // ADC (zp,x)
+        8'h65: post_adc();                        // ADC zp
+        8'h69: post_adc();                        // ADC #
+        8'h6d: post_adc();                        // ADC abs
+        8'h71: post_adc();                        // ADC (zp),y
+        8'h72: post_adc();                        // ADC (zp)
+        8'h75: post_adc();                        // ADC zp,x
+        8'h79: post_adc();                        // ADC abs,y
+        8'h7d: post_adc();                        // ADC abs,x
     endcase
 endtask
 
@@ -735,6 +769,36 @@ task branch_opcode(input condition);
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task op_adc();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = status[control_signals::FlagsCarry];
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_adc();
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateV] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
 endtask
 
 task op_asl();

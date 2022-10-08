@@ -231,10 +231,14 @@ endtask
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: addr_mode_stack(opcode);         // BRK
+        8'h06: addr_mode_zp();                  // ASL zp
         8'h08: addr_mode_stack(opcode);         // PHP
+        8'h0a: addr_mode_acc();                 // ASL A
         8'h0e: addr_mode_absolute();            // ASL abs
         8'h10: addr_mode_pc_rel();              // BPL
+        8'h16: addr_mode_zp_x();                // ASL zp,x
         8'h18: addr_mode_implied();             // CLC
+        8'h1e: addr_mode_abs_x();               // ASL abs,x
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h28: addr_mode_stack(opcode);         // PLP
         8'h30: addr_mode_pc_rel();              // BMI
@@ -278,10 +282,14 @@ endtask
 task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
+        8'h06: op_asl();                        // ASL zp
         8'h08: op_php();
+        8'h0a: op_asl_A();
         8'h0e: op_asl();                        // ASL abs
         8'h10: op_bpl();
+        8'h16: op_asl();                        // ASL zp,x
         8'h18: op_clc();
+        8'h1e: op_asl();                        // ASL abs,x
         8'h20: op_jsr();                        // JSR abs
         8'h28: op_plp();
         8'h30: op_bmi();
@@ -436,6 +444,16 @@ task addr_mode_abs_y();
 
             op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_acc();
+    case(op_cycle)
+        CycleDecode: begin
+            op_cycle_next = FirstOpCycle;
+            do_opcode(memory_in);
         end
         default: set_invalid_state();
     endcase
@@ -750,6 +768,31 @@ task op_asl();
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
         end
         CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_asl_A();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            addr_bus_pc();
+
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_op = control_signals::AluOp_shift_left;
+            alu_carry_in = 1'b0;
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();

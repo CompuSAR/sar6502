@@ -295,10 +295,19 @@ task do_address(input [7:0] opcode);
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd8: addr_mode_implied();             // CLD
         8'hda: addr_mode_stack(opcode);         // PHX
+        8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
+        8'he5: addr_mode_zp();                  // SBC zp
         8'he8: addr_mode_implied();             // INX
+        8'he9: addr_mode_immediate();           // SBC #
         8'hea: addr_mode_implied();             // NOP
+        8'hed: addr_mode_absolute();            // SBC abs
         8'hf0: addr_mode_pc_rel();              // BEQ
+        8'hf1: addr_mode_zp_ind_y();            // SBC (zp),y
+        8'hf2: addr_mode_zp_ind();              // SBC (zp)
+        8'hf5: addr_mode_zp_x();                // SBC zp,x
         8'hf8: addr_mode_implied();             // SED
+        8'hf9: addr_mode_abs_y();               // SBC abs,y
+        8'hfd: addr_mode_abs_x();               // SBC abs,x
         default: set_invalid_state();
     endcase
 endtask
@@ -367,12 +376,21 @@ task do_opcode(input [7:0]opcode);
         8'hca: op_dex();
         8'hd0: op_bne();
         8'hd8: op_cld();
-        8'hdb: op_stp();
         8'hda: op_phx();
+        8'hdb: op_stp();
+        8'he1: op_sbc();                        // SBC (zp,x)
+        8'he5: op_sbc();                        // SBC zp
         8'he8: op_inx();
+        8'he9: op_sbc();                        // SBC #
         8'hea: op_nop();
+        8'hed: op_sbc();                        // SBC abs
         8'hf0: op_beq();
+        8'hf1: op_sbc();                        // SBC (zp),y
+        8'hf2: op_sbc();                        // SBC (zp)
+        8'hf5: op_sbc();                        // SBC zp,x
         8'hf8: op_sed();
+        8'hf9: op_sbc();                        // SBC abs,y
+        8'hfd: op_sbc();                        // SBC abs,x
         default: set_invalid_state();
     endcase
 endtask
@@ -398,9 +416,18 @@ task do_post();
         8'h79: post_adc();                        // ADC abs,y
         8'h7d: post_adc();                        // ADC abs,x
         8'h88: post_dey();
-        8'hca: post_dex();
         8'hc8: post_iny();
+        8'hca: post_dex();
+        8'he1: post_sbc();                        // SBC (zp,x)
+        8'he5: post_sbc();                        // SBC zp
         8'he8: post_inx();
+        8'he9: post_sbc();                        // SBC #
+        8'hed: post_sbc();                        // SBC abs
+        8'hf1: post_sbc();                        // SBC (zp),y
+        8'hf2: post_sbc();                        // SBC (zp)
+        8'hf5: post_sbc();                        // SBC zp,x
+        8'hf9: post_sbc();                        // SBC abs,y
+        8'hfd: post_sbc();                        // SBC abs,x
     endcase
 endtask
 
@@ -1408,6 +1435,37 @@ task op_rts();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task op_sbc();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = status[control_signals::FlagsCarry];
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_sbc();
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateV] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
 endtask
 
 task op_sec();

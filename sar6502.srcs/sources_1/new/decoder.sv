@@ -98,6 +98,7 @@ localparam
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = FirstOpCycle, op_cycle_next;
 logic [7:0] current_opcode = 8'hdb, next_opcode;
 logic jump_negative;
+logic pending_irq, pending_irq_next, pending_nmi, pending_nmi_next;
 
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
@@ -107,6 +108,8 @@ always_ff@(posedge clock) begin
         current_opcode <= next_opcode;
         int_state <= int_state_next;
         jump_negative <= memory_in[7];
+        pending_irq <= pending_irq_next;
+        pending_nmi <= pending_nmi_next;
     end
 end
 
@@ -116,6 +119,9 @@ begin
     next_opcode = 8'hXX;
     incompatible = 1'bX;
     alu_carry_in = 1'bX;
+
+    pending_nmi_next = 1'bX;
+    pending_irq_next = 1'bX;
 
     addr_bus_low_src = bus_sources::AddrBusLowSrc_Invalid;
     addr_bus_high_src = bus_sources::AddrBusHighSrc_Invalid;
@@ -157,6 +163,9 @@ begin
     write = 1'b0;
     memory_lock = 1'b0;
     vector_pull = 1'b0;
+
+    pending_nmi_next = pending_nmi;
+    pending_irq_next = pending_irq;
 end
 endtask
 
@@ -172,9 +181,8 @@ always_comb begin
 
         if( int_state!=IntStateNone ) begin
             // Interrupt pending
-            int_state_next = IntStateNone;
             next_opcode = 8'h00;
-            op_cycle_next = FirstOpCycle;
+            do_address(8'h00);
         end else begin
             next_opcode = memory_in;
 
@@ -232,7 +240,7 @@ endtask
 
 task do_address(input [7:0] opcode);
     case(opcode)
-        8'h00: addr_mode_stack(opcode);         // BRK
+        8'h00: op_brk();                        // BRK
         8'h01: addr_mode_zp_x_ind();            // ORA (zp,x)
         8'h05: addr_mode_zp();                  // ORA zp
         8'h06: addr_mode_zp();                  // ASL zp
@@ -1066,24 +1074,71 @@ endtask
 
 task op_brk();
     case(op_cycle)
+        CycleDecode: begin
+            if( int_state_next!=IntStateReset );
+            advance_pc();
+            op_cycle_next = FirstOpCycle;
+        end
         FirstOpCycle: begin
-            addr_bus_low_src = bus_sources::AddrBusLowSrc_FC;
-            addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
-            vector_pull = 1'b1;
+            stack_pointer_push();
+            addr_bus_stack();
+            if( int_state!=IntStateReset )
+                write = 1;
+            data_bus_src = bus_sources::DataBusSrc_PcHigh;
         end
         CycleOp2: begin
+            stack_pointer_push();
+            addr_bus_stack();
+            if( int_state!=IntStateReset )
+                write = 1;
+            data_bus_src = bus_sources::DataBusSrc_PcLow;
+        end
+        CycleOp3: begin
+            stack_pointer_push();
+            addr_bus_stack();
+            if( int_state!=IntStateReset )
+                write = 1;
+            data_bus_src = bus_sources::DataBusSrc_Status;
+            ctrl_signals[control_signals::StatOutputB] = int_state==IntStateNone ? 1'b1 : 1'b0;
+        end
+        CycleOp4: begin
+            case( int_state )
+                IntStateNone: addr_bus_low_src = bus_sources::AddrBusLowSrc_FE;
+                IntStateReset: addr_bus_low_src = bus_sources::AddrBusLowSrc_FC;
+                IntStateNmi: addr_bus_low_src = bus_sources::AddrBusLowSrc_FA;
+                IntStateIrq: addr_bus_low_src = bus_sources::AddrBusLowSrc_FE;
+            endcase
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
+            vector_pull = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Ones;
+            ctrl_signals[control_signals::StatUpdateI] = 1'b1;
+        end
+        CycleOp5: begin
             pcl_bus_src = bus_sources::PcLowSrc_Mem;
             ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
 
-            addr_bus_low_src = bus_sources::AddrBusLowSrc_FD;
+            case( int_state )
+                IntStateNone: addr_bus_low_src = bus_sources::AddrBusLowSrc_FF;
+                IntStateReset: addr_bus_low_src = bus_sources::AddrBusLowSrc_FD;
+                IntStateNmi: addr_bus_low_src = bus_sources::AddrBusLowSrc_FB;
+                IntStateIrq: addr_bus_low_src = bus_sources::AddrBusLowSrc_FF;
+            endcase
             addr_bus_high_src = bus_sources::AddrBusHighSrc_FF;
             vector_pull = 1'b1;
+
+            if( CPU_VARIANT!=0 ) begin
+                data_bus_src = bus_sources::DataBusSrc_Zero;
+                ctrl_signals[control_signals::StatUpdateD] = 1'b1;
+            end
         end
-        CycleOp3: begin
+        CycleOp6: begin
             next_instruction();
 
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             pc_next_src = bus_sources::PcNextSrc_Bus;
+
+            int_state_next = IntStateNone;
         end
     endcase
 endtask

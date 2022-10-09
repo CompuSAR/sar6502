@@ -37,7 +37,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module decoder#(parameter CPU_VARIANT = 0)
+module decoder#(parameter CPU_VARIANT = 2)
 (
     input clock,
     input reset,
@@ -517,8 +517,7 @@ task addr_mode_abs_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -564,8 +563,7 @@ task addr_mode_abs_y();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -711,8 +709,7 @@ task addr_mode_zp_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -738,8 +735,7 @@ task addr_mode_zp_x_ind();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -789,8 +785,7 @@ task addr_mode_zp_ind_y();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -842,8 +837,7 @@ task branch_opcode(input condition);
                 next_instruction();
             else begin
                 alu_a_src = bus_sources::AluASrc_PcLow;
-                alu_b_src = bus_sources::AluBSrc_DataBus;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_Mem;
                 alu_op = control_signals::AluOp_add;
                 alu_carry_in = 1'b0;
             end
@@ -892,9 +886,8 @@ task op_adc();
         CycleAnyAddr: begin
         end
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
 
@@ -922,9 +915,8 @@ task op_and();
         CycleAnyAddr: begin
         end
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
 
             next_instruction();
@@ -1047,8 +1039,9 @@ task op_bit();
         end
         FirstOpCycle: begin
             data_bus_src = bus_sources::DataBusSrc_Mem;
+
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
 
             if( current_opcode!=8'h89 ) begin
@@ -1075,8 +1068,8 @@ endtask
 task op_brk();
     case(op_cycle)
         CycleDecode: begin
-            if( int_state_next!=IntStateReset );
-            advance_pc();
+            if( int_state_next==IntStateNone )
+                advance_pc();
             op_cycle_next = FirstOpCycle;
         end
         FirstOpCycle: begin
@@ -1390,9 +1383,8 @@ task op_ora();
         CycleAnyAddr: begin
         end
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_or;
 
             next_instruction();
@@ -1595,9 +1587,8 @@ task op_sbc();
         CycleAnyAddr: begin
         end
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
             ctrl_signals[control_signals::AluInverseB] = 1'b1;

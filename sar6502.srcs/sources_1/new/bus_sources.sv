@@ -72,7 +72,7 @@ typedef enum logic {
     AluBSrc_Invalid = 'X,
 
     AluBSrc_Zero = 1'b0,
-    AluBSrc_DataBus
+    AluBSrc_Mem
 } AluBSrcCtl;
 
 typedef enum logic[31:0] {

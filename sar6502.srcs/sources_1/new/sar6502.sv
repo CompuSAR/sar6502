@@ -37,7 +37,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module sar6502#(parameter CPU_VARIANT = 0)
+module sar6502#(parameter CPU_VARIANT = 2)
 (
     input clock,
 
@@ -196,7 +196,7 @@ always_comb begin
 
     case(decoder.alu_b_src)
         bus_sources::AluBSrc_Zero: alu_b_input = 8'h00;
-        bus_sources::AluBSrc_DataBus: alu_b_input = data_bus;
+        bus_sources::AluBSrc_Mem: alu_b_input = data_in;
         default: alu_b_input = 8'hXX;
     endcase
 

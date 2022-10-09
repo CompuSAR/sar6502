@@ -314,11 +314,14 @@ task do_address(input [7:0] opcode);
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
         8'hbd: addr_mode_abs_x();               // LDA abs,x
+        8'hc0: addr_mode_immediate();           // CPY #
         8'hc1: addr_mode_zp_x_ind();            // CMP (zp,x)
+        8'hc4: addr_mode_zp();                  // CPY zp
         8'hc5: addr_mode_zp();                  // CMP zp
         8'hc8: addr_mode_implied();             // INY
         8'hc9: addr_mode_immediate();           // CMP #
         8'hca: addr_mode_implied();             // DEX
+        8'hcc: addr_mode_absolute();            // CPY abs
         8'hcd: addr_mode_absolute();            // CMP abs
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd1: addr_mode_zp_ind_y();            // CMP (zp),y
@@ -328,11 +331,14 @@ task do_address(input [7:0] opcode);
         8'hd9: addr_mode_abs_y();               // CMP abs,y
         8'hda: addr_mode_stack(opcode);         // PHX
         8'hdd: addr_mode_abs_x();               // CMP abs,x
+        8'he0: addr_mode_immediate();           // CPX #
         8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
+        8'he4: addr_mode_zp();                  // CPX zp
         8'he5: addr_mode_zp();                  // SBC zp
         8'he8: addr_mode_implied();             // INX
         8'he9: addr_mode_immediate();           // SBC #
         8'hea: addr_mode_implied();             // NOP
+        8'hec: addr_mode_absolute();            // CPX abs
         8'hed: addr_mode_absolute();            // SBC abs
         8'hf0: addr_mode_pc_rel();              // BEQ
         8'hf1: addr_mode_zp_ind_y();            // SBC (zp),y
@@ -419,11 +425,14 @@ task do_opcode(input [7:0]opcode);
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
         8'hbd: op_lda();                        // LDA abs,x
+        8'hc0: op_cpy();                        // CPY #
         8'hc1: op_cmp();                        // CMP (zp,x)
+        8'hc4: op_cpy();                        // CPY zp
         8'hc5: op_cmp();                        // CMP zp
         8'hc8: op_iny();
         8'hc9: op_cmp();                        // CMP #
         8'hca: op_dex();
+        8'hcc: op_cpy();                        // CPY abs
         8'hcd: op_cmp();                        // CMP abs
         8'hd0: op_bne();
         8'hd1: op_cmp();                        // CMP (zp),y
@@ -434,11 +443,14 @@ task do_opcode(input [7:0]opcode);
         8'hda: op_phx();
         8'hdb: op_stp();
         8'hdd: op_cmp();                        // CMP abs,x
+        8'he0: op_cpx();                        // CPX #
         8'he1: op_sbc();                        // SBC (zp,x)
+        8'he4: op_cpx();                        // CPX zp
         8'he5: op_sbc();                        // SBC zp
         8'he8: op_inx();
         8'he9: op_sbc();                        // SBC #
         8'hea: op_nop();
+        8'hec: op_cpx();                        // CPX abs
         8'hed: op_sbc();                        // SBC abs
         8'hf0: op_beq();
         8'hf1: op_sbc();                        // SBC (zp),y
@@ -486,21 +498,27 @@ task do_post();
         8'h7d: post_adc();                        // ADC abs,x
         8'h88: post_dey();
         8'h89: post_bit();                        // BIT #
+        8'hc0: post_cmp();                        // CPY #
         8'hc1: post_cmp();                        // CMP (zp,x)
+        8'hc4: post_cmp();                        // CPY zp
         8'hc5: post_cmp();                        // CMP zp
         8'hc8: post_iny();
         8'hc9: post_cmp();                        // CMP #
         8'hca: post_dex();
+        8'hcc: post_cmp();                        // CPY abs
         8'hcd: post_cmp();                        // CMP abs
         8'hd1: post_cmp();                        // CMP (zp),y
         8'hd2: post_cmp();                        // CMP (zp)
         8'hd5: post_cmp();                        // CMP zp,x
         8'hd9: post_cmp();                        // CMP abs,y
         8'hdd: post_cmp();                        // CMP abs,x
+        8'he0: post_cmp();                        // CPX #
         8'he1: post_sbc();                        // SBC (zp,x)
+        8'he4: post_cmp();                        // CPX zp
         8'he5: post_sbc();                        // SBC zp
         8'he8: post_inx();
         8'he9: post_sbc();                        // SBC #
+        8'hec: post_cmp();                        // CPX abs
         8'hed: post_sbc();                        // SBC abs
         8'hf1: post_sbc();                        // SBC (zp),y
         8'hf2: post_sbc();                        // SBC (zp)
@@ -1244,6 +1262,38 @@ task post_cmp();
     ctrl_signals[control_signals::StatUpdateN] = 1'b1;
     ctrl_signals[control_signals::StatUpdateC] = 1'b1;
     ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+endtask
+
+task op_cpx();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegX;
+            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            next_instruction();
+        end
+    endcase
+endtask
+
+task op_cpy();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegY;
+            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            next_instruction();
+        end
+    endcase
 endtask
 
 task op_dex();

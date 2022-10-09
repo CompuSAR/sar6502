@@ -275,6 +275,7 @@ task do_address(input [7:0] opcode);
         8'h35: addr_mode_zp_x();                // AND zp,x
         8'h38: addr_mode_implied();             // SEC
         8'h39: addr_mode_abs_y();               // AND abs,y
+        8'h3a: addr_mode_implied();             // DEC
         8'h3c: addr_mode_abs_x();               // BIT abs,x
         8'h3d: addr_mode_abs_x();               // AND abs,x
         8'h40: addr_mode_stack(opcode);         // RTI
@@ -318,19 +319,23 @@ task do_address(input [7:0] opcode);
         8'hc1: addr_mode_zp_x_ind();            // CMP (zp,x)
         8'hc4: addr_mode_zp();                  // CPY zp
         8'hc5: addr_mode_zp();                  // CMP zp
+        8'hc6: addr_mode_zp();                  // DEC zp
         8'hc8: addr_mode_implied();             // INY
         8'hc9: addr_mode_immediate();           // CMP #
         8'hca: addr_mode_implied();             // DEX
         8'hcc: addr_mode_absolute();            // CPY abs
         8'hcd: addr_mode_absolute();            // CMP abs
+        8'hce: addr_mode_absolute();            // DEC abs
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd1: addr_mode_zp_ind_y();            // CMP (zp),y
         8'hd2: addr_mode_zp_ind();              // CMP (zp)
         8'hd5: addr_mode_zp_x();                // CMP zp,x
+        8'hd6: addr_mode_zp_x();                // DEC zp,x
         8'hd8: addr_mode_implied();             // CLD
         8'hd9: addr_mode_abs_y();               // CMP abs,y
         8'hda: addr_mode_stack(opcode);         // PHX
         8'hdd: addr_mode_abs_x();               // CMP abs,x
+        8'hde: addr_mode_abs_x();               // DEC abs,x
         8'he0: addr_mode_immediate();           // CPX #
         8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
         8'he4: addr_mode_zp();                  // CPX zp
@@ -386,6 +391,7 @@ task do_opcode(input [7:0]opcode);
         8'h35: op_and();                        // AND zp,x
         8'h38: op_sec();
         8'h39: op_and();                        // AND abs,y
+        8'h3a: op_dec_A();                      // DEC
         8'h3c: op_bit();                        // BIT abs,x
         8'h3d: op_and();                        // AND abs,x
         8'h40: op_rti();
@@ -429,20 +435,24 @@ task do_opcode(input [7:0]opcode);
         8'hc1: op_cmp();                        // CMP (zp,x)
         8'hc4: op_cpy();                        // CPY zp
         8'hc5: op_cmp();                        // CMP zp
+        8'hc6: op_dec();                        // DEC zp
         8'hc8: op_iny();
         8'hc9: op_cmp();                        // CMP #
         8'hca: op_dex();
         8'hcc: op_cpy();                        // CPY abs
         8'hcd: op_cmp();                        // CMP abs
+        8'hce: op_dec();                        // DEC abs
         8'hd0: op_bne();
         8'hd1: op_cmp();                        // CMP (zp),y
         8'hd2: op_cmp();                        // CMP (zp)
         8'hd5: op_cmp();                        // CMP zp,x
+        8'hd6: op_dec();                        // DEC zp,x
         8'hd8: op_cld();
         8'hd9: op_cmp();                        // CMP abs,y
         8'hda: op_phx();
         8'hdb: op_stp();
         8'hdd: op_cmp();                        // CMP abs,x
+        8'hde: op_dec();                        // DEC abs,x
         8'he0: op_cpx();                        // CPX #
         8'he1: op_sbc();                        // SBC (zp,x)
         8'he4: op_cpx();                        // CPX zp
@@ -485,6 +495,7 @@ task do_post();
         8'h34: post_bit();                        // BIT zp,x
         8'h35: post_and();                        // AND zp,x
         8'h39: post_and();                        // AND abs,y
+        8'h3a: post_dec_A();
         8'h3c: post_bit();                        // BIT abs,x
         8'h3d: post_and();                        // AND abs,x
         8'h61: post_adc();                        // ADC (zp,x)
@@ -1294,6 +1305,69 @@ task op_cpy();
             next_instruction();
         end
     endcase
+endtask
+
+task op_dec();
+    casex(op_cycle)
+        CycleAnyAddr: memory_lock = 1'b1;
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            alu_carry_in = 1'b0;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+            end
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_dec_A();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            alu_carry_in = 1'b0;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_dec_A();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_dex();

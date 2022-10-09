@@ -58,6 +58,7 @@ module decoder#(parameter CPU_VARIANT = 2)
     output bus_sources::PcNextSourceCtl pc_next_src,
     output bus_sources::AluASrcCtl alu_a_src,
     output bus_sources::AluBSrcCtl alu_b_src,
+    output bus_sources::DataOutSourceCtl data_out_src,
 
     output control_signals::alu_control alu_op,
     output logic alu_carry_in,
@@ -129,6 +130,7 @@ begin
     special_bus_src = bus_sources::SpecialBusSrc_Invalid;
     alu_a_src = bus_sources::AluASrc_Invalid;
     alu_b_src = bus_sources::AluBSrc_Invalid;
+    data_out_src = bus_sources::DataOutSrc_Invalid;
     pcl_bus_src = bus_sources::PcLowSrc_Invalid;
     pch_bus_src = bus_sources::PcHighSrc_Invalid;
     pc_next_src = bus_sources::PcNextSrc_Invalid;
@@ -312,11 +314,20 @@ task do_address(input [7:0] opcode);
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
         8'hbd: addr_mode_abs_x();               // LDA abs,x
+        8'hc1: addr_mode_zp_x_ind();            // CMP (zp,x)
+        8'hc5: addr_mode_zp();                  // CMP zp
         8'hc8: addr_mode_implied();             // INY
+        8'hc9: addr_mode_immediate();           // CMP #
         8'hca: addr_mode_implied();             // DEX
+        8'hcd: addr_mode_absolute();            // CMP abs
         8'hd0: addr_mode_pc_rel();              // BNE
+        8'hd1: addr_mode_zp_ind_y();            // CMP (zp),y
+        8'hd2: addr_mode_zp_ind();              // CMP (zp)
+        8'hd5: addr_mode_zp_x();                // CMP zp,x
         8'hd8: addr_mode_implied();             // CLD
+        8'hd9: addr_mode_abs_y();               // CMP abs,y
         8'hda: addr_mode_stack(opcode);         // PHX
+        8'hdd: addr_mode_abs_x();               // CMP abs,x
         8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
         8'he5: addr_mode_zp();                  // SBC zp
         8'he8: addr_mode_implied();             // INX
@@ -408,12 +419,21 @@ task do_opcode(input [7:0]opcode);
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
         8'hbd: op_lda();                        // LDA abs,x
+        8'hc1: op_cmp();                        // CMP (zp,x)
+        8'hc5: op_cmp();                        // CMP zp
         8'hc8: op_iny();
+        8'hc9: op_cmp();                        // CMP #
         8'hca: op_dex();
+        8'hcd: op_cmp();                        // CMP abs
         8'hd0: op_bne();
+        8'hd1: op_cmp();                        // CMP (zp),y
+        8'hd2: op_cmp();                        // CMP (zp)
+        8'hd5: op_cmp();                        // CMP zp,x
         8'hd8: op_cld();
+        8'hd9: op_cmp();                        // CMP abs,y
         8'hda: op_phx();
         8'hdb: op_stp();
+        8'hdd: op_cmp();                        // CMP abs,x
         8'he1: op_sbc();                        // SBC (zp,x)
         8'he5: op_sbc();                        // SBC zp
         8'he8: op_inx();
@@ -466,8 +486,17 @@ task do_post();
         8'h7d: post_adc();                        // ADC abs,x
         8'h88: post_dey();
         8'h89: post_bit();                        // BIT #
+        8'hc1: post_cmp();                        // CMP (zp,x)
+        8'hc5: post_cmp();                        // CMP zp
         8'hc8: post_iny();
+        8'hc9: post_cmp();                        // CMP #
         8'hca: post_dex();
+        8'hcd: post_cmp();                        // CMP abs
+        8'hd1: post_cmp();                        // CMP (zp),y
+        8'hd2: post_cmp();                        // CMP (zp)
+        8'hd5: post_cmp();                        // CMP zp,x
+        8'hd9: post_cmp();                        // CMP abs,y
+        8'hdd: post_cmp();                        // CMP abs,x
         8'he1: post_sbc();                        // SBC (zp,x)
         8'he5: post_sbc();                        // SBC zp
         8'he8: post_inx();
@@ -947,6 +976,7 @@ task op_asl();
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
                 data_bus_src = bus_sources::DataBusSrc_Mem;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
             end
 
             alu_a_src = bus_sources::AluASrc_Mem;
@@ -957,6 +987,7 @@ task op_asl();
             addr_bus_ol();
             memory_lock = 1'b1;
             data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
@@ -1075,23 +1106,28 @@ task op_brk();
         FirstOpCycle: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset )
+            if( int_state!=IntStateReset ) begin
                 write = 1;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+            end
             data_bus_src = bus_sources::DataBusSrc_PcHigh;
         end
         CycleOp2: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset )
+            if( int_state!=IntStateReset ) begin
                 write = 1;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+            end
             data_bus_src = bus_sources::DataBusSrc_PcLow;
         end
         CycleOp3: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset )
+            if( int_state!=IntStateReset ) begin
                 write = 1;
-            data_bus_src = bus_sources::DataBusSrc_Status;
+                data_out_src = bus_sources::DataOutSrc_Status;
+            end
             ctrl_signals[control_signals::StatOutputB] = int_state==IntStateNone ? 1'b1 : 1'b0;
         end
         CycleOp4: begin
@@ -1182,6 +1218,32 @@ task op_clv();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task op_cmp();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            next_instruction();
+        end
+    endcase
+endtask
+
+task post_cmp();
+    data_bus_src = bus_sources::DataBusSrc_Alu;
+
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+    ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 endtask
 
 task op_dex();
@@ -1293,6 +1355,7 @@ task op_jsr();
         CycleOp2: begin
             addr_bus_stack();
             data_bus_src = bus_sources::DataBusSrc_PcHigh;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1;
 
             stack_pointer_push();
@@ -1300,6 +1363,7 @@ task op_jsr();
         CycleOp3: begin
             addr_bus_stack();
             data_bus_src = bus_sources::DataBusSrc_PcLow;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1;
 
             stack_pointer_push();
@@ -1408,6 +1472,7 @@ task op_pha();
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegA;
             data_bus_src = bus_sources::DataBusSrc_Special;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
             addr_bus_stack();
         end
@@ -1425,6 +1490,7 @@ task op_phx();
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegX;
             data_bus_src = bus_sources::DataBusSrc_Special;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
             addr_bus_stack();
         end
@@ -1442,6 +1508,7 @@ task op_phy();
         FirstOpCycle: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegY;
             data_bus_src = bus_sources::DataBusSrc_Special;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
             addr_bus_stack();
         end
@@ -1457,7 +1524,7 @@ endtask
 task op_php();
     case(op_cycle)
         FirstOpCycle: begin
-            data_bus_src = bus_sources::DataBusSrc_Status;
+            data_out_src = bus_sources::DataOutSrc_Status;
             ctrl_signals[control_signals::StatOutputB] = 1'b1;
             write = 1'b1;
             addr_bus_stack();
@@ -1653,6 +1720,7 @@ task op_sta();
         CycleAnyAddr: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegA;
             data_bus_src = bus_sources::DataBusSrc_Special;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
         end
         FirstOpCycle: begin
@@ -1666,6 +1734,7 @@ task op_stz();
     casex(op_cycle)
         CycleAnyAddr: begin
             data_bus_src = bus_sources::DataBusSrc_Zero;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;
         end
         FirstOpCycle: begin

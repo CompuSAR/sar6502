@@ -7,7 +7,6 @@ typedef enum logic[31:0] {
     DataBusSrc_Zero = 0,
     DataBusSrc_Ones,
     DataBusSrc_RegA,
-    DataBusSrc_Status,
     DataBusSrc_Mem,
     DataBusSrc_Alu,
     DataBusSrc_Special,
@@ -96,5 +95,12 @@ typedef enum logic {
     PcNextSrc_Pc = 1'b0,
     PcNextSrc_Bus
 } PcNextSourceCtl;
+
+typedef enum logic {
+    DataOutSrc_Invalid = 'X,
+
+    DataOutSrc_DataBus = 1'b0,
+    DataOutSrc_Status
+} DataOutSourceCtl;
 
 endpackage // bus_sources

@@ -42,7 +42,7 @@ module sar6502#(parameter CPU_VARIANT = 2)
     input clock,
 
     output [15:0] address,
-    output [7:0] data_out,
+    output logic[7:0] data_out,
     output write,
 
     input [7:0] data_in,
@@ -62,7 +62,6 @@ module sar6502#(parameter CPU_VARIANT = 2)
 );
 
 logic [7:0] data_bus;
-assign data_out = data_bus;
 logic [7:0] address_bus_low, address_bus_high;
 logic [7:0] special_bus;
 logic [7:0] pcl_in, pch_in;
@@ -173,7 +172,6 @@ always_comb begin
         bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
         bus_sources::DataBusSrc_Ones: data_bus = 8'hff;
         bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
-        bus_sources::DataBusSrc_Status: data_bus = reg_stat.data_out;
         bus_sources::DataBusSrc_Mem: data_bus = data_in;
         bus_sources::DataBusSrc_Alu: data_bus = last_alu_result;
         bus_sources::DataBusSrc_Special: data_bus = special_bus;
@@ -210,13 +208,19 @@ always_comb begin
         bus_sources::PcLowSrc_Mem: pcl_in = data_in;
         bus_sources::PcLowSrc_ALU: pcl_in = last_alu_result;
         bus_sources::PcLowSrc_Incrementor: pcl_in = pc_next[7:0];
-        default: pcl_in = 7'hXX;
+        default: pcl_in = 8'hXX;
     endcase
 
     case(decoder.pch_bus_src)
         bus_sources::PcHighSrc_Mem: pch_in = data_in;
         bus_sources::PcHighSrc_Incrementor: pch_in = pc_next[15:8];
-        default: pch_in = 7'hXX;
+        default: pch_in = 8'hXX;
+    endcase
+
+    case(decoder.data_out_src)
+        bus_sources::DataOutSrc_Status: data_out = reg_stat.data_out;
+        bus_sources::DataOutSrc_DataBus: data_out = data_bus;
+        default: data_out = 8'hXX;
     endcase
 end
 

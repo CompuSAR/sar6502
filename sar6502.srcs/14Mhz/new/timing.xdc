@@ -20,3 +20,5 @@ set_output_delay -clock [get_clocks clock] -min -add_delay 0.000 [get_ports writ
 set_output_delay -clock [get_clocks clock] -max -add_delay 30.000 [get_ports write]
 set_output_delay -clock [get_clocks clock] -min -add_delay 0.000 [get_ports memory_lock]
 set_output_delay -clock [get_clocks clock] -max -add_delay 30.000 [get_ports memory_lock]
+set_output_delay -clock [get_clocks clock] -min -add_delay 0.000 [get_ports incompatible]
+set_output_delay -clock [get_clocks clock] -max -add_delay 30.000 [get_ports incompatible]

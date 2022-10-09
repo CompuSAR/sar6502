@@ -2,21 +2,21 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Company:  Some Assembly Required
 // Engineer: Shachar Shemesh
-// 
+//
 // Create Date: 02/23/2022 09:43:53 PM
 // Design Name: sar6502
 // Module Name: decoder
 // Project Name: CompuSAR
-// Target Devices: 
-// Tool Versions: 
+// Target Devices:
+// Tool Versions:
 // Description: 6502 decoder
-// 
-// Dependencies: 
-// 
+//
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
+//
 // License:
 //   Copyright (C) 2022.
 //   Copyright owners listed in AUTHORS file.
@@ -34,7 +34,7 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program; if not, write to the Free Software
 //   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-// 
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 module decoder#(parameter CPU_VARIANT = 0)
@@ -233,13 +233,22 @@ endtask
 task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: addr_mode_stack(opcode);         // BRK
+        8'h01: addr_mode_zp_x_ind();            // ORA (zp,x)
+        8'h05: addr_mode_zp();                  // ORA zp
         8'h06: addr_mode_zp();                  // ASL zp
         8'h08: addr_mode_stack(opcode);         // PHP
+        8'h09: addr_mode_immediate();           // ORA #
         8'h0a: addr_mode_acc();                 // ASL A
+        8'h0d: addr_mode_absolute();            // ORA abs
         8'h0e: addr_mode_absolute();            // ASL abs
         8'h10: addr_mode_pc_rel();              // BPL
+        8'h11: addr_mode_zp_ind_y();            // ORA (zp),y
+        8'h12: addr_mode_zp_ind();              // ORA (zp)
+        8'h15: addr_mode_zp_x();                // ORA zp,x
         8'h16: addr_mode_zp_x();                // ASL zp,x
         8'h18: addr_mode_implied();             // CLC
+        8'h19: addr_mode_abs_y();               // ORA abs,y
+        8'h1d: addr_mode_abs_x();               // ORA abs,x
         8'h1e: addr_mode_abs_x();               // ASL abs,x
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h21: addr_mode_zp_x_ind();            // AND (zp,x)
@@ -315,13 +324,22 @@ endtask
 task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
+        8'h01: op_ora();                        // ORA (zp,x)
+        8'h05: op_ora();                        // ORA zp
         8'h06: op_asl();                        // ASL zp
         8'h08: op_php();
+        8'h09: op_ora();                        // ORA #
         8'h0a: op_asl_A();
+        8'h0d: op_ora();                        // ORA abs
         8'h0e: op_asl();                        // ASL abs
         8'h10: op_bpl();
+        8'h11: op_ora();                        // ORA (zp),y
+        8'h12: op_ora();                        // ORA (zp)
+        8'h15: op_ora();                        // ORA zp,x
         8'h16: op_asl();                        // ASL zp,x
         8'h18: op_clc();
+        8'h19: op_ora();                        // ORA abs,y
+        8'h1d: op_ora();                        // ORA abs,x
         8'h1e: op_asl();                        // ASL abs,x
         8'h20: op_jsr();                        // JSR abs
         8'h21: op_and();                        // AND (zp),x
@@ -397,6 +415,15 @@ endtask
 
 task do_post();
     case(current_opcode)
+        8'h01: post_ora();                        // ORA (zp,x)
+        8'h05: post_ora();                        // ORA zp
+        8'h09: post_ora();                        // ORA #
+        8'h0d: post_ora();                        // ORA abs
+        8'h11: post_ora();                        // ORA (zp),y
+        8'h12: post_ora();                        // ORA (zp)
+        8'h15: post_ora();                        // ORA zp,x
+        8'h19: post_ora();                        // ORA abs,y
+        8'h1d: post_ora();                        // ORA abs,x
         8'h21: post_and();                        // AND (zp),x
         8'h25: post_and();                        // AND zp
         8'h29: post_and();                        // AND #
@@ -1256,6 +1283,32 @@ task op_nop();
         end
         default: set_invalid_state();
     endcase
+endtask
+
+task op_ora();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_or;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task post_ora();
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
 endtask
 
 task op_pha();

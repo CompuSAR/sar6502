@@ -100,6 +100,7 @@ logic [MAX_OPCODE_CYCLES-1:0] op_cycle = FirstOpCycle, op_cycle_next;
 logic [7:0] current_opcode = 8'hdb, next_opcode;
 logic jump_negative;
 logic pending_irq, pending_irq_next, pending_nmi, pending_nmi_next;
+logic bbrs_jump, bbrs_jump_next;
 
 enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
 
@@ -111,6 +112,7 @@ always_ff@(posedge clock) begin
         jump_negative <= memory_in[7];
         pending_irq <= pending_irq_next;
         pending_nmi <= pending_nmi_next;
+        bbrs_jump <= bbrs_jump_next;
     end
 end
 
@@ -120,6 +122,7 @@ begin
     next_opcode = 8'hXX;
     incompatible = 1'bX;
     alu_carry_in = 1'bX;
+    bbrs_jump_next = 1'bX;
 
     pending_nmi_next = 1'bX;
     pending_irq_next = 1'bX;
@@ -251,6 +254,7 @@ task do_address(input [7:0] opcode);
         8'h0a: addr_mode_acc();                 // ASL A
         8'h0d: addr_mode_absolute();            // ORA abs
         8'h0e: addr_mode_absolute();            // ASL abs
+        8'h0f: addr_mode_zp();                  // BBR0 zp
         8'h10: addr_mode_pc_rel();              // BPL
         8'h11: addr_mode_zp_ind_y();            // ORA (zp),y
         8'h12: addr_mode_zp_ind();              // ORA (zp)
@@ -260,6 +264,7 @@ task do_address(input [7:0] opcode);
         8'h19: addr_mode_abs_y();               // ORA abs,y
         8'h1d: addr_mode_abs_x();               // ORA abs,x
         8'h1e: addr_mode_abs_x();               // ASL abs,x
+        8'h1f: addr_mode_zp();                  // BBR1 zp
         8'h20: addr_mode_stack(opcode);         // JSR
         8'h21: addr_mode_zp_x_ind();            // AND (zp,x)
         8'h24: addr_mode_zp();                  // BIT zp
@@ -268,6 +273,7 @@ task do_address(input [7:0] opcode);
         8'h29: addr_mode_immediate();           // AND #
         8'h2c: addr_mode_absolute();            // BIT abs
         8'h2d: addr_mode_absolute();            // AND abs
+        8'h2f: addr_mode_zp();                  // BBR2 zp
         8'h30: addr_mode_pc_rel();              // BMI
         8'h31: addr_mode_zp_ind_y();            // AND (zp),y
         8'h32: addr_mode_zp_ind();              // AND (zp)
@@ -278,16 +284,20 @@ task do_address(input [7:0] opcode);
         8'h3a: addr_mode_implied();             // DEC
         8'h3c: addr_mode_abs_x();               // BIT abs,x
         8'h3d: addr_mode_abs_x();               // AND abs,x
+        8'h3f: addr_mode_zp();                  // BBR3 zp
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h48: addr_mode_stack(opcode);         // PHA
+        8'h4f: addr_mode_zp();                  // BBR4 zp
         8'h50: addr_mode_pc_rel();              // BVC
         8'h58: addr_mode_implied();             // CLI
         8'h5a: addr_mode_stack(opcode);         // PHY
+        8'h5f: addr_mode_zp();                  // BBR5 zp
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
         8'h65: addr_mode_zp();                  // ADC zp
         8'h69: addr_mode_immediate();           // ADC #
         8'h6d: addr_mode_absolute();            // ADC abs
+        8'h6f: addr_mode_zp();                  // BBR6 zp
         8'h70: addr_mode_pc_rel();              // BVS
         8'h71: addr_mode_zp_ind_y();            // ADC (zp),y
         8'h72: addr_mode_zp_ind();              // ADC (zp)
@@ -295,19 +305,23 @@ task do_address(input [7:0] opcode);
         8'h78: addr_mode_implied();             // SEI
         8'h79: addr_mode_abs_y();               // ADC abs,y
         8'h7d: addr_mode_abs_x();               // ADC abs,x
+        8'h7f: addr_mode_zp();                  // BBR7 zp
         8'h80: addr_mode_pc_rel();              // BRA
         8'h88: addr_mode_implied();             // DEY
         8'h89: addr_mode_immediate();           // BIT #
         8'h8d: addr_mode_absolute();            // STA abs
+        8'h8f: addr_mode_zp();                  // BBS0 zp
         8'h90: addr_mode_pc_rel();              // BCC
         8'h9a: addr_mode_implied();             // TXS
         8'h9c: addr_mode_absolute();            // STZ abs
+        8'h9f: addr_mode_zp();                  // BBS1 zp
         8'ha0: addr_mode_immediate();           // LDY #
         8'ha1: addr_mode_zp_x_ind();            // LDA (zp,x)
         8'ha2: addr_mode_immediate();           // LDX #
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha9: addr_mode_immediate();           // LDA #
         8'had: addr_mode_absolute();            // LDA abs
+        8'haf: addr_mode_zp();                  // BBS2 zp
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hb1: addr_mode_zp_ind_y();            // LDA (zp),y
         8'hb2: addr_mode_zp_ind();              // LDA (zp)
@@ -315,6 +329,7 @@ task do_address(input [7:0] opcode);
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
         8'hbd: addr_mode_abs_x();               // LDA abs,x
+        8'hbf: addr_mode_zp();                  // BBS3 zp
         8'hc0: addr_mode_immediate();           // CPY #
         8'hc1: addr_mode_zp_x_ind();            // CMP (zp,x)
         8'hc4: addr_mode_zp();                  // CPY zp
@@ -326,6 +341,7 @@ task do_address(input [7:0] opcode);
         8'hcc: addr_mode_absolute();            // CPY abs
         8'hcd: addr_mode_absolute();            // CMP abs
         8'hce: addr_mode_absolute();            // DEC abs
+        8'hcf: addr_mode_zp();                  // BBS4 zp
         8'hd0: addr_mode_pc_rel();              // BNE
         8'hd1: addr_mode_zp_ind_y();            // CMP (zp),y
         8'hd2: addr_mode_zp_ind();              // CMP (zp)
@@ -336,6 +352,7 @@ task do_address(input [7:0] opcode);
         8'hda: addr_mode_stack(opcode);         // PHX
         8'hdd: addr_mode_abs_x();               // CMP abs,x
         8'hde: addr_mode_abs_x();               // DEC abs,x
+        8'hdf: addr_mode_zp();                  // BBS5 zp
         8'he0: addr_mode_immediate();           // CPX #
         8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
         8'he4: addr_mode_zp();                  // CPX zp
@@ -345,6 +362,7 @@ task do_address(input [7:0] opcode);
         8'hea: addr_mode_implied();             // NOP
         8'hec: addr_mode_absolute();            // CPX abs
         8'hed: addr_mode_absolute();            // SBC abs
+        8'hef: addr_mode_zp();                  // BBS6 zp
         8'hf0: addr_mode_pc_rel();              // BEQ
         8'hf1: addr_mode_zp_ind_y();            // SBC (zp),y
         8'hf2: addr_mode_zp_ind();              // SBC (zp)
@@ -352,6 +370,7 @@ task do_address(input [7:0] opcode);
         8'hf8: addr_mode_implied();             // SED
         8'hf9: addr_mode_abs_y();               // SBC abs,y
         8'hfd: addr_mode_abs_x();               // SBC abs,x
+        8'hff: addr_mode_zp();                  // BBS7 zp
         default: set_invalid_state();
     endcase
 endtask
@@ -367,6 +386,7 @@ task do_opcode(input [7:0]opcode);
         8'h0a: op_asl_A();
         8'h0d: op_ora();                        // ORA abs
         8'h0e: op_asl();                        // ASL abs
+        8'h0f: op_bbrs();                       // BBR0 zp
         8'h10: op_bpl();
         8'h11: op_ora();                        // ORA (zp),y
         8'h12: op_ora();                        // ORA (zp)
@@ -376,6 +396,7 @@ task do_opcode(input [7:0]opcode);
         8'h19: op_ora();                        // ORA abs,y
         8'h1d: op_ora();                        // ORA abs,x
         8'h1e: op_asl();                        // ASL abs,x
+        8'h1f: op_bbrs();                       // BBR1 zp
         8'h20: op_jsr();                        // JSR abs
         8'h21: op_and();                        // AND (zp),x
         8'h24: op_bit();                        // BIT zp
@@ -384,6 +405,7 @@ task do_opcode(input [7:0]opcode);
         8'h29: op_and();                        // AND #
         8'h2c: op_bit();                        // BIT abs
         8'h2d: op_and();                        // AND abs
+        8'h2f: op_bbrs();                       // BBR2 zp
         8'h30: op_bmi();
         8'h31: op_and();                        // AND (zp),y
         8'h32: op_and();                        // AND (zp)
@@ -394,16 +416,20 @@ task do_opcode(input [7:0]opcode);
         8'h3a: op_dec_A();                      // DEC
         8'h3c: op_bit();                        // BIT abs,x
         8'h3d: op_and();                        // AND abs,x
+        8'h3f: op_bbrs();                       // BBR3 zp
         8'h40: op_rti();
         8'h48: op_pha();
+        8'h4f: op_bbrs();                       // BBR4 zp
         8'h50: op_bvc();
         8'h58: op_cli();
         8'h5a: op_phy();
+        8'h5f: op_bbrs();                       // BBR5 zp
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
         8'h65: op_adc();                        // ADC zp
         8'h69: op_adc();                        // ADC #
         8'h6d: op_adc();                        // ADC abs
+        8'h6f: op_bbrs();                       // BBR6 zp
         8'h70: op_bvs();
         8'h71: op_adc();                        // ADC (zp),y
         8'h72: op_adc();                        // ADC (zp)
@@ -411,19 +437,23 @@ task do_opcode(input [7:0]opcode);
         8'h78: op_sei();
         8'h79: op_adc();                        // ADC abs,y
         8'h7d: op_adc();                        // ADC abs,x
+        8'h7f: op_bbrs();                       // BBR7 zp
         8'h80: op_bra();
         8'h88: op_dey();
         8'h89: op_bit();                        // BIT #
         8'h8d: op_sta();                        // STA abs
+        8'h8f: op_bbrs();                       // BBS0 zp
         8'h90: op_bcc();
         8'h9a: op_txs();
         8'h9c: op_stz();                        // STZ abs
+        8'h9f: op_bbrs();                       // BBS1 zp
         8'ha0: op_ldy();                        // LDY #
         8'ha1: op_lda();                        // LDA (zp,x)
         8'ha2: op_ldx();                        // LDX #
         8'ha5: op_lda();                        // LDA zp
         8'ha9: op_lda();                        // LDA #
         8'had: op_lda();                        // LDA abs
+        8'haf: op_bbrs();                       // BBS2 zp
         8'hb0: op_bcs();
         8'hb1: op_lda();                        // LDA (zp),y
         8'hb2: op_lda();                        // LDA (zp)
@@ -431,6 +461,7 @@ task do_opcode(input [7:0]opcode);
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
         8'hbd: op_lda();                        // LDA abs,x
+        8'hbf: op_bbrs();                       // BBS3 zp
         8'hc0: op_cpy();                        // CPY #
         8'hc1: op_cmp();                        // CMP (zp,x)
         8'hc4: op_cpy();                        // CPY zp
@@ -442,6 +473,7 @@ task do_opcode(input [7:0]opcode);
         8'hcc: op_cpy();                        // CPY abs
         8'hcd: op_cmp();                        // CMP abs
         8'hce: op_dec();                        // DEC abs
+        8'hcf: op_bbrs();                       // BBS4 zp
         8'hd0: op_bne();
         8'hd1: op_cmp();                        // CMP (zp),y
         8'hd2: op_cmp();                        // CMP (zp)
@@ -453,6 +485,7 @@ task do_opcode(input [7:0]opcode);
         8'hdb: op_stp();
         8'hdd: op_cmp();                        // CMP abs,x
         8'hde: op_dec();                        // DEC abs,x
+        8'hdf: op_bbrs();                       // BBS5 zp
         8'he0: op_cpx();                        // CPX #
         8'he1: op_sbc();                        // SBC (zp,x)
         8'he4: op_cpx();                        // CPX zp
@@ -462,6 +495,7 @@ task do_opcode(input [7:0]opcode);
         8'hea: op_nop();
         8'hec: op_cpx();                        // CPX abs
         8'hed: op_sbc();                        // SBC abs
+        8'hef: op_bbrs();                       // BBS6 zp
         8'hf0: op_beq();
         8'hf1: op_sbc();                        // SBC (zp),y
         8'hf2: op_sbc();                        // SBC (zp)
@@ -469,6 +503,7 @@ task do_opcode(input [7:0]opcode);
         8'hf8: op_sed();
         8'hf9: op_sbc();                        // SBC abs,y
         8'hfd: op_sbc();                        // SBC abs,x
+        8'hff: op_bbrs();                       // BBS7 zp
         default: set_invalid_state();
     endcase
 endtask
@@ -549,14 +584,13 @@ task addr_mode_absolute();
 
             addr_bus_pc();
             advance_pc();
-
-            op_cycle_next = LastAddrCycle;
         end
-        LastAddrCycle: begin
+        CycleAddr2: begin
             addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
+            op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
         end
         default: set_invalid_state();
@@ -707,13 +741,13 @@ task addr_mode_zp();
     case(op_cycle)
         CycleDecode: begin
             advance_pc();
-            op_cycle_next = LastAddrCycle;
         end
-        LastAddrCycle: begin
+        CycleAddr1: begin
             addr_bus_low_src = bus_sources::AddrBusLowSrc_Mem;
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
+            op_cycle_next = FirstOpCycle;
             do_opcode(current_opcode);
         end
         default: set_invalid_state();
@@ -1052,6 +1086,80 @@ task op_asl_A();
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
 
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_bbrs();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+        end
+        CycleOp2: begin
+            addr_bus_pc();
+            advance_pc();
+
+            case( current_opcode[6:4] )
+                3'h0: bbrs_jump_next = memory_in[0] ^ !current_opcode[7];
+                3'h1: bbrs_jump_next = memory_in[1] ^ !current_opcode[7];
+                3'h2: bbrs_jump_next = memory_in[2] ^ !current_opcode[7];
+                3'h3: bbrs_jump_next = memory_in[3] ^ !current_opcode[7];
+                3'h4: bbrs_jump_next = memory_in[4] ^ !current_opcode[7];
+                3'h5: bbrs_jump_next = memory_in[5] ^ !current_opcode[7];
+                3'h6: bbrs_jump_next = memory_in[6] ^ !current_opcode[7];
+                3'h7: bbrs_jump_next = memory_in[7] ^ !current_opcode[7];
+            endcase
+
+        end
+        CycleOp3: begin
+            addr_bus_pc();
+
+            if( !bbrs_jump )
+                next_instruction();
+            else begin
+                alu_a_src = bus_sources::AluASrc_PcLow;
+                alu_b_src = bus_sources::AluBSrc_Mem;
+                alu_op = control_signals::AluOp_add;
+                alu_carry_in = 1'b0;
+            end
+        end
+        CycleOp4: begin
+            if( (jump_negative && alu_carry_out) || (!jump_negative && !alu_carry_out) ) begin
+                // Didn't cross a page boundary
+                next_instruction();
+
+                addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+                pc_next_src = bus_sources::PcNextSrc_Bus;
+            end else begin
+                addr_bus_pc();
+
+                if( CPU_VARIANT==0 ) begin
+                    // Bug compatibility with the MOS6502.
+                    addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+                end
+
+                ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+                pcl_bus_src = bus_sources::PcLowSrc_ALU;
+
+                alu_a_src = bus_sources::AluASrc_PcHigh;
+                alu_b_src = bus_sources::AluBSrc_Zero;
+                alu_op = control_signals::AluOp_add;
+                if( jump_negative ) begin
+                    ctrl_signals[control_signals::AluInverseB] = 1'b1;
+                    alu_carry_in = 1'b0;
+                end else begin
+                    alu_carry_in = 1'b1;
+                end
+            end
+        end
+        CycleOp5: begin
+            next_instruction();
+
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_ALU;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
         end
         default: set_invalid_state();
     endcase

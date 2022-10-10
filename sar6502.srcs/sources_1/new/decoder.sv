@@ -262,6 +262,7 @@ task do_address(input [7:0] opcode);
         8'h16: addr_mode_zp_x();                // ASL zp,x
         8'h18: addr_mode_implied();             // CLC
         8'h19: addr_mode_abs_y();               // ORA abs,y
+        8'h1a: addr_mode_implied();             // INC
         8'h1d: addr_mode_abs_x();               // ORA abs,x
         8'h1e: addr_mode_abs_x();               // ASL abs,x
         8'h1f: addr_mode_zp();                  // BBR1 zp
@@ -374,19 +375,23 @@ task do_address(input [7:0] opcode);
         8'he1: addr_mode_zp_x_ind();            // SBC (zp,x)
         8'he4: addr_mode_zp();                  // CPX zp
         8'he5: addr_mode_zp();                  // SBC zp
+        8'he6: addr_mode_zp();                  // INC zp
         8'he8: addr_mode_implied();             // INX
         8'he9: addr_mode_immediate();           // SBC #
         8'hea: addr_mode_implied();             // NOP
         8'hec: addr_mode_absolute();            // CPX abs
         8'hed: addr_mode_absolute();            // SBC abs
+        8'hee: addr_mode_absolute();            // INC abs
         8'hef: addr_mode_zp();                  // BBS6 zp
         8'hf0: addr_mode_pc_rel();              // BEQ
         8'hf1: addr_mode_zp_ind_y();            // SBC (zp),y
         8'hf2: addr_mode_zp_ind();              // SBC (zp)
         8'hf5: addr_mode_zp_x();                // SBC zp,x
+        8'hf6: addr_mode_zp_x();                // INC zp,x
         8'hf8: addr_mode_implied();             // SED
         8'hf9: addr_mode_abs_y();               // SBC abs,y
         8'hfd: addr_mode_abs_x();               // SBC abs,x
+        8'hfe: addr_mode_abs_x();               // INC abs,x
         8'hff: addr_mode_zp();                  // BBS7 zp
         default: set_invalid_state();
     endcase
@@ -411,6 +416,7 @@ task do_opcode(input [7:0]opcode);
         8'h16: op_asl();                        // ASL zp,x
         8'h18: op_clc();
         8'h19: op_ora();                        // ORA abs,y
+        8'h1a: op_inc_A();                      // INC
         8'h1d: op_ora();                        // ORA abs,x
         8'h1e: op_asl();                        // ASL abs,x
         8'h1f: op_bbrs();                       // BBR1 zp
@@ -523,19 +529,23 @@ task do_opcode(input [7:0]opcode);
         8'he1: op_sbc();                        // SBC (zp,x)
         8'he4: op_cpx();                        // CPX zp
         8'he5: op_sbc();                        // SBC zp
+        8'he6: op_inc();                        // INC zp
         8'he8: op_inx();
         8'he9: op_sbc();                        // SBC #
         8'hea: op_nop();
         8'hec: op_cpx();                        // CPX abs
         8'hed: op_sbc();                        // SBC abs
+        8'hee: op_inc();                        // INC abs
         8'hef: op_bbrs();                       // BBS6 zp
         8'hf0: op_beq();
         8'hf1: op_sbc();                        // SBC (zp),y
         8'hf2: op_sbc();                        // SBC (zp)
         8'hf5: op_sbc();                        // SBC zp,x
+        8'hf6: op_inc();                        // INC zp,x
         8'hf8: op_sed();
         8'hf9: op_sbc();                        // SBC abs,y
         8'hfd: op_sbc();                        // SBC abs,x
+        8'hfe: op_inc();                        // INC abs,x
         8'hff: op_bbrs();                       // BBS7 zp
         default: set_invalid_state();
     endcase
@@ -551,6 +561,7 @@ task do_post();
         8'h12: post_ora();                        // ORA (zp)
         8'h15: post_ora();                        // ORA zp,x
         8'h19: post_ora();                        // ORA abs,y
+        8'h1a: post_dec_A();                      // INC
         8'h1d: post_ora();                        // ORA abs,x
         8'h21: post_and();                        // AND (zp),x
         8'h24: post_bit();                        // BIT zp
@@ -1583,6 +1594,59 @@ task post_dey();
     ctrl_signals[control_signals::StatUpdateN] = 1'b1;
     ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
     ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
+task op_inc();
+    casex(op_cycle)
+        CycleAnyAddr: memory_lock = 1'b1;
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b0;
+            alu_carry_in = 1'b1;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+            end
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_inc_A();
+    case(op_cycle)
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            ctrl_signals[control_signals::AluInverseB] = 1'b0;
+            alu_carry_in = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_inx();

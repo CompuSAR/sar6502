@@ -90,7 +90,7 @@ alu alu(
     .inverse_b(decoder.ctrl_signals[control_signals::AluInverseB])
 );
 
-logic [7:0] last_alu_result;
+logic [7:0] last_alu_result, before_last_alu_result;
 logic last_alu_carry, last_alu_overflow;
 
 status_register reg_stat(
@@ -137,6 +137,7 @@ always_comb begin
         bus_sources::AddrBusLowSrc_OL: address_bus_low = reg_oll.data_out;
         bus_sources::AddrBusLowSrc_SP: address_bus_low = reg_sp.data_out;
         bus_sources::AddrBusLowSrc_ALU: address_bus_low = last_alu_result;
+        bus_sources::AddrBusLowSrc_ALU_Latched: address_bus_low = before_last_alu_result;
         bus_sources::AddrBusLowSrc_F8: address_bus_low = 8'hf8;
         bus_sources::AddrBusLowSrc_F9: address_bus_low = 8'hf9;
         bus_sources::AddrBusLowSrc_FA: address_bus_low = 8'hfa;
@@ -226,6 +227,7 @@ end
 
 always_ff@(posedge clock) begin
     if( ready ) begin
+        before_last_alu_result <= last_alu_result;
         last_alu_result <= alu.result;
         last_alu_carry <= alu.carry_out;
         last_alu_overflow <= alu.overflow_out;

@@ -22,6 +22,7 @@ typedef enum logic[31:0] {
     AddrBusLowSrc_OL,
     AddrBusLowSrc_SP,
     AddrBusLowSrc_ALU,
+    AddrBusLowSrc_ALU_Latched,
 
     AddrBusLowSrc_F8 = 'hF8,
     AddrBusLowSrc_F9,

@@ -307,6 +307,7 @@ task do_address(input [7:0] opcode);
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
         8'h65: addr_mode_zp();                  // ADC zp
         8'h69: addr_mode_immediate();           // ADC #
+        8'h6c: addr_mode_abs_ind();             // JMP (abs)
         8'h6d: addr_mode_absolute();            // ADC abs
         8'h6f: addr_mode_zp();                  // BBR6 zp
         8'h70: addr_mode_pc_rel();              // BVS
@@ -462,6 +463,7 @@ task do_opcode(input [7:0]opcode);
         8'h61: op_adc();                        // ADC (zp,x)
         8'h65: op_adc();                        // ADC zp
         8'h69: op_adc();                        // ADC #
+        8'h6c: op_jmp();                        // JMP (abs)
         8'h6d: op_adc();                        // ADC abs
         8'h6f: op_bbrs();                       // BBR6 zp
         8'h70: op_bvs();
@@ -646,6 +648,58 @@ task addr_mode_absolute();
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
             op_cycle_next = FirstOpCycle;
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task addr_mode_abs_ind();
+    if( CPU_VARIANT==0 )
+        addr_mode_abs_ind_6502();
+    else
+        addr_mode_abs_ind_65c02();
+endtask
+
+task addr_mode_abs_ind_6502();
+endtask
+
+task addr_mode_abs_ind_65c02();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+        end
+        CycleAddr1: begin
+            addr_bus_pc();
+
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+        end
+        CycleAddr2: begin
+            addr_bus_pc();
+
+            // Dummy cycle?
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+
+            ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
+            ctrl_signals[control_signals::LOAD_PCH] = 1'b1;
+            pcl_bus_src = bus_sources::PcLowSrc_Incrementor;
+            pch_bus_src = bus_sources::PcHighSrc_Incrementor;
+            pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+        CycleAddr4: begin
+            addr_bus_pc();
+
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+        end
+        CycleAddr5: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
             do_opcode(current_opcode);
         end
         default: set_invalid_state();

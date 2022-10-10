@@ -286,11 +286,20 @@ task do_address(input [7:0] opcode);
         8'h3d: addr_mode_abs_x();               // AND abs,x
         8'h3f: addr_mode_zp();                  // BBR3 zp
         8'h40: addr_mode_stack(opcode);         // RTI
+        8'h41: addr_mode_zp_x_ind();            // EOR (zp,x)
+        8'h45: addr_mode_zp();                  // EOR zp
         8'h48: addr_mode_stack(opcode);         // PHA
+        8'h49: addr_mode_immediate();           // EOR #
+        8'h4d: addr_mode_absolute();            // EOR abs
         8'h4f: addr_mode_zp();                  // BBR4 zp
         8'h50: addr_mode_pc_rel();              // BVC
+        8'h51: addr_mode_zp_ind_y();            // EOR (zp),y
+        8'h52: addr_mode_zp_ind();              // EOR (zp)
+        8'h55: addr_mode_zp_x();                // EOR zp,x
         8'h58: addr_mode_implied();             // CLI
+        8'h59: addr_mode_abs_y();               // EOR abs,y
         8'h5a: addr_mode_stack(opcode);         // PHY
+        8'h5d: addr_mode_abs_x();               // EOR abs,x
         8'h5f: addr_mode_zp();                  // BBR5 zp
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
@@ -418,11 +427,20 @@ task do_opcode(input [7:0]opcode);
         8'h3d: op_and();                        // AND abs,x
         8'h3f: op_bbrs();                       // BBR3 zp
         8'h40: op_rti();
+        8'h41: op_eor();                        // EOR (zp,x)
+        8'h45: op_eor();                        // EOR zp
         8'h48: op_pha();
+        8'h49: op_eor();                        // EOR #
+        8'h4d: op_eor();                        // EOR abs
         8'h4f: op_bbrs();                       // BBR4 zp
         8'h50: op_bvc();
+        8'h51: op_eor();                        // EOR (zp),y
+        8'h52: op_eor();                        // EOR (zp)
+        8'h55: op_eor();                        // EOR zp,x
         8'h58: op_cli();
+        8'h59: op_eor();                        // EOR abs,y
         8'h5a: op_phy();
+        8'h5d: op_eor();                        // EOR abs,x
         8'h5f: op_bbrs();                       // BBR5 zp
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
@@ -533,6 +551,15 @@ task do_post();
         8'h3a: post_dec_A();
         8'h3c: post_bit();                        // BIT abs,x
         8'h3d: post_and();                        // AND abs,x
+        8'h41: post_and();                        // EOR (zp,x)
+        8'h45: post_and();                        // EOR zp
+        8'h49: post_and();                        // EOR #
+        8'h4d: post_and();                        // EOR abs
+        8'h51: post_and();                        // EOR (zp),y
+        8'h52: post_and();                        // EOR (zp)
+        8'h55: post_and();                        // EOR zp,x
+        8'h59: post_and();                        // EOR abs,y
+        8'h5d: post_and();                        // EOR abs,x
         8'h61: post_adc();                        // ADC (zp,x)
         8'h65: post_adc();                        // ADC zp
         8'h69: post_adc();                        // ADC #
@@ -1000,6 +1027,21 @@ task post_adc();
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
+endtask
+
+task op_eor();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+        end
+        FirstOpCycle: begin
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_op = control_signals::AluOp_xor;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_and();

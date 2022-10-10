@@ -662,6 +662,47 @@ task addr_mode_abs_ind();
 endtask
 
 task addr_mode_abs_ind_6502();
+    case(op_cycle)
+        CycleDecode: begin
+            advance_pc();
+        end
+        CycleAddr1: begin
+            addr_bus_pc();
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b1;
+        end
+        CycleAddr2: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_ALU;
+            alu_b_src = bus_sources::AluBSrc_Zero;
+            alu_op = control_signals::AluOp_add;
+            alu_carry_in = 1'b0;
+        end
+        CycleAddr3: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_ALU;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_OL;
+
+            ctrl_signals[control_signals::LOAD_DL] = 1'b1;
+        end
+        CycleAddr4: begin
+            addr_bus_low_src = bus_sources::AddrBusLowSrc_DL;
+            addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
+
+            ctrl_signals[control_signals::LOAD_OL] = 1'b1;
+
+            op_cycle_next = FirstOpCycle;
+            do_opcode(current_opcode);
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task addr_mode_abs_ind_65c02();

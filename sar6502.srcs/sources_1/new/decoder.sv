@@ -291,6 +291,7 @@ task do_address(input [7:0] opcode);
         8'h45: addr_mode_zp();                  // EOR zp
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h49: addr_mode_immediate();           // EOR #
+        8'h4c: addr_mode_absolute();            // JMP abs
         8'h4d: addr_mode_absolute();            // EOR abs
         8'h4f: addr_mode_zp();                  // BBR4 zp
         8'h50: addr_mode_pc_rel();              // BVC
@@ -445,6 +446,7 @@ task do_opcode(input [7:0]opcode);
         8'h45: op_eor();                        // EOR zp
         8'h48: op_pha();
         8'h49: op_eor();                        // EOR #
+        8'h4c: op_jmp();                        // JMP abs
         8'h4d: op_eor();                        // EOR abs
         8'h4f: op_bbrs();                       // BBR4 zp
         8'h50: op_bvc();
@@ -965,12 +967,16 @@ task addr_mode_zp_ind_y();
     endcase
 endtask
 
-task next_instruction();
+task next_instruction_no_bus();
     sync = 1'b1;
-    addr_bus_pc();
     advance_pc();
 
     op_cycle_next = CycleDecode;
+endtask
+
+task next_instruction();
+    next_instruction_no_bus();
+    addr_bus_pc();
 endtask
 
 task branch_opcode(input condition);
@@ -1695,6 +1701,16 @@ task post_iny();
     ctrl_signals[control_signals::StatUpdateN] = 1'b1;
     ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
     ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+endtask
+
+task op_jmp();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            next_instruction_no_bus();
+            pc_next_src = bus_sources::PcNextSrc_Bus;
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_jsr();

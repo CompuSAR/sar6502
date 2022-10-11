@@ -321,10 +321,12 @@ task do_address(input [7:0] opcode);
         8'h7f: addr_mode_zp();                  // BBR7 zp
         8'h80: addr_mode_pc_rel();              // BRA
         8'h81: addr_mode_zp_x_ind();            // STA (zp,x)
+        8'h84: addr_mode_zp();                  // STY zp
         8'h85: addr_mode_zp();                  // STA zp
         8'h86: addr_mode_zp();                  // STX zp
         8'h88: addr_mode_implied();             // DEY
         8'h89: addr_mode_immediate();           // BIT #
+        8'h8c: addr_mode_absolute();            // STY abs
         8'h8d: addr_mode_absolute();            // STA abs
         8'h8d: addr_mode_absolute();            // STA abs
         8'h8e: addr_mode_absolute();            // STX abs
@@ -332,6 +334,7 @@ task do_address(input [7:0] opcode);
         8'h90: addr_mode_pc_rel();              // BCC
         8'h91: addr_mode_zp_ind_y();            // STA (zp),y
         8'h92: addr_mode_zp_ind();              // STA (zp)
+        8'h94: addr_mode_zp_x();                // STY zp,x
         8'h95: addr_mode_zp_x();                // STA zp,x
         8'h96: addr_mode_zp_y();                // STX zp,y
         8'h99: addr_mode_abs_y();               // STA abs,y
@@ -489,16 +492,19 @@ task do_opcode(input [7:0]opcode);
         8'h7f: op_bbrs();                       // BBR7 zp
         8'h80: op_bra();
         8'h81: op_sta();                        // STA (zp,x)
+        8'h84: op_sty();                        // STY zp
         8'h85: op_sta();                        // STA zp
         8'h86: op_stx();                        // STX zp
         8'h88: op_dey();
         8'h89: op_bit();                        // BIT #
+        8'h8c: op_sty();                        // STY abs
         8'h8d: op_sta();                        // STA abs
         8'h8e: op_stx();                        // STX abs
         8'h8f: op_bbrs();                       // BBS0 zp
         8'h90: op_bcc();
         8'h91: op_sta();                        // STA (zp),y
         8'h92: op_sta();                        // STA (zp)
+        8'h94: op_sty();                        // STY zp,x
         8'h95: op_sta();                        // STA zp,x
         8'h96: op_stx();                        // STX zp,y
         8'h99: op_sta();                        // STA abs,y
@@ -2297,6 +2303,21 @@ task op_stx();
     casex(op_cycle)
         CycleAnyAddr: begin
             special_bus_src = bus_sources::SpecialBusSrc_RegX;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+        end
+        FirstOpCycle: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_sty();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            special_bus_src = bus_sources::SpecialBusSrc_RegY;
             data_bus_src = bus_sources::DataBusSrc_Special;
             data_out_src = bus_sources::DataOutSrc_DataBus;
             write = 1'b1;

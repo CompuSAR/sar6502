@@ -342,19 +342,23 @@ task do_address(input [7:0] opcode);
         8'ha0: addr_mode_immediate();           // LDY #
         8'ha1: addr_mode_zp_x_ind();            // LDA (zp,x)
         8'ha2: addr_mode_immediate();           // LDX #
+        8'ha4: addr_mode_zp();                  // LDY zp
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha6: addr_mode_zp();                  // LDX zp
         8'ha9: addr_mode_immediate();           // LDA #
+        8'hac: addr_mode_absolute();            // LDY abs
         8'had: addr_mode_absolute();            // LDA abs
         8'hae: addr_mode_absolute();            // LDX abs
         8'haf: addr_mode_zp();                  // BBS2 zp
         8'hb0: addr_mode_pc_rel();              // BCS
         8'hb1: addr_mode_zp_ind_y();            // LDA (zp),y
         8'hb2: addr_mode_zp_ind();              // LDA (zp)
+        8'hb4: addr_mode_zp_x();                // LDY zp,x
         8'hb5: addr_mode_zp_x();                // LDA zp,x
         8'hb6: addr_mode_zp_y();                // LDX zp,y
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
+        8'hbc: addr_mode_abs_x();               // LDY abs,x
         8'hbd: addr_mode_abs_x();               // LDA abs,x
         8'hbe: addr_mode_abs_y();               // LDX abs,y
         8'hbf: addr_mode_zp();                  // BBS3 zp
@@ -505,19 +509,23 @@ task do_opcode(input [7:0]opcode);
         8'ha0: op_ldy();                        // LDY #
         8'ha1: op_lda();                        // LDA (zp,x)
         8'ha2: op_ldx();                        // LDX #
+        8'ha4: op_ldy();                        // LDY zp
         8'ha5: op_lda();                        // LDA zp
         8'ha6: op_ldx();                        // LDX zp
         8'ha9: op_lda();                        // LDA #
+        8'hac: op_ldy();                        // LDY abs
         8'had: op_lda();                        // LDA abs
         8'hae: op_ldx();                        // LDX abs
         8'haf: op_bbrs();                       // BBS2 zp
         8'hb0: op_bcs();
         8'hb1: op_lda();                        // LDA (zp),y
         8'hb2: op_lda();                        // LDA (zp)
+        8'hb4: op_ldy();                        // LDY zp,x
         8'hb5: op_lda();                        // LDA zp,x
         8'hb6: op_ldx();                        // LDX zp,y
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
+        8'hbc: op_ldy();                        // LDY abs,x
         8'hbd: op_lda();                        // LDA abs,x
         8'hbe: op_ldx();                        // LDX abs,y
         8'hbf: op_bbrs();                       // BBS3 zp
@@ -1972,7 +1980,8 @@ task op_ldx();
 endtask
 
 task op_ldy();
-    case(op_cycle)
+    casex(op_cycle)
+        CycleAnyAddr: ;
         FirstOpCycle: begin
             data_bus_src = bus_sources::DataBusSrc_Mem;
             ctrl_signals[control_signals::LOAD_Y] = 1'b1;

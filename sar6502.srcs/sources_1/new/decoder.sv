@@ -289,19 +289,24 @@ task do_address(input [7:0] opcode);
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h41: addr_mode_zp_x_ind();            // EOR (zp,x)
         8'h45: addr_mode_zp();                  // EOR zp
+        8'h46: addr_mode_zp();                  // LSR zp
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h49: addr_mode_immediate();           // EOR #
+        8'h4a: addr_mode_acc();                 // LSR A
         8'h4c: addr_mode_absolute();            // JMP abs
         8'h4d: addr_mode_absolute();            // EOR abs
+        8'h4e: addr_mode_absolute();            // LSR abs
         8'h4f: addr_mode_zp();                  // BBR4 zp
         8'h50: addr_mode_pc_rel();              // BVC
         8'h51: addr_mode_zp_ind_y();            // EOR (zp),y
         8'h52: addr_mode_zp_ind();              // EOR (zp)
         8'h55: addr_mode_zp_x();                // EOR zp,x
+        8'h56: addr_mode_zp_x();                // LSR zp,x
         8'h58: addr_mode_implied();             // CLI
         8'h59: addr_mode_abs_y();               // EOR abs,y
         8'h5a: addr_mode_stack(opcode);         // PHY
         8'h5d: addr_mode_abs_x();               // EOR abs,x
+        8'h5e: addr_mode_abs_x();               // LSR abs,x
         8'h5f: addr_mode_zp();                  // BBR5 zp
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
@@ -581,6 +586,11 @@ task do_opcode(input [7:0]opcode);
         8'hfd: op_sbc();                        // SBC abs,x
         8'hfe: op_inc();                        // INC abs,x
         8'hff: op_bbrs();                       // BBS7 zp
+        8'h4e: op_lsr();                        // LSR abs
+        8'h5e: op_lsr();                        // LSR abs,x
+        8'h4a: op_lsr_A();                      // LSR
+        8'h46: op_lsr();                        // LSR zp
+        8'h56: op_lsr();                        // LSR zp,x
         default: set_invalid_state();
     endcase
 endtask
@@ -1995,6 +2005,70 @@ task op_ldy();
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_lsr();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+            end
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_op = control_signals::AluOp_shift_right_logical;
+            alu_carry_in = 1'b0;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_lsr_A();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            addr_bus_pc();
+
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_op = control_signals::AluOp_shift_right_logical;
+            alu_carry_in = 1'b0;
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
 
             next_instruction();
         end

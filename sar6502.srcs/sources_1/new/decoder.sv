@@ -311,6 +311,7 @@ task do_address(input [7:0] opcode);
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
         8'h65: addr_mode_zp();                  // ADC zp
+        8'h68: addr_mode_stack(opcode);         // PLA
         8'h69: addr_mode_immediate();           // ADC #
         8'h6c: addr_mode_abs_ind();             // JMP (abs)
         8'h6d: addr_mode_absolute();            // ADC abs
@@ -321,6 +322,7 @@ task do_address(input [7:0] opcode);
         8'h75: addr_mode_zp_x();                // ADC zp,x
         8'h78: addr_mode_implied();             // SEI
         8'h79: addr_mode_abs_y();               // ADC abs,y
+        8'h7a: addr_mode_stack(opcode);         // PLY
         8'h7c: addr_mode_abs_x_ind();           // JMP (abs,x)
         8'h7d: addr_mode_abs_x();               // ADC abs,x
         8'h7f: addr_mode_zp();                  // BBR7 zp
@@ -412,6 +414,7 @@ task do_address(input [7:0] opcode);
         8'hf6: addr_mode_zp_x();                // INC zp,x
         8'hf8: addr_mode_implied();             // SED
         8'hf9: addr_mode_abs_y();               // SBC abs,y
+        8'hfa: addr_mode_stack(opcode);         // PLX
         8'hfd: addr_mode_abs_x();               // SBC abs,x
         8'hfe: addr_mode_abs_x();               // INC abs,x
         8'hff: addr_mode_zp();                  // BBS7 zp
@@ -465,23 +468,29 @@ task do_opcode(input [7:0]opcode);
         8'h40: op_rti();
         8'h41: op_eor();                        // EOR (zp,x)
         8'h45: op_eor();                        // EOR zp
+        8'h46: op_lsr();                        // LSR zp
         8'h48: op_pha();
         8'h49: op_eor();                        // EOR #
+        8'h4a: op_lsr_A();                      // LSR
         8'h4c: op_jmp();                        // JMP abs
         8'h4d: op_eor();                        // EOR abs
+        8'h4e: op_lsr();                        // LSR abs
         8'h4f: op_bbrs();                       // BBR4 zp
         8'h50: op_bvc();
         8'h51: op_eor();                        // EOR (zp),y
         8'h52: op_eor();                        // EOR (zp)
         8'h55: op_eor();                        // EOR zp,x
+        8'h56: op_lsr();                        // LSR zp,x
         8'h58: op_cli();
         8'h59: op_eor();                        // EOR abs,y
         8'h5a: op_phy();
         8'h5d: op_eor();                        // EOR abs,x
+        8'h5e: op_lsr();                        // LSR abs,x
         8'h5f: op_bbrs();                       // BBR5 zp
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
         8'h65: op_adc();                        // ADC zp
+        8'h68: op_pla();
         8'h69: op_adc();                        // ADC #
         8'h6c: op_jmp();                        // JMP (abs)
         8'h6d: op_adc();                        // ADC abs
@@ -492,6 +501,7 @@ task do_opcode(input [7:0]opcode);
         8'h75: op_adc();                        // ADC zp,x
         8'h78: op_sei();
         8'h79: op_adc();                        // ADC abs,y
+        8'h7a: op_ply();
         8'h7c: op_jmp();                        // JMP (abs,x)
         8'h7d: op_adc();                        // ADC abs,x
         8'h7f: op_bbrs();                       // BBR7 zp
@@ -583,14 +593,10 @@ task do_opcode(input [7:0]opcode);
         8'hf6: op_inc();                        // INC zp,x
         8'hf8: op_sed();
         8'hf9: op_sbc();                        // SBC abs,y
+        8'hfa: op_plx();
         8'hfd: op_sbc();                        // SBC abs,x
         8'hfe: op_inc();                        // INC abs,x
         8'hff: op_bbrs();                       // BBS7 zp
-        8'h4e: op_lsr();                        // LSR abs
-        8'h5e: op_lsr();                        // LSR abs,x
-        8'h4a: op_lsr_A();                      // LSR
-        8'h46: op_lsr();                        // LSR zp
-        8'h56: op_lsr();                        // LSR zp,x
         default: set_invalid_state();
     endcase
 endtask
@@ -2176,6 +2182,81 @@ task op_php();
         end
         CycleOp2: begin
             next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_pla();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            addr_bus_stack();
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            // Store status flag
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_plx();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            addr_bus_stack();
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+            // Store status flag
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_ply();
+    case(op_cycle)
+        FirstOpCycle: begin
+            addr_bus_stack();
+
+            stack_pointer_pop();
+        end
+        CycleOp2: begin
+            addr_bus_stack();
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+            // Store status flag
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end
         default: set_invalid_state();
     endcase

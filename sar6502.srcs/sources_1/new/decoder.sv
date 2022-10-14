@@ -354,6 +354,7 @@ task do_address(input [7:0] opcode);
         8'h87: addr_mode_zp();                  // SMB
         8'h88: addr_mode_implied();             // DEY
         8'h89: addr_mode_immediate();           // BIT #
+        8'h8a: addr_mode_implied();             // TXA
         8'h8c: addr_mode_absolute();            // STY abs
         8'h8d: addr_mode_absolute();            // STA abs
         8'h8d: addr_mode_absolute();            // STA abs
@@ -366,6 +367,7 @@ task do_address(input [7:0] opcode);
         8'h95: addr_mode_zp_x();                // STA zp,x
         8'h96: addr_mode_zp_y();                // STX zp,y
         8'h97: addr_mode_zp();                  // SMB
+        8'h98: addr_mode_implied();             // TYA
         8'h99: addr_mode_abs_y();               // STA abs,y
         8'h9a: addr_mode_implied();             // TXS
         8'h9c: addr_mode_absolute();            // STZ abs
@@ -379,7 +381,9 @@ task do_address(input [7:0] opcode);
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha6: addr_mode_zp();                  // LDX zp
         8'ha7: addr_mode_zp();                  // SMB
+        8'ha8: addr_mode_implied();             // TAY
         8'ha9: addr_mode_immediate();           // LDA #
+        8'haa: addr_mode_implied();             // TAX
         8'hac: addr_mode_absolute();            // LDY abs
         8'had: addr_mode_absolute();            // LDA abs
         8'hae: addr_mode_absolute();            // LDX abs
@@ -393,6 +397,7 @@ task do_address(input [7:0] opcode);
         8'hb7: addr_mode_zp();                  // SMB
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
+        8'hba: addr_mode_implied();             // TSX
         8'hbc: addr_mode_abs_x();               // LDY abs,x
         8'hbd: addr_mode_abs_x();               // LDA abs,x
         8'hbe: addr_mode_abs_y();               // LDX abs,y
@@ -562,6 +567,7 @@ task do_opcode(input [7:0]opcode);
         8'h87: op_rsmb();
         8'h88: op_dey();
         8'h89: op_bit();                        // BIT #
+        8'h8a: op_txa();
         8'h8c: op_sty();                        // STY abs
         8'h8d: op_sta();                        // STA abs
         8'h8e: op_stx();                        // STX abs
@@ -573,6 +579,7 @@ task do_opcode(input [7:0]opcode);
         8'h95: op_sta();                        // STA zp,x
         8'h96: op_stx();                        // STX zp,y
         8'h97: op_rsmb();
+        8'h98: op_tya();
         8'h99: op_sta();                        // STA abs,y
         8'h9a: op_txs();
         8'h9c: op_stz();                        // STZ abs
@@ -586,7 +593,9 @@ task do_opcode(input [7:0]opcode);
         8'ha5: op_lda();                        // LDA zp
         8'ha6: op_ldx();                        // LDX zp
         8'ha7: op_rsmb();
+        8'ha8: op_tay();
         8'ha9: op_lda();                        // LDA #
+        8'haa: op_tax();
         8'hac: op_ldy();                        // LDY abs
         8'had: op_lda();                        // LDA abs
         8'hae: op_ldx();                        // LDX abs
@@ -600,6 +609,7 @@ task do_opcode(input [7:0]opcode);
         8'hb7: op_rsmb();
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
+        8'hba: op_tsx();
         8'hbc: op_ldy();                        // LDY abs,x
         8'hbd: op_lda();                        // LDA abs,x
         8'hbe: op_ldx();                        // LDX abs,y
@@ -2760,12 +2770,72 @@ task op_stp();
     op_cycle_next = FirstOpCycle;
 endtask
 
+task op_tax();
+    data_bus_src = bus_sources::DataBusSrc_Special;
+    special_bus_src = bus_sources::SpecialBusSrc_RegA;
+    ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+    next_instruction();
+endtask
+
+task op_tay();
+    data_bus_src = bus_sources::DataBusSrc_Special;
+    special_bus_src = bus_sources::SpecialBusSrc_RegA;
+    ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+    next_instruction();
+endtask
+
+task op_tsx();
+    special_bus_src = bus_sources::SpecialBusSrc_RegSP;
+    data_bus_src = bus_sources::DataBusSrc_Special;
+    ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+    next_instruction();
+endtask
+
+task op_txa();
+    data_bus_src = bus_sources::DataBusSrc_Special;
+    special_bus_src = bus_sources::SpecialBusSrc_RegX;
+    ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
+    next_instruction();
+endtask
+
 task op_txs();
     alu_op = control_signals::AluOp_add;
     alu_a_src = bus_sources::AluASrc_RegX;
     alu_b_src = bus_sources::AluBSrc_Zero;
     alu_carry_in = 1'b0;
     ctrl_signals[control_signals::LOAD_SP] = 1'b1;
+
+    next_instruction();
+endtask
+
+task op_tya();
+    data_bus_src = bus_sources::DataBusSrc_Special;
+    special_bus_src = bus_sources::SpecialBusSrc_RegY;
+    ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 
     next_instruction();
 endtask

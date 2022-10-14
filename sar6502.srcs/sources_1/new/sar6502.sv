@@ -178,6 +178,15 @@ always_comb begin
         bus_sources::DataBusSrc_Special: data_bus = special_bus;
         bus_sources::DataBusSrc_PcLow: data_bus = reg_pcl.data_out;
         bus_sources::DataBusSrc_PcHigh: data_bus = reg_pch.data_out;
+
+        bus_sources::DataBusSrc_Bit0: data_bus = 8'b0000_0001;
+        bus_sources::DataBusSrc_Bit1: data_bus = 8'b0000_0010;
+        bus_sources::DataBusSrc_Bit2: data_bus = 8'b0000_0100;
+        bus_sources::DataBusSrc_Bit3: data_bus = 8'b0000_1000;
+        bus_sources::DataBusSrc_Bit4: data_bus = 8'b0001_0000;
+        bus_sources::DataBusSrc_Bit5: data_bus = 8'b0010_0000;
+        bus_sources::DataBusSrc_Bit6: data_bus = 8'b0100_0000;
+        bus_sources::DataBusSrc_Bit7: data_bus = 8'b1000_0000;
         default: data_bus = 8'hXX;
     endcase
 
@@ -195,7 +204,7 @@ always_comb begin
 
     case(decoder.alu_b_src)
         bus_sources::AluBSrc_Zero: alu_b_input = 8'h00;
-        bus_sources::AluBSrc_Mem: alu_b_input = data_in;
+        bus_sources::AluBSrc_DataBus: alu_b_input = data_bus;
         default: alu_b_input = 8'hXX;
     endcase
 

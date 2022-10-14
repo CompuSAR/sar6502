@@ -249,6 +249,7 @@ task do_address(input [7:0] opcode);
         8'h01: addr_mode_zp_x_ind();            // ORA (zp,x)
         8'h05: addr_mode_zp();                  // ORA zp
         8'h06: addr_mode_zp();                  // ASL zp
+        8'h07: addr_mode_zp();                  // RMB
         8'h08: addr_mode_stack(opcode);         // PHP
         8'h09: addr_mode_immediate();           // ORA #
         8'h0a: addr_mode_acc();                 // ASL A
@@ -260,6 +261,7 @@ task do_address(input [7:0] opcode);
         8'h12: addr_mode_zp_ind();              // ORA (zp)
         8'h15: addr_mode_zp_x();                // ORA zp,x
         8'h16: addr_mode_zp_x();                // ASL zp,x
+        8'h17: addr_mode_zp();                  // RMB
         8'h18: addr_mode_implied();             // CLC
         8'h19: addr_mode_abs_y();               // ORA abs,y
         8'h1a: addr_mode_implied();             // INC
@@ -270,6 +272,7 @@ task do_address(input [7:0] opcode);
         8'h21: addr_mode_zp_x_ind();            // AND (zp,x)
         8'h24: addr_mode_zp();                  // BIT zp
         8'h25: addr_mode_zp();                  // AND zp
+        8'h27: addr_mode_zp();                  // RMB
         8'h28: addr_mode_stack(opcode);         // PLP
         8'h29: addr_mode_immediate();           // AND #
         8'h2c: addr_mode_absolute();            // BIT abs
@@ -280,6 +283,7 @@ task do_address(input [7:0] opcode);
         8'h32: addr_mode_zp_ind();              // AND (zp)
         8'h34: addr_mode_zp_x();                // BIT zp,x
         8'h35: addr_mode_zp_x();                // AND zp,x
+        8'h37: addr_mode_zp();                  // RMB
         8'h38: addr_mode_implied();             // SEC
         8'h39: addr_mode_abs_y();               // AND abs,y
         8'h3a: addr_mode_implied();             // DEC
@@ -290,6 +294,7 @@ task do_address(input [7:0] opcode);
         8'h41: addr_mode_zp_x_ind();            // EOR (zp,x)
         8'h45: addr_mode_zp();                  // EOR zp
         8'h46: addr_mode_zp();                  // LSR zp
+        8'h47: addr_mode_zp();                  // RMB
         8'h48: addr_mode_stack(opcode);         // PHA
         8'h49: addr_mode_immediate();           // EOR #
         8'h4a: addr_mode_acc();                 // LSR A
@@ -302,6 +307,7 @@ task do_address(input [7:0] opcode);
         8'h52: addr_mode_zp_ind();              // EOR (zp)
         8'h55: addr_mode_zp_x();                // EOR zp,x
         8'h56: addr_mode_zp_x();                // LSR zp,x
+        8'h57: addr_mode_zp();                  // RMB
         8'h58: addr_mode_implied();             // CLI
         8'h59: addr_mode_abs_y();               // EOR abs,y
         8'h5a: addr_mode_stack(opcode);         // PHY
@@ -311,6 +317,7 @@ task do_address(input [7:0] opcode);
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
         8'h65: addr_mode_zp();                  // ADC zp
+        8'h67: addr_mode_zp();                  // RMB
         8'h68: addr_mode_stack(opcode);         // PLA
         8'h69: addr_mode_immediate();           // ADC #
         8'h6c: addr_mode_abs_ind();             // JMP (abs)
@@ -320,6 +327,7 @@ task do_address(input [7:0] opcode);
         8'h71: addr_mode_zp_ind_y();            // ADC (zp),y
         8'h72: addr_mode_zp_ind();              // ADC (zp)
         8'h75: addr_mode_zp_x();                // ADC zp,x
+        8'h77: addr_mode_zp();                  // RMB
         8'h78: addr_mode_implied();             // SEI
         8'h79: addr_mode_abs_y();               // ADC abs,y
         8'h7a: addr_mode_stack(opcode);         // PLY
@@ -331,6 +339,7 @@ task do_address(input [7:0] opcode);
         8'h84: addr_mode_zp();                  // STY zp
         8'h85: addr_mode_zp();                  // STA zp
         8'h86: addr_mode_zp();                  // STX zp
+        8'h87: addr_mode_zp();                  // SMB
         8'h88: addr_mode_implied();             // DEY
         8'h89: addr_mode_immediate();           // BIT #
         8'h8c: addr_mode_absolute();            // STY abs
@@ -344,6 +353,7 @@ task do_address(input [7:0] opcode);
         8'h94: addr_mode_zp_x();                // STY zp,x
         8'h95: addr_mode_zp_x();                // STA zp,x
         8'h96: addr_mode_zp_y();                // STX zp,y
+        8'h97: addr_mode_zp();                  // SMB
         8'h99: addr_mode_abs_y();               // STA abs,y
         8'h9a: addr_mode_implied();             // TXS
         8'h9c: addr_mode_absolute();            // STZ abs
@@ -355,6 +365,7 @@ task do_address(input [7:0] opcode);
         8'ha4: addr_mode_zp();                  // LDY zp
         8'ha5: addr_mode_zp();                  // LDA zp
         8'ha6: addr_mode_zp();                  // LDX zp
+        8'ha7: addr_mode_zp();                  // SMB
         8'ha9: addr_mode_immediate();           // LDA #
         8'hac: addr_mode_absolute();            // LDY abs
         8'had: addr_mode_absolute();            // LDA abs
@@ -366,6 +377,7 @@ task do_address(input [7:0] opcode);
         8'hb4: addr_mode_zp_x();                // LDY zp,x
         8'hb5: addr_mode_zp_x();                // LDA zp,x
         8'hb6: addr_mode_zp_y();                // LDX zp,y
+        8'hb7: addr_mode_zp();                  // SMB
         8'hb8: addr_mode_implied();             // CLV
         8'hb9: addr_mode_abs_y();               // LDA abs,y
         8'hbc: addr_mode_abs_x();               // LDY abs,x
@@ -377,6 +389,7 @@ task do_address(input [7:0] opcode);
         8'hc4: addr_mode_zp();                  // CPY zp
         8'hc5: addr_mode_zp();                  // CMP zp
         8'hc6: addr_mode_zp();                  // DEC zp
+        8'hc7: addr_mode_zp();                  // SMB
         8'hc8: addr_mode_implied();             // INY
         8'hc9: addr_mode_immediate();           // CMP #
         8'hca: addr_mode_implied();             // DEX
@@ -389,6 +402,7 @@ task do_address(input [7:0] opcode);
         8'hd2: addr_mode_zp_ind();              // CMP (zp)
         8'hd5: addr_mode_zp_x();                // CMP zp,x
         8'hd6: addr_mode_zp_x();                // DEC zp,x
+        8'hd7: addr_mode_zp();                  // SMB
         8'hd8: addr_mode_implied();             // CLD
         8'hd9: addr_mode_abs_y();               // CMP abs,y
         8'hda: addr_mode_stack(opcode);         // PHX
@@ -400,6 +414,7 @@ task do_address(input [7:0] opcode);
         8'he4: addr_mode_zp();                  // CPX zp
         8'he5: addr_mode_zp();                  // SBC zp
         8'he6: addr_mode_zp();                  // INC zp
+        8'he7: addr_mode_zp();                  // SMB
         8'he8: addr_mode_implied();             // INX
         8'he9: addr_mode_immediate();           // SBC #
         8'hea: addr_mode_implied();             // NOP
@@ -412,6 +427,7 @@ task do_address(input [7:0] opcode);
         8'hf2: addr_mode_zp_ind();              // SBC (zp)
         8'hf5: addr_mode_zp_x();                // SBC zp,x
         8'hf6: addr_mode_zp_x();                // INC zp,x
+        8'hf7: addr_mode_zp();                  // SMB
         8'hf8: addr_mode_implied();             // SED
         8'hf9: addr_mode_abs_y();               // SBC abs,y
         8'hfa: addr_mode_stack(opcode);         // PLX
@@ -428,6 +444,7 @@ task do_opcode(input [7:0]opcode);
         8'h01: op_ora();                        // ORA (zp,x)
         8'h05: op_ora();                        // ORA zp
         8'h06: op_asl();                        // ASL zp
+        8'h07: op_rsmb();
         8'h08: op_php();
         8'h09: op_ora();                        // ORA #
         8'h0a: op_asl_A();
@@ -439,6 +456,7 @@ task do_opcode(input [7:0]opcode);
         8'h12: op_ora();                        // ORA (zp)
         8'h15: op_ora();                        // ORA zp,x
         8'h16: op_asl();                        // ASL zp,x
+        8'h17: op_rsmb();
         8'h18: op_clc();
         8'h19: op_ora();                        // ORA abs,y
         8'h1a: op_inc_A();                      // INC
@@ -449,6 +467,7 @@ task do_opcode(input [7:0]opcode);
         8'h21: op_and();                        // AND (zp),x
         8'h24: op_bit();                        // BIT zp
         8'h25: op_and();                        // AND zp
+        8'h27: op_rsmb();
         8'h28: op_plp();
         8'h29: op_and();                        // AND #
         8'h2c: op_bit();                        // BIT abs
@@ -459,6 +478,7 @@ task do_opcode(input [7:0]opcode);
         8'h32: op_and();                        // AND (zp)
         8'h34: op_bit();                        // BIT zp,x
         8'h35: op_and();                        // AND zp,x
+        8'h37: op_rsmb();
         8'h38: op_sec();
         8'h39: op_and();                        // AND abs,y
         8'h3a: op_dec_A();                      // DEC
@@ -469,6 +489,7 @@ task do_opcode(input [7:0]opcode);
         8'h41: op_eor();                        // EOR (zp,x)
         8'h45: op_eor();                        // EOR zp
         8'h46: op_lsr();                        // LSR zp
+        8'h47: op_rsmb();
         8'h48: op_pha();
         8'h49: op_eor();                        // EOR #
         8'h4a: op_lsr_A();                      // LSR
@@ -481,6 +502,7 @@ task do_opcode(input [7:0]opcode);
         8'h52: op_eor();                        // EOR (zp)
         8'h55: op_eor();                        // EOR zp,x
         8'h56: op_lsr();                        // LSR zp,x
+        8'h57: op_rsmb();
         8'h58: op_cli();
         8'h59: op_eor();                        // EOR abs,y
         8'h5a: op_phy();
@@ -490,6 +512,7 @@ task do_opcode(input [7:0]opcode);
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
         8'h65: op_adc();                        // ADC zp
+        8'h67: op_rsmb();
         8'h68: op_pla();
         8'h69: op_adc();                        // ADC #
         8'h6c: op_jmp();                        // JMP (abs)
@@ -499,6 +522,7 @@ task do_opcode(input [7:0]opcode);
         8'h71: op_adc();                        // ADC (zp),y
         8'h72: op_adc();                        // ADC (zp)
         8'h75: op_adc();                        // ADC zp,x
+        8'h77: op_rsmb();
         8'h78: op_sei();
         8'h79: op_adc();                        // ADC abs,y
         8'h7a: op_ply();
@@ -510,6 +534,7 @@ task do_opcode(input [7:0]opcode);
         8'h84: op_sty();                        // STY zp
         8'h85: op_sta();                        // STA zp
         8'h86: op_stx();                        // STX zp
+        8'h87: op_rsmb();
         8'h88: op_dey();
         8'h89: op_bit();                        // BIT #
         8'h8c: op_sty();                        // STY abs
@@ -522,6 +547,7 @@ task do_opcode(input [7:0]opcode);
         8'h94: op_sty();                        // STY zp,x
         8'h95: op_sta();                        // STA zp,x
         8'h96: op_stx();                        // STX zp,y
+        8'h97: op_rsmb();
         8'h99: op_sta();                        // STA abs,y
         8'h9a: op_txs();
         8'h9c: op_stz();                        // STZ abs
@@ -533,6 +559,7 @@ task do_opcode(input [7:0]opcode);
         8'ha4: op_ldy();                        // LDY zp
         8'ha5: op_lda();                        // LDA zp
         8'ha6: op_ldx();                        // LDX zp
+        8'ha7: op_rsmb();
         8'ha9: op_lda();                        // LDA #
         8'hac: op_ldy();                        // LDY abs
         8'had: op_lda();                        // LDA abs
@@ -544,6 +571,7 @@ task do_opcode(input [7:0]opcode);
         8'hb4: op_ldy();                        // LDY zp,x
         8'hb5: op_lda();                        // LDA zp,x
         8'hb6: op_ldx();                        // LDX zp,y
+        8'hb7: op_rsmb();
         8'hb8: op_clv();
         8'hb9: op_lda();                        // LDA abs,y
         8'hbc: op_ldy();                        // LDY abs,x
@@ -555,6 +583,7 @@ task do_opcode(input [7:0]opcode);
         8'hc4: op_cpy();                        // CPY zp
         8'hc5: op_cmp();                        // CMP zp
         8'hc6: op_dec();                        // DEC zp
+        8'hc7: op_rsmb();
         8'hc8: op_iny();
         8'hc9: op_cmp();                        // CMP #
         8'hca: op_dex();
@@ -567,6 +596,7 @@ task do_opcode(input [7:0]opcode);
         8'hd2: op_cmp();                        // CMP (zp)
         8'hd5: op_cmp();                        // CMP zp,x
         8'hd6: op_dec();                        // DEC zp,x
+        8'hd7: op_rsmb();
         8'hd8: op_cld();
         8'hd9: op_cmp();                        // CMP abs,y
         8'hda: op_phx();
@@ -579,6 +609,7 @@ task do_opcode(input [7:0]opcode);
         8'he4: op_cpx();                        // CPX zp
         8'he5: op_sbc();                        // SBC zp
         8'he6: op_inc();                        // INC zp
+        8'he7: op_rsmb();
         8'he8: op_inx();
         8'he9: op_sbc();                        // SBC #
         8'hea: op_nop();
@@ -591,6 +622,7 @@ task do_opcode(input [7:0]opcode);
         8'hf2: op_sbc();                        // SBC (zp)
         8'hf5: op_sbc();                        // SBC zp,x
         8'hf6: op_inc();                        // INC zp,x
+        8'hf7: op_rsmb();
         8'hf8: op_sed();
         8'hf9: op_sbc();                        // SBC abs,y
         8'hfa: op_plx();
@@ -805,7 +837,8 @@ task addr_mode_abs_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -848,7 +881,8 @@ task addr_mode_abs_x_ind();
             addr_bus_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -899,7 +933,8 @@ task addr_mode_abs_y();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1045,7 +1080,8 @@ task addr_mode_zp_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1071,7 +1107,8 @@ task addr_mode_zp_y();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1097,7 +1134,8 @@ task addr_mode_zp_x_ind();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1147,7 +1185,8 @@ task addr_mode_zp_ind_y();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1203,7 +1242,8 @@ task branch_opcode(input condition);
                 next_instruction();
             else begin
                 alu_a_src = bus_sources::AluASrc_PcLow;
-                alu_b_src = bus_sources::AluBSrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_DataBus;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
                 alu_op = control_signals::AluOp_add;
                 alu_carry_in = 1'b0;
             end
@@ -1253,7 +1293,8 @@ task op_adc();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
 
@@ -1282,7 +1323,8 @@ task op_eor();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_xor;
 
             next_instruction();
@@ -1297,7 +1339,8 @@ task op_and();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_and;
 
             next_instruction();
@@ -1410,7 +1453,8 @@ task op_bbrs();
                 next_instruction();
             else begin
                 alu_a_src = bus_sources::AluASrc_PcLow;
-                alu_b_src = bus_sources::AluBSrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_DataBus;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
                 alu_op = control_signals::AluOp_add;
                 alu_carry_in = 1'b0;
             end
@@ -1498,7 +1542,7 @@ task op_bit();
             data_bus_src = bus_sources::DataBusSrc_Mem;
 
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
             alu_op = control_signals::AluOp_and;
 
             if( current_opcode!=8'h89 ) begin
@@ -1652,7 +1696,8 @@ task op_cmp();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
@@ -1678,7 +1723,8 @@ task op_cpx();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
@@ -1694,7 +1740,8 @@ task op_cpy();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
@@ -2097,7 +2144,8 @@ task op_ora();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_or;
 
             next_instruction();
@@ -2373,13 +2421,59 @@ task op_rts();
     endcase
 endtask
 
+task op_rsmb();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            case(current_opcode[6:4])
+                0: data_bus_src = bus_sources::DataBusSrc_Bit0;
+                1: data_bus_src = bus_sources::DataBusSrc_Bit1;
+                2: data_bus_src = bus_sources::DataBusSrc_Bit2;
+                3: data_bus_src = bus_sources::DataBusSrc_Bit3;
+                4: data_bus_src = bus_sources::DataBusSrc_Bit4;
+                5: data_bus_src = bus_sources::DataBusSrc_Bit5;
+                6: data_bus_src = bus_sources::DataBusSrc_Bit6;
+                7: data_bus_src = bus_sources::DataBusSrc_Bit7;
+            endcase
+
+            if( current_opcode[7] ) begin
+                // SMB
+                ctrl_signals[control_signals::AluInverseB] = 0;
+                alu_op = control_signals::AluOp_or;
+            end else begin
+                // SMB
+                ctrl_signals[control_signals::AluInverseB] = 1;
+                alu_op = control_signals::AluOp_and;
+            end
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+        end
+        CycleOp3: next_instruction();
+        default: set_invalid_state();
+    endcase
+endtask
+
 task op_sbc();
     casex(op_cycle)
         CycleAnyAddr: begin
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
             ctrl_signals[control_signals::AluInverseB] = 1'b1;

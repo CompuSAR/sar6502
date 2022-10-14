@@ -321,6 +321,7 @@ task do_address(input [7:0] opcode);
         8'h5f: addr_mode_zp();                  // BBR5 zp
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
+        8'h64: addr_mode_zp();                  // STZ zp
         8'h65: addr_mode_zp();                  // ADC zp
         8'h66: addr_mode_zp();                  // ROR zp
         8'h67: addr_mode_zp();                  // RMB
@@ -334,6 +335,7 @@ task do_address(input [7:0] opcode);
         8'h70: addr_mode_pc_rel();              // BVS
         8'h71: addr_mode_zp_ind_y();            // ADC (zp),y
         8'h72: addr_mode_zp_ind();              // ADC (zp)
+        8'h74: addr_mode_zp_x();                // STZ zp,x
         8'h75: addr_mode_zp_x();                // ADC zp,x
         8'h76: addr_mode_zp_x();                // ROR zp,x
         8'h77: addr_mode_zp();                  // RMB
@@ -368,6 +370,7 @@ task do_address(input [7:0] opcode);
         8'h9a: addr_mode_implied();             // TXS
         8'h9c: addr_mode_absolute();            // STZ abs
         8'h9d: addr_mode_abs_x();               // STA abs,x
+        8'h9e: addr_mode_abs_x();               // STZ abs,x
         8'h9f: addr_mode_zp();                  // BBS1 zp
         8'ha0: addr_mode_immediate();           // LDY #
         8'ha1: addr_mode_zp_x_ind();            // LDA (zp,x)
@@ -526,6 +529,7 @@ task do_opcode(input [7:0]opcode);
         8'h5f: op_bbrs();                       // BBR5 zp
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
+        8'h64: op_stz();                        // STZ zp
         8'h65: op_adc();                        // ADC zp
         8'h66: op_ror();                        // ROR zp
         8'h67: op_rsmb();
@@ -539,6 +543,7 @@ task do_opcode(input [7:0]opcode);
         8'h70: op_bvs();
         8'h71: op_adc();                        // ADC (zp),y
         8'h72: op_adc();                        // ADC (zp)
+        8'h74: op_stz();                        // STZ zp,x
         8'h75: op_adc();                        // ADC zp,x
         8'h76: op_ror();                        // ROR zp,x
         8'h77: op_rsmb();
@@ -572,6 +577,7 @@ task do_opcode(input [7:0]opcode);
         8'h9a: op_txs();
         8'h9c: op_stz();                        // STZ abs
         8'h9d: op_sta();                        // STA abs,x
+        8'h9e: op_stz();                        // STZ abs,x
         8'h9f: op_bbrs();                       // BBS1 zp
         8'ha0: op_ldy();                        // LDY #
         8'ha1: op_lda();                        // LDA (zp,x)
@@ -867,7 +873,7 @@ task addr_mode_abs_x();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 )
+            if( alu_carry_out || current_opcode[7:4]==4'h9 )
             begin
                 // If the opcode is STA for modes abs,x, we add the extra cycle
                 // unconditionally for some unknown reason.
@@ -967,7 +973,7 @@ task addr_mode_abs_y();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 ) begin
+            if( alu_carry_out || current_opcode[7:4]==4'h9 ) begin
                 // If the opcode is STA we add the extra cycle unconditionally for some unknown reason. Unlike STA abs,x,
                 // this isn't even documented in the datasheet.
 
@@ -1223,7 +1229,7 @@ task addr_mode_zp_ind_y();
 
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 ) begin
+            if( alu_carry_out || current_opcode[7:4]==4'h9 ) begin
                 // If the opcode is STA we add the extra cycle unconditionally for some unknown reason. Unlike STA abs,x,
                 // this isn't even documented in the datasheet.
 

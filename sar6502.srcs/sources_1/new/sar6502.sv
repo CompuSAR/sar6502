@@ -230,6 +230,7 @@ always_comb begin
     case(decoder.data_out_src)
         bus_sources::DataOutSrc_Status: data_out = reg_stat.data_out;
         bus_sources::DataOutSrc_DataBus: data_out = data_bus;
+        bus_sources::DataOutSrc_Alu: if( CPU_VARIANT==2 ) data_out = last_alu_result;
         default: data_out = 8'hXX;
     endcase
 end

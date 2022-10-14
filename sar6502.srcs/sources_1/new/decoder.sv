@@ -247,24 +247,28 @@ task do_address(input [7:0] opcode);
     case(opcode)
         8'h00: op_brk();                        // BRK
         8'h01: addr_mode_zp_x_ind();            // ORA (zp,x)
+        8'h04: addr_mode_zp();                  // TSB zp
         8'h05: addr_mode_zp();                  // ORA zp
         8'h06: addr_mode_zp();                  // ASL zp
         8'h07: addr_mode_zp();                  // RMB
         8'h08: addr_mode_stack(opcode);         // PHP
         8'h09: addr_mode_immediate();           // ORA #
         8'h0a: addr_mode_acc();                 // ASL A
+        8'h0c: addr_mode_absolute();            // TRB abs
         8'h0d: addr_mode_absolute();            // ORA abs
         8'h0e: addr_mode_absolute();            // ASL abs
         8'h0f: addr_mode_zp();                  // BBR0 zp
         8'h10: addr_mode_pc_rel();              // BPL
         8'h11: addr_mode_zp_ind_y();            // ORA (zp),y
         8'h12: addr_mode_zp_ind();              // ORA (zp)
+        8'h14: addr_mode_zp();                  // TSB zp
         8'h15: addr_mode_zp_x();                // ORA zp,x
         8'h16: addr_mode_zp_x();                // ASL zp,x
         8'h17: addr_mode_zp();                  // RMB
         8'h18: addr_mode_implied();             // CLC
         8'h19: addr_mode_abs_y();               // ORA abs,y
         8'h1a: addr_mode_implied();             // INC
+        8'h1c: addr_mode_absolute();            // TRB abs
         8'h1d: addr_mode_abs_x();               // ORA abs,x
         8'h1e: addr_mode_abs_x();               // ASL abs,x
         8'h1f: addr_mode_zp();                  // BBR1 zp
@@ -460,24 +464,28 @@ task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
         8'h01: op_ora();                        // ORA (zp,x)
+        8'h04: op_tsb();                        // TSB zp
         8'h05: op_ora();                        // ORA zp
         8'h06: op_asl();                        // ASL zp
         8'h07: op_rsmb();
         8'h08: op_php();
         8'h09: op_ora();                        // ORA #
         8'h0a: op_asl_A();
+        8'h0c: op_tsb();                        // TSB abs
         8'h0d: op_ora();                        // ORA abs
         8'h0e: op_asl();                        // ASL abs
         8'h0f: op_bbrs();                       // BBR0 zp
         8'h10: op_bpl();
         8'h11: op_ora();                        // ORA (zp),y
         8'h12: op_ora();                        // ORA (zp)
+        8'h14: op_trb();                        // TRB zp
         8'h15: op_ora();                        // ORA zp,x
         8'h16: op_asl();                        // ASL zp,x
         8'h17: op_rsmb();
         8'h18: op_clc();
         8'h19: op_ora();                        // ORA abs,y
         8'h1a: op_inc_A();                      // INC
+        8'h1c: op_trb();                        // TRB abs
         8'h1d: op_ora();                        // ORA abs,x
         8'h1e: op_asl();                        // ASL abs,x
         8'h1f: op_bbrs();                       // BBR1 zp
@@ -2838,6 +2846,84 @@ task op_tya();
     ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 
     next_instruction();
+endtask
+
+task op_trb();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            alu_op = control_signals::AluOp_and;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            write = 1'b1;
+
+            data_out_src = bus_sources::DataOutSrc_Alu;
+
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_and;
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+    endcase
+endtask
+
+task op_tsb();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            data_bus_src = bus_sources::DataBusSrc_Special;
+            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            alu_op = control_signals::AluOp_or;
+            ctrl_signals[control_signals::AluInverseB] = 1'b0;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            write = 1'b1;
+
+            data_out_src = bus_sources::DataOutSrc_Alu;
+
+            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_op = control_signals::AluOp_and;
+        end
+        CycleOp3: begin
+            next_instruction();
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+    endcase
 endtask
 
 endmodule

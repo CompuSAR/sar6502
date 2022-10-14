@@ -105,11 +105,12 @@ typedef enum logic {
     PcNextSrc_Bus
 } PcNextSourceCtl;
 
-typedef enum logic {
+typedef enum logic[1:0] {
     DataOutSrc_Invalid = 'X,
 
-    DataOutSrc_DataBus = 1'b0,
-    DataOutSrc_Status
+    DataOutSrc_DataBus = 2'b0,
+    DataOutSrc_Status,
+    DataOutSrc_Alu              // Use only for TRB/TSB commands.
 } DataOutSourceCtl;
 
 endpackage // bus_sources

@@ -272,23 +272,28 @@ task do_address(input [7:0] opcode);
         8'h21: addr_mode_zp_x_ind();            // AND (zp,x)
         8'h24: addr_mode_zp();                  // BIT zp
         8'h25: addr_mode_zp();                  // AND zp
+        8'h26: addr_mode_zp();                  // ROL zp
         8'h27: addr_mode_zp();                  // RMB
         8'h28: addr_mode_stack(opcode);         // PLP
         8'h29: addr_mode_immediate();           // AND #
+        8'h2a: addr_mode_acc();                 // ROL
         8'h2c: addr_mode_absolute();            // BIT abs
         8'h2d: addr_mode_absolute();            // AND abs
+        8'h2e: addr_mode_absolute();            // ROL abs
         8'h2f: addr_mode_zp();                  // BBR2 zp
         8'h30: addr_mode_pc_rel();              // BMI
         8'h31: addr_mode_zp_ind_y();            // AND (zp),y
         8'h32: addr_mode_zp_ind();              // AND (zp)
         8'h34: addr_mode_zp_x();                // BIT zp,x
         8'h35: addr_mode_zp_x();                // AND zp,x
+        8'h36: addr_mode_zp_x();                // ROL zp,x
         8'h37: addr_mode_zp();                  // RMB
         8'h38: addr_mode_implied();             // SEC
         8'h39: addr_mode_abs_y();               // AND abs,y
         8'h3a: addr_mode_implied();             // DEC
         8'h3c: addr_mode_abs_x();               // BIT abs,x
         8'h3d: addr_mode_abs_x();               // AND abs,x
+        8'h3e: addr_mode_abs_x();               // ROL abs,x
         8'h3f: addr_mode_zp();                  // BBR3 zp
         8'h40: addr_mode_stack(opcode);         // RTI
         8'h41: addr_mode_zp_x_ind();            // EOR (zp,x)
@@ -317,22 +322,27 @@ task do_address(input [7:0] opcode);
         8'h60: addr_mode_stack(opcode);         // RTS
         8'h61: addr_mode_zp_x_ind();            // ADC (zp,x)
         8'h65: addr_mode_zp();                  // ADC zp
+        8'h66: addr_mode_zp();                  // ROR zp
         8'h67: addr_mode_zp();                  // RMB
         8'h68: addr_mode_stack(opcode);         // PLA
         8'h69: addr_mode_immediate();           // ADC #
+        8'h6a: addr_mode_acc();                 // ROR
         8'h6c: addr_mode_abs_ind();             // JMP (abs)
         8'h6d: addr_mode_absolute();            // ADC abs
+        8'h6e: addr_mode_absolute();            // ROR abs
         8'h6f: addr_mode_zp();                  // BBR6 zp
         8'h70: addr_mode_pc_rel();              // BVS
         8'h71: addr_mode_zp_ind_y();            // ADC (zp),y
         8'h72: addr_mode_zp_ind();              // ADC (zp)
         8'h75: addr_mode_zp_x();                // ADC zp,x
+        8'h76: addr_mode_zp_x();                // ROR zp,x
         8'h77: addr_mode_zp();                  // RMB
         8'h78: addr_mode_implied();             // SEI
         8'h79: addr_mode_abs_y();               // ADC abs,y
         8'h7a: addr_mode_stack(opcode);         // PLY
         8'h7c: addr_mode_abs_x_ind();           // JMP (abs,x)
         8'h7d: addr_mode_abs_x();               // ADC abs,x
+        8'h7e: addr_mode_abs_x();               // ROR abs,x
         8'h7f: addr_mode_zp();                  // BBR7 zp
         8'h80: addr_mode_pc_rel();              // BRA
         8'h81: addr_mode_zp_x_ind();            // STA (zp,x)
@@ -467,23 +477,28 @@ task do_opcode(input [7:0]opcode);
         8'h21: op_and();                        // AND (zp),x
         8'h24: op_bit();                        // BIT zp
         8'h25: op_and();                        // AND zp
+        8'h26: op_rol();                        // ROL zp
         8'h27: op_rsmb();
         8'h28: op_plp();
         8'h29: op_and();                        // AND #
+        8'h2a: op_rol_A();                      // ROL
         8'h2c: op_bit();                        // BIT abs
         8'h2d: op_and();                        // AND abs
+        8'h2e: op_rol();                        // ROL abs
         8'h2f: op_bbrs();                       // BBR2 zp
         8'h30: op_bmi();
         8'h31: op_and();                        // AND (zp),y
         8'h32: op_and();                        // AND (zp)
         8'h34: op_bit();                        // BIT zp,x
         8'h35: op_and();                        // AND zp,x
+        8'h36: op_rol();                        // ROL zp,x
         8'h37: op_rsmb();
         8'h38: op_sec();
         8'h39: op_and();                        // AND abs,y
         8'h3a: op_dec_A();                      // DEC
         8'h3c: op_bit();                        // BIT abs,x
         8'h3d: op_and();                        // AND abs,x
+        8'h3e: op_rol();                        // ROL abs,x
         8'h3f: op_bbrs();                       // BBR3 zp
         8'h40: op_rti();
         8'h41: op_eor();                        // EOR (zp,x)
@@ -512,22 +527,27 @@ task do_opcode(input [7:0]opcode);
         8'h60: op_rts();
         8'h61: op_adc();                        // ADC (zp,x)
         8'h65: op_adc();                        // ADC zp
+        8'h66: op_ror();                        // ROR zp
         8'h67: op_rsmb();
         8'h68: op_pla();
         8'h69: op_adc();                        // ADC #
+        8'h6a: op_ror_A();                      // ROR
         8'h6c: op_jmp();                        // JMP (abs)
         8'h6d: op_adc();                        // ADC abs
+        8'h6e: op_ror();                        // ROR abs
         8'h6f: op_bbrs();                       // BBR6 zp
         8'h70: op_bvs();
         8'h71: op_adc();                        // ADC (zp),y
         8'h72: op_adc();                        // ADC (zp)
         8'h75: op_adc();                        // ADC zp,x
+        8'h76: op_ror();                        // ROR zp,x
         8'h77: op_rsmb();
         8'h78: op_sei();
         8'h79: op_adc();                        // ADC abs,y
         8'h7a: op_ply();
         8'h7c: op_jmp();                        // JMP (abs,x)
         8'h7d: op_adc();                        // ADC abs,x
+        8'h7e: op_ror();                        // ROR abs,x
         8'h7f: op_bbrs();                       // BBR7 zp
         8'h80: op_bra();
         8'h81: op_sta();                        // STA (zp,x)
@@ -2331,6 +2351,134 @@ task op_plp();
             ctrl_signals[control_signals::StatUpdateD] = 1'b1;
             ctrl_signals[control_signals::StatUpdateV] = 1'b1;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_rol();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+            end
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_op = control_signals::AluOp_shift_left;
+            alu_carry_in = status[control_signals::FlagsCarry];
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_rol_A();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            addr_bus_pc();
+
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_op = control_signals::AluOp_shift_left;
+            alu_carry_in = status[control_signals::FlagsCarry];
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_ror();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            memory_lock = 1'b1;
+        end
+        FirstOpCycle: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+
+            if( CPU_VARIANT==0 ) begin
+                write = 1'b1;
+                data_bus_src = bus_sources::DataBusSrc_Mem;
+                data_out_src = bus_sources::DataOutSrc_DataBus;
+            end
+
+            alu_a_src = bus_sources::AluASrc_Mem;
+            alu_op = control_signals::AluOp_shift_right_logical;
+            alu_carry_in = status[control_signals::FlagsCarry];
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_out_src = bus_sources::DataOutSrc_DataBus;
+            write = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
+endtask
+
+task op_ror_A();
+    casex(op_cycle)
+        CycleAnyAddr: begin
+            addr_bus_pc();
+
+            alu_a_src = bus_sources::AluASrc_RegA;
+            alu_op = control_signals::AluOp_shift_right_logical;
+            alu_carry_in = status[control_signals::FlagsCarry];
+        end
+        FirstOpCycle: begin
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
         end
         default: set_invalid_state();
     endcase

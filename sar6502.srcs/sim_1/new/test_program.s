@@ -745,6 +745,24 @@ pull_test_loop2:
     jsr dump_state
 
 
+    ; Test successive ALU operations
+    lda #$fe
+    and #$7b    ; A = $7a
+    pha
+
+    lda #$d7
+    and #$48
+    ora #$80    ; A = $C0
+    tax
+    lda lda_abs_test,x
+
+    lda #$aa
+    and #$87
+    lsr
+    tax
+    stx value_dump
+
+
     jsr regression1_apple2_disassembly
 
 

@@ -867,13 +867,17 @@ task addr_mode_abs_x();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out ) begin
+            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 )
+            begin
+                // If the opcode is STA for modes abs,x, we add the extra cycle
+                // unconditionally for some unknown reason.
+
                 if( CPU_VARIANT!=0 )
                     incompatible = 1'b1; // TODO implement 65c02 behavior
 
                 alu_a_src = bus_sources::AluASrc_Mem;
                 alu_b_src = bus_sources::AluBSrc_Zero;
-                alu_carry_in = 1'b1;
+                alu_carry_in = alu_carry_out;
                 alu_op = control_signals::AluOp_add;
             end else begin
                 op_cycle_next = FirstOpCycle;
@@ -963,13 +967,16 @@ task addr_mode_abs_y();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out ) begin
+            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 ) begin
+                // If the opcode is STA we add the extra cycle unconditionally for some unknown reason. Unlike STA abs,x,
+                // this isn't even documented in the datasheet.
+
                 if( CPU_VARIANT!=0 )
                     incompatible = 1'b1; // TODO implement 65c02 behavior
 
                 alu_a_src = bus_sources::AluASrc_Mem;
                 alu_b_src = bus_sources::AluBSrc_Zero;
-                alu_carry_in = 1'b1;
+                alu_carry_in = alu_carry_out;
                 alu_op = control_signals::AluOp_add;
             end else begin
                 op_cycle_next = FirstOpCycle;
@@ -1216,14 +1223,17 @@ task addr_mode_zp_ind_y();
 
             ctrl_signals[control_signals::LOAD_OL] = 1'b1;
 
-            if( alu_carry_out ) begin
+            if( alu_carry_out || (current_opcode & 8'b11110011)==8'h91 ) begin
+                // If the opcode is STA we add the extra cycle unconditionally for some unknown reason. Unlike STA abs,x,
+                // this isn't even documented in the datasheet.
+
                 if( CPU_VARIANT!=0 )
                     incompatible = 1; // BUG adapt to 65c02 bus semantics
 
                 alu_a_src = bus_sources::AluASrc_Mem;
                 alu_b_src = bus_sources::AluBSrc_Zero;
                 alu_op = control_signals::AluOp_add;
-                alu_carry_in = 1'b1;
+                alu_carry_in = alu_carry_out;
             end else begin
                 op_cycle_next = FirstOpCycle;
                 do_opcode(current_opcode);

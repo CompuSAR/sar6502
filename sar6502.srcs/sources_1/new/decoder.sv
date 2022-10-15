@@ -44,8 +44,8 @@ module decoder#(parameter CPU_VARIANT = 2)
     input ready,
     input [7:0]status,
     input alu_carry_out,
-        input IRQ,
-        input NMI,
+    input interrupt_request,
+    input nonmaskable_interrupt,
 
     input [7:0]memory_in,
 
@@ -99,21 +99,34 @@ localparam
 logic [MAX_OPCODE_CYCLES-1:0] op_cycle = FirstOpCycle, op_cycle_next;
 logic [7:0] current_opcode = 8'hdb, next_opcode;
 logic jump_negative;
-logic pending_irq, pending_irq_next, pending_nmi, pending_nmi_next;
 logic bbrs_jump, bbrs_jump_next;
 
-enum { IntStateNone, IntStateReset, IntStateNmi, IntStateIrq } int_state = IntStateReset, int_state_next;
+enum { IntStateNone=0, IntStateIrq, IntStateNmi, IntStateReset }
+    pending_interrupt = IntStateNone, pending_interrupt_next, current_int, current_int_next;
+logic prev_nmi = 1'b0;
 
 always_ff@(posedge clock) begin
     if( ready ) begin
         op_cycle <= op_cycle_next;
         current_opcode <= next_opcode;
-        int_state <= int_state_next;
         jump_negative <= memory_in[7];
-        pending_irq <= pending_irq_next;
-        pending_nmi <= pending_nmi_next;
         bbrs_jump <= bbrs_jump_next;
+        current_int <= current_int_next;
+        pending_interrupt <= pending_interrupt_next;
     end
+
+    // Handle the stateful interrupt lines. The only state change in the CPU unhindered by ready.
+    if( reset ) begin
+        current_int <= IntStateReset;
+        pending_interrupt <= IntStateNone;
+        op_cycle <= CycleDecode;
+        current_opcode <= 8'h00; // So we don't perform post_op for the previous instruction
+        prev_nmi <= 1'b0;
+    end else if( nonmaskable_interrupt && !prev_nmi ) begin
+        pending_interrupt <= IntStateNmi;
+    end
+
+    prev_nmi <= nonmaskable_interrupt;
 end
 
 task set_invalid_state();
@@ -123,9 +136,6 @@ begin
     incompatible = 1'bX;
     alu_carry_in = 1'bX;
     bbrs_jump_next = 1'bX;
-
-    pending_nmi_next = 1'bX;
-    pending_irq_next = 1'bX;
 
     addr_bus_low_src = bus_sources::AddrBusLowSrc_Invalid;
     addr_bus_high_src = bus_sources::AddrBusHighSrc_Invalid;
@@ -158,7 +168,8 @@ begin
     set_invalid_state();
 
     next_opcode = current_opcode;
-    int_state_next = int_state;
+    pending_interrupt_next = pending_interrupt;
+    current_int_next = current_int;
     incompatible = 1'b0;
     advance_cycle();
 
@@ -168,30 +179,23 @@ begin
     write = 1'b0;
     memory_lock = 1'b0;
     vector_pull = 1'b0;
-
-    pending_nmi_next = pending_nmi;
-    pending_irq_next = pending_irq;
 end
 endtask
 
 always_comb begin
     set_default_state();
 
-    if( reset ) begin
-        op_cycle_next = CycleDecode;
-        next_opcode = 8'h00;    // BRK instruction
-        int_state_next = IntStateReset;
-    end else if( op_cycle==CycleDecode ) begin
+    if( op_cycle==CycleDecode ) begin
         do_post();
 
-        if( int_state!=IntStateNone ) begin
-            // Interrupt pending
+        addr_bus_pc();
+        if( current_int!=IntStateNone ) begin
+            // Interrupt!!!!1!ii
             next_opcode = 8'h00;
             do_address(8'h00);
         end else begin
             next_opcode = memory_in;
 
-            addr_bus_pc();
             do_address(memory_in);
         end
     end else if( (op_cycle&CycleAddrMask)!=0 )
@@ -1203,7 +1207,14 @@ endtask
 
 task next_instruction_no_bus();
     sync = 1'b1;
-    advance_pc();
+    if( pending_interrupt!=IntStateNone ) begin
+        current_int_next = pending_interrupt;
+        pending_interrupt_next = IntStateNone;
+    end else if( interrupt_request && !status[control_signals::FlagsIrqMask] ) begin
+        current_int_next = IntStateIrq;
+        pending_interrupt_next = IntStateNone;
+    end else
+        advance_pc();
 
     op_cycle_next = CycleDecode;
 endtask
@@ -1537,23 +1548,23 @@ task op_bit();
 endtask
 
 task post_bit();
-            data_bus_src = bus_sources::DataBusSrc_AluLast;
+    data_bus_src = bus_sources::DataBusSrc_AluLast;
 
-            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_brk();
     case(op_cycle)
         CycleDecode: begin
-            if( int_state_next==IntStateNone )
+            if( current_int==IntStateNone )
                 advance_pc();
             op_cycle_next = FirstOpCycle;
         end
         FirstOpCycle: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset ) begin
+            if( current_int!=IntStateReset ) begin
                 write = 1;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
             end
@@ -1562,7 +1573,7 @@ task op_brk();
         CycleOp2: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset ) begin
+            if( current_int!=IntStateReset ) begin
                 write = 1;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
             end
@@ -1571,14 +1582,14 @@ task op_brk();
         CycleOp3: begin
             stack_pointer_push();
             addr_bus_stack();
-            if( int_state!=IntStateReset ) begin
+            if( current_int!=IntStateReset ) begin
                 write = 1;
                 data_out_src = bus_sources::DataOutSrc_Status;
             end
-            ctrl_signals[control_signals::StatOutputB] = int_state==IntStateNone ? 1'b1 : 1'b0;
+            ctrl_signals[control_signals::StatOutputB] = current_int==IntStateNone ? 1'b1 : 1'b0;
         end
         CycleOp4: begin
-            case( int_state )
+            case( current_int )
                 IntStateNone: addr_bus_low_src = bus_sources::AddrBusLowSrc_FE;
                 IntStateReset: addr_bus_low_src = bus_sources::AddrBusLowSrc_FC;
                 IntStateNmi: addr_bus_low_src = bus_sources::AddrBusLowSrc_FA;
@@ -1594,7 +1605,7 @@ task op_brk();
             pcl_bus_src = bus_sources::PcLowSrc_Mem;
             ctrl_signals[control_signals::LOAD_PCL] = 1'b1;
 
-            case( int_state )
+            case( current_int )
                 IntStateNone: addr_bus_low_src = bus_sources::AddrBusLowSrc_FF;
                 IntStateReset: addr_bus_low_src = bus_sources::AddrBusLowSrc_FD;
                 IntStateNmi: addr_bus_low_src = bus_sources::AddrBusLowSrc_FB;
@@ -1609,12 +1620,14 @@ task op_brk();
             end
         end
         CycleOp6: begin
+            // Must be before the call to next_instruction, as we want it to
+            // override us if necessary.
+            current_int_next <= IntStateNone;
+
             next_instruction();
 
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Mem;
             pc_next_src = bus_sources::PcNextSrc_Bus;
-
-            int_state_next = IntStateNone;
         end
     endcase
 endtask

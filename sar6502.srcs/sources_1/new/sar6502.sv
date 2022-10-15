@@ -121,6 +121,8 @@ decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(
     .ready(ready),
     .status(last_status),
     .alu_carry_out(last_alu_carry),
+    .interrupt_request(interrupt),
+    .nonmaskable_interrupt(nmi),
     .memory_in(data_in)
 );
 

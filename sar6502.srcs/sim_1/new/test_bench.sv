@@ -99,7 +99,7 @@ logic [35:0]test_plan[30000];
 
 logic [7:0]prev_data_out;
 logic [15:0]prev_address;
-logic prev_write, prev_memory_lock, prev_vector_pull, prev_sync, prev_incompatible, prev_ready;
+logic prev_write, prev_memory_lock, prev_vector_pull, prev_sync, prev_incompatible, prev_ready, prev_reset;
 
 struct {
     int delay;
@@ -124,6 +124,7 @@ always_ff@(posedge clock) begin
     prev_sync <= cpu.sync;
     prev_incompatible <= cpu.incompatible;
     prev_ready <= cpu.ready;
+    prev_reset <= cpu.reset;
 end
 
 initial begin
@@ -202,24 +203,26 @@ endtask
 
 task verify_cycle( input logic [35:0]plan_line );
 begin
-    if( !prev_incompatible || prev_write==1 || plan_line[0]==0 ) begin
-        assert_state( prev_address, plan_line[31:16], "Address bus" );
-    end else
-        $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, prev_address, plan_line[31:16]);
-    assert_state( prev_write, !plan_line[0], "Read/write" );
-    assert_state( prev_sync, plan_line[1], "Sync" );
-    if( plan_line[2]==1 ) // Due to bug in wd65c02, allow our ML to be active while theirs isn't.
-        assert_state( prev_memory_lock, plan_line[2], "Memory lock" );
-    assert_state( prev_vector_pull, plan_line[3], "Vector pull" );
+    if( !prev_reset ) begin
+        if( !prev_incompatible || prev_write==1 || plan_line[0]==0 ) begin
+            assert_state( prev_address, plan_line[31:16], "Address bus" );
+        end else
+            $display("Known incompatibility cycle %d. Not comparing address %x to desired %x", cycle_num, prev_address, plan_line[31:16]);
+        assert_state( prev_write, !plan_line[0], "Read/write" );
+        assert_state( prev_sync, plan_line[1], "Sync" );
+        if( plan_line[2]==1 ) // Due to bug in wd65c02, allow our ML to be active while theirs isn't.
+            assert_state( prev_memory_lock, plan_line[2], "Memory lock" );
+        assert_state( prev_vector_pull, plan_line[3], "Vector pull" );
 
-    if( !prev_write ) begin
-        // Read
-        if( !prev_incompatible && prev_ready )
-            assert_state( data_in, plan_line[15:8], "Data in" );
-    end else begin
-        // Write
-        memory[prev_address] = prev_data_out;
-        assert_state( prev_data_out, plan_line[15:8], "Data out" );
+        if( !prev_write ) begin
+            // Read
+            if( !prev_incompatible && prev_ready )
+                assert_state( data_in, plan_line[15:8], "Data in" );
+        end else begin
+            // Write
+            memory[prev_address] = prev_data_out;
+            assert_state( prev_data_out, plan_line[15:8], "Data out" );
+        end
     end
 end
 endtask

@@ -431,6 +431,7 @@ task do_address(input [7:0] opcode);
         8'hd8: addr_mode_implied();             // CLD
         8'hd9: addr_mode_abs_y();               // CMP abs,y
         8'hda: addr_mode_stack(opcode);         // PHX
+        8'hdb: op_stp();
         8'hdd: addr_mode_abs_x();               // CMP abs,x
         8'hde: addr_mode_abs_x();               // DEC abs,x
         8'hdf: addr_mode_zp();                  // BBS5 zp
@@ -1557,8 +1558,23 @@ endtask
 task op_brk();
     case(op_cycle)
         CycleDecode: begin
+            addr_bus_pc();
             if( current_int==IntStateNone )
                 advance_pc();
+
+            if( current_int!=IntStateReset )
+                op_cycle_next = FirstOpCycle;
+            else
+                incompatible = 1'b1;
+        end
+        CycleAddr1: begin
+            addr_bus_pc();
+            incompatible = 1'b1;
+            sync = 1'b1;
+        end
+        CycleAddr2: begin
+            addr_bus_pc();
+            incompatible = 1'b1;
             op_cycle_next = FirstOpCycle;
         end
         FirstOpCycle: begin
@@ -2749,6 +2765,8 @@ task op_stz();
 endtask
 
 task op_stp();
+    addr_bus_pc();
+
     op_cycle_next = FirstOpCycle;
 endtask
 

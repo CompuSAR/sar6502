@@ -859,6 +859,9 @@ so_test_loop:
 
     stp
 
+    brk         ; Unreachable
+    .data $08
+
 stp_test_cont1:
     jsr dump_state
 

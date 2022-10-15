@@ -418,6 +418,7 @@ task do_address(input [7:0] opcode);
         8'hc8: addr_mode_implied();             // INY
         8'hc9: addr_mode_immediate();           // CMP #
         8'hca: addr_mode_implied();             // DEX
+        8'hcb: addr_mode_implied();             // WAI
         8'hcc: addr_mode_absolute();            // CPY abs
         8'hcd: addr_mode_absolute();            // CMP abs
         8'hce: addr_mode_absolute();            // DEC abs
@@ -635,6 +636,7 @@ task do_opcode(input [7:0]opcode);
         8'hc8: op_iny();
         8'hc9: op_cmp();                        // CMP #
         8'hca: op_dex();
+        8'hcb: op_wai();                        // WAI
         8'hcc: op_cpy();                        // CPY abs
         8'hcd: op_cmp();                        // CMP abs
         8'hce: op_dec();                        // DEC abs
@@ -2881,6 +2883,15 @@ task op_trsb();
             next_instruction();
         end
     endcase
+endtask
+
+task op_wai();
+    addr_bus_pc();
+
+    if( pending_interrupt!=IntStateNone || interrupt_request )
+        next_instruction();
+    else
+        op_cycle_next = FirstOpCycle;
 endtask
 
 endmodule

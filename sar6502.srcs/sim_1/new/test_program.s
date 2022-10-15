@@ -762,6 +762,12 @@ pull_test_loop2:
     tax
     stx value_dump
 
+    lda #$8b
+    bit #$94
+    php
+    bit #$54
+    php
+
 
     jsr regression1_apple2_disassembly
 

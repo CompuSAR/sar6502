@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,586.001 ns"></ZoomEndTime>
-      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="265,065.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="266,649.001 ns"></ZoomEndTime>
+      <Cursor1Time time="266,291.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="201"></NameColumnWidth>
-      <ValueColumnWidth column_width="89"></ValueColumnWidth>
+      <NameColumnWidth column_width="178"></NameColumnWidth>
+      <ValueColumnWidth column_width="114"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="47" />
+   <WVObjectSize size="49" />
    <wvobject type="logic" fp_name="/test_bench/cpu/clock">
       <obj_property name="ElementShortName">clock</obj_property>
       <obj_property name="ObjectShortName">clock</obj_property>
@@ -53,6 +53,12 @@
    <wvobject type="array" fp_name="/test_bench/cpu/special_bus">
       <obj_property name="ElementShortName">special_bus[7:0]</obj_property>
       <obj_property name="ObjectShortName">special_bus[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/data_bus">
+      <obj_property name="ElementShortName">data_bus[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_bus[7:0]</obj_property>
+      <obj_property name="CustomSignalColor">#D2691E</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/ready">
       <obj_property name="ElementShortName">ready</obj_property>
@@ -127,52 +133,6 @@
       <obj_property name="ElementShortName">data_out[7:0]</obj_property>
       <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
       <obj_property name="label">Status</obj_property>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[7]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[7]</obj_property>
-         <obj_property name="ObjectShortName">[7]</obj_property>
-         <obj_property name="label">N</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[6]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[6]</obj_property>
-         <obj_property name="ObjectShortName">[6]</obj_property>
-         <obj_property name="label">V</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[5]">
-         <obj_property name="ElementShortName">[5]</obj_property>
-         <obj_property name="ObjectShortName">[5]</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[4]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[4]</obj_property>
-         <obj_property name="ObjectShortName">[4]</obj_property>
-         <obj_property name="label">B</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[3]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[3]</obj_property>
-         <obj_property name="ObjectShortName">[3]</obj_property>
-         <obj_property name="label">D</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[2]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[2]</obj_property>
-         <obj_property name="ObjectShortName">[2]</obj_property>
-         <obj_property name="label">I</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[1]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[1]</obj_property>
-         <obj_property name="ObjectShortName">[1]</obj_property>
-         <obj_property name="label">Z</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[0]">
-         <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="ElementShortName">[0]</obj_property>
-         <obj_property name="ObjectShortName">[0]</obj_property>
-         <obj_property name="label">C</obj_property>
-      </wvobject>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/reg_stat/data_out[7]">
       <obj_property name="DisplayName">label</obj_property>
@@ -228,6 +188,10 @@
       <obj_property name="ElementShortName">data_bus_src[31:0]</obj_property>
       <obj_property name="ObjectShortName">data_bus_src[31:0]</obj_property>
    </wvobject>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/data_out_src">
+      <obj_property name="ElementShortName">data_out_src[1:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out_src[1:0]</obj_property>
+   </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/decoder/special_bus_src">
       <obj_property name="ElementShortName">special_bus_src[31:0]</obj_property>
       <obj_property name="ObjectShortName">special_bus_src[31:0]</obj_property>
@@ -254,9 +218,9 @@
       <obj_property name="ObjectShortName">a[7:0]</obj_property>
       <obj_property name="label">ALU a</obj_property>
    </wvobject>
-   <wvobject type="other" fp_name="/test_bench/cpu/decoder/alu_b_src">
-      <obj_property name="ElementShortName">alu_b_src</obj_property>
-      <obj_property name="ObjectShortName">alu_b_src</obj_property>
+   <wvobject type="array" fp_name="/test_bench/cpu/decoder/alu_b_src">
+      <obj_property name="ElementShortName">alu_b_src[31:0]</obj_property>
+      <obj_property name="ObjectShortName">alu_b_src[31:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_bench/cpu/alu/b">
       <obj_property name="DisplayName">label</obj_property>
@@ -279,6 +243,8 @@
    <wvobject type="array" fp_name="/test_bench/cpu/alu/result">
       <obj_property name="ElementShortName">result[7:0]</obj_property>
       <obj_property name="ObjectShortName">result[7:0]</obj_property>
+      <obj_property name="CustomSignalColor">#D2691E</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_bench/cpu/alu/carry_out">
       <obj_property name="ElementShortName">carry_out</obj_property>

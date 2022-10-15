@@ -6,20 +6,12 @@ typedef enum logic[31:0] {
     DataBusSrc_Invalid = 'X,
     DataBusSrc_Zero = 0,
     DataBusSrc_Ones,
-    DataBusSrc_RegA,
     DataBusSrc_Mem,
     DataBusSrc_Alu,
+    DataBusSrc_AluLast,
     DataBusSrc_Special,
     DataBusSrc_PcLow,
-    DataBusSrc_PcHigh,
-    DataBusSrc_Bit0,
-    DataBusSrc_Bit1,
-    DataBusSrc_Bit2,
-    DataBusSrc_Bit3,
-    DataBusSrc_Bit4,
-    DataBusSrc_Bit5,
-    DataBusSrc_Bit6,
-    DataBusSrc_Bit7
+    DataBusSrc_PcHigh
 } DataBusSourceCtl;
 
 typedef enum logic[31:0] {
@@ -76,11 +68,23 @@ typedef enum logic[31:0] {
     AluASrc_ALU
 } AluASrcCtl;
 
-typedef enum logic {
+typedef enum logic[31:0] {
     AluBSrc_Invalid = 'X,
 
-    AluBSrc_Zero = 1'b0,
-    AluBSrc_DataBus
+    AluBSrc_Zero = 0,
+    AluBSrc_Mem,
+
+    // The rest are only for the wierd ass 65c02 commands
+    AluBSrc_RegA,
+
+    AluBSrc_Bit0 = 32'h8,
+    AluBSrc_Bit1,
+    AluBSrc_Bit2,
+    AluBSrc_Bit3,
+    AluBSrc_Bit4,
+    AluBSrc_Bit5,
+    AluBSrc_Bit6,
+    AluBSrc_Bit7
 } AluBSrcCtl;
 
 typedef enum logic[31:0] {

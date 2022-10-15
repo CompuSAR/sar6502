@@ -267,7 +267,7 @@ task do_address(input [7:0] opcode);
         8'h17: addr_mode_zp();                  // RMB
         8'h18: addr_mode_implied();             // CLC
         8'h19: addr_mode_abs_y();               // ORA abs,y
-        8'h1a: addr_mode_implied();             // INC
+        8'h1a: addr_mode_acc();                 // INC
         8'h1c: addr_mode_absolute();            // TRB abs
         8'h1d: addr_mode_abs_x();               // ORA abs,x
         8'h1e: addr_mode_abs_x();               // ASL abs,x
@@ -294,7 +294,7 @@ task do_address(input [7:0] opcode);
         8'h37: addr_mode_zp();                  // RMB
         8'h38: addr_mode_implied();             // SEC
         8'h39: addr_mode_abs_y();               // AND abs,y
-        8'h3a: addr_mode_implied();             // DEC
+        8'h3a: addr_mode_acc();                 // DEC
         8'h3c: addr_mode_abs_x();               // BIT abs,x
         8'h3d: addr_mode_abs_x();               // AND abs,x
         8'h3e: addr_mode_abs_x();               // ROL abs,x
@@ -679,77 +679,11 @@ endtask
 
 task do_post();
     case(current_opcode)
-        8'h01: post_ora();                        // ORA (zp,x)
-        8'h05: post_ora();                        // ORA zp
-        8'h09: post_ora();                        // ORA #
-        8'h0d: post_ora();                        // ORA abs
-        8'h11: post_ora();                        // ORA (zp),y
-        8'h12: post_ora();                        // ORA (zp)
-        8'h15: post_ora();                        // ORA zp,x
-        8'h19: post_ora();                        // ORA abs,y
-        8'h1a: post_dec_A();                      // INC
-        8'h1d: post_ora();                        // ORA abs,x
-        8'h21: post_and();                        // AND (zp),x
         8'h24: post_bit();                        // BIT zp
-        8'h25: post_and();                        // AND zp
-        8'h29: post_and();                        // AND #
         8'h2c: post_bit();                        // BIT abs
-        8'h2d: post_and();                        // AND abs
-        8'h31: post_and();                        // AND (zp),y
-        8'h32: post_and();                        // AND (zp)
         8'h34: post_bit();                        // BIT zp,x
-        8'h35: post_and();                        // AND zp,x
-        8'h39: post_and();                        // AND abs,y
-        8'h3a: post_dec_A();
         8'h3c: post_bit();                        // BIT abs,x
-        8'h3d: post_and();                        // AND abs,x
-        8'h41: post_and();                        // EOR (zp,x)
-        8'h45: post_and();                        // EOR zp
-        8'h49: post_and();                        // EOR #
-        8'h4d: post_and();                        // EOR abs
-        8'h51: post_and();                        // EOR (zp),y
-        8'h52: post_and();                        // EOR (zp)
-        8'h55: post_and();                        // EOR zp,x
-        8'h59: post_and();                        // EOR abs,y
-        8'h5d: post_and();                        // EOR abs,x
-        8'h61: post_adc();                        // ADC (zp,x)
-        8'h65: post_adc();                        // ADC zp
-        8'h69: post_adc();                        // ADC #
-        8'h6d: post_adc();                        // ADC abs
-        8'h71: post_adc();                        // ADC (zp),y
-        8'h72: post_adc();                        // ADC (zp)
-        8'h75: post_adc();                        // ADC zp,x
-        8'h79: post_adc();                        // ADC abs,y
-        8'h7d: post_adc();                        // ADC abs,x
-        8'h88: post_dey();
         8'h89: post_bit();                        // BIT #
-        8'hc0: post_cmp();                        // CPY #
-        8'hc1: post_cmp();                        // CMP (zp,x)
-        8'hc4: post_cmp();                        // CPY zp
-        8'hc5: post_cmp();                        // CMP zp
-        8'hc8: post_iny();
-        8'hc9: post_cmp();                        // CMP #
-        8'hca: post_dex();
-        8'hcc: post_cmp();                        // CPY abs
-        8'hcd: post_cmp();                        // CMP abs
-        8'hd1: post_cmp();                        // CMP (zp),y
-        8'hd2: post_cmp();                        // CMP (zp)
-        8'hd5: post_cmp();                        // CMP zp,x
-        8'hd9: post_cmp();                        // CMP abs,y
-        8'hdd: post_cmp();                        // CMP abs,x
-        8'he0: post_cmp();                        // CPX #
-        8'he1: post_sbc();                        // SBC (zp,x)
-        8'he4: post_cmp();                        // CPX zp
-        8'he5: post_sbc();                        // SBC zp
-        8'he8: post_inx();
-        8'he9: post_sbc();                        // SBC #
-        8'hec: post_cmp();                        // CPX abs
-        8'hed: post_sbc();                        // SBC abs
-        8'hf1: post_sbc();                        // SBC (zp),y
-        8'hf2: post_sbc();                        // SBC (zp)
-        8'hf5: post_sbc();                        // SBC zp,x
-        8'hf9: post_sbc();                        // SBC abs,y
-        8'hfd: post_sbc();                        // SBC abs,x
     endcase
 endtask
 
@@ -881,8 +815,7 @@ task addr_mode_abs_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -929,8 +862,7 @@ task addr_mode_abs_x_ind();
             addr_bus_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -981,8 +913,7 @@ task addr_mode_abs_y();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1131,8 +1062,7 @@ task addr_mode_zp_x();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1158,8 +1088,7 @@ task addr_mode_zp_y();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1185,8 +1114,7 @@ task addr_mode_zp_x_ind();
             advance_pc();
 
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1236,8 +1164,7 @@ task addr_mode_zp_ind_y();
             addr_bus_high_src = bus_sources::AddrBusHighSrc_Zero;
 
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b0;
         end
@@ -1296,8 +1223,7 @@ task branch_opcode(input condition);
                 next_instruction();
             else begin
                 alu_a_src = bus_sources::AluASrc_PcLow;
-                alu_b_src = bus_sources::AluBSrc_DataBus;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_Mem;
                 alu_op = control_signals::AluOp_add;
                 alu_carry_in = 1'b0;
             end
@@ -1347,18 +1273,10 @@ task op_adc();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
 
-            next_instruction();
-        end
-        default: set_invalid_state();
-    endcase
-endtask
-
-task post_adc();
             data_bus_src = bus_sources::DataBusSrc_Alu;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
@@ -1369,6 +1287,11 @@ task post_adc();
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_eor();
@@ -1377,9 +1300,16 @@ task op_eor();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_xor;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
 
             next_instruction();
         end
@@ -1393,17 +1323,9 @@ task op_and();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
 
-            next_instruction();
-        end
-        default: set_invalid_state();
-    endcase
-endtask
-
-task post_and();
             data_bus_src = bus_sources::DataBusSrc_Alu;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
@@ -1411,6 +1333,11 @@ task post_and();
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_asl();
@@ -1431,19 +1358,19 @@ task op_asl();
             alu_a_src = bus_sources::AluASrc_Mem;
             alu_op = control_signals::AluOp_shift_left;
             alu_carry_in = 1'b0;
-        end
-        CycleOp2: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
-            write = 1'b1;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_out_src = bus_sources::DataOutSrc_Alu;
+            write = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -1455,13 +1382,12 @@ endtask
 task op_asl_A();
     casex(op_cycle)
         CycleAnyAddr: begin
-            addr_bus_pc();
-
+        end
+        FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_op = control_signals::AluOp_shift_left;
             alu_carry_in = 1'b0;
-        end
-        FirstOpCycle: begin
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
@@ -1507,8 +1433,7 @@ task op_bbrs();
                 next_instruction();
             else begin
                 alu_a_src = bus_sources::AluASrc_PcLow;
-                alu_b_src = bus_sources::AluBSrc_DataBus;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
+                alu_b_src = bus_sources::AluBSrc_Mem;
                 alu_op = control_signals::AluOp_add;
                 alu_carry_in = 1'b0;
             end
@@ -1596,7 +1521,7 @@ task op_bit();
             data_bus_src = bus_sources::DataBusSrc_Mem;
 
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
 
             if( current_opcode!=8'h89 ) begin
@@ -1613,12 +1538,11 @@ task op_bit();
 endtask
 
 task post_bit();
-            data_bus_src = bus_sources::DataBusSrc_Alu;
+            data_bus_src = bus_sources::DataBusSrc_AluLast;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
-
 
 task op_brk();
     case(op_cycle)
@@ -1750,25 +1674,22 @@ task op_cmp();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+
             next_instruction();
         end
     endcase
-endtask
-
-task post_cmp();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateC] = 1'b1;
-    ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 endtask
 
 task op_cpx();
@@ -1777,11 +1698,18 @@ task op_cpx();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegX;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 
             next_instruction();
         end
@@ -1794,11 +1722,18 @@ task op_cpy();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegY;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateC] = 1'b1;
+            ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 
             next_instruction();
         end
@@ -1821,20 +1756,28 @@ task op_dec();
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
+
+                // Should have written the value read from memory. Doing so
+                // would have required us to add another control option to
+                // DataOutSrc, which doesn't make sense just to reproduce
+                // a CPU bug.
+                // data_bus_src = bus_sources::DataBusSrc_Mem;
+                // Instead, we write the *correct* value twice.
+                incompatible = 1'b1;
             end
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end
         CycleOp2: begin
             addr_bus_ol();
             memory_lock = 1'b1;
 
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
+            data_out_src = bus_sources::DataOutSrc_Alu;
             write = 1'b1;
-
-            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -1844,7 +1787,8 @@ task op_dec();
 endtask
 
 task op_dec_A();
-    case(op_cycle)
+    casex(op_cycle)
+        CycleAnyAddr: ;
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_b_src = bus_sources::AluBSrc_Zero;
@@ -1852,20 +1796,18 @@ task op_dec_A();
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
             alu_carry_in = 1'b0;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();
     endcase
-endtask
-
-task post_dec_A();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::LOAD_A] = 1'b1;
-
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_dex();
@@ -1877,20 +1819,18 @@ task op_dex();
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
             alu_carry_in = 1'b0;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();
     endcase
-endtask
-
-task post_dex();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::LOAD_X] = 1'b1;
-
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_dey();
@@ -1902,20 +1842,18 @@ task op_dey();
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
             alu_carry_in = 1'b0;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();
     endcase
-endtask
-
-task post_dey();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::LOAD_Y] = 1'b1;
-
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_inc();
@@ -1934,20 +1872,28 @@ task op_inc();
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
+
+                // Should have written the value read from memory. Doing so
+                // would have required us to add another control option to
+                // DataOutSrc, which doesn't make sense just to reproduce
+                // a CPU bug.
+                // data_bus_src = bus_sources::DataBusSrc_Mem;
+                // Instead, we write the *correct* value twice.
+                incompatible = 1'b1;
             end
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end
         CycleOp2: begin
             addr_bus_ol();
             memory_lock = 1'b1;
 
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
+            data_out_src = bus_sources::DataOutSrc_Alu;
             write = 1'b1;
-
-            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -1957,13 +1903,21 @@ task op_inc();
 endtask
 
 task op_inc_A();
-    case(op_cycle)
+    casex(op_cycle)
+        CycleAnyAddr: ;
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_b_src = bus_sources::AluBSrc_Zero;
             alu_op = control_signals::AluOp_add;
             ctrl_signals[control_signals::AluInverseB] = 1'b0;
             alu_carry_in = 1'b1;
+
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+            ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 
             next_instruction();
         end
@@ -1979,20 +1933,18 @@ task op_inx();
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::LOAD_X] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();
     endcase
-endtask
-
-task post_inx();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::LOAD_X] = 1'b1;
-
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_iny();
@@ -2003,20 +1955,18 @@ task op_iny();
             alu_op = control_signals::AluOp_add;
             alu_carry_in = 1'b1;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
+
+            ctrl_signals[control_signals::LOAD_Y] = 1'b1;
+
+            ctrl_signals[control_signals::StatUpdateN] = 1'b1;
+            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
+            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+
             next_instruction();
         end
         default: set_invalid_state();
     endcase
-endtask
-
-task post_iny();
-    data_bus_src = bus_sources::DataBusSrc_Alu;
-
-    ctrl_signals[control_signals::LOAD_Y] = 1'b1;
-
-    ctrl_signals[control_signals::StatUpdateN] = 1'b1;
-    ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-    ctrl_signals[control_signals::StatCalcZero] = 1'b1;
 endtask
 
 task op_jmp();
@@ -2130,26 +2080,34 @@ task op_lsr();
 
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
+
+                // Should have written the value read from memory. Doing so
+                // would have required us to add another control option to
+                // DataOutSrc, which doesn't make sense just to reproduce
+                // a CPU bug.
+                // data_bus_src = bus_sources::DataBusSrc_Mem;
+                // Instead, we write the *correct* value twice.
+                incompatible = 1'b1;
             end
 
             alu_a_src = bus_sources::AluASrc_Mem;
             alu_op = control_signals::AluOp_shift_right_logical;
             alu_carry_in = 1'b0;
-        end
-        CycleOp2: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
-            write = 1'b1;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_out_src = bus_sources::DataOutSrc_Alu;
+            write = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -2161,13 +2119,12 @@ endtask
 task op_lsr_A();
     casex(op_cycle)
         CycleAnyAddr: begin
-            addr_bus_pc();
-
+        end
+        FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_op = control_signals::AluOp_shift_right_logical;
             alu_carry_in = 1'b0;
-        end
-        FirstOpCycle: begin
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
@@ -2198,17 +2155,9 @@ task op_ora();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_or;
 
-            next_instruction();
-        end
-        default: set_invalid_state();
-    endcase
-endtask
-
-task post_ora();
             data_bus_src = bus_sources::DataBusSrc_Alu;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
@@ -2216,6 +2165,11 @@ task post_ora();
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_pha();
@@ -2401,26 +2355,33 @@ task op_rol();
 
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
+
+                // Should have written the value read from memory. Doing so
+                // would have required us to add another control option to
+                // DataOutSrc, which doesn't make sense just to reproduce
+                // a CPU bug.
+                // data_bus_src = bus_sources::DataBusSrc_Mem;
+                // Instead, we write the *correct* value twice.
+                incompatible = 1'b1;
             end
 
             alu_a_src = bus_sources::AluASrc_Mem;
             alu_op = control_signals::AluOp_shift_left;
             alu_carry_in = status[control_signals::FlagsCarry];
-        end
-        CycleOp2: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
-            write = 1'b1;
 
+            data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_out_src = bus_sources::DataOutSrc_Alu;
+            write = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -2432,13 +2393,12 @@ endtask
 task op_rol_A();
     casex(op_cycle)
         CycleAnyAddr: begin
-            addr_bus_pc();
-
+        end
+        FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_op = control_signals::AluOp_shift_left;
             alu_carry_in = status[control_signals::FlagsCarry];
-        end
-        FirstOpCycle: begin
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
@@ -2465,26 +2425,34 @@ task op_ror();
 
             if( CPU_VARIANT==0 ) begin
                 write = 1'b1;
-                data_bus_src = bus_sources::DataBusSrc_Mem;
                 data_out_src = bus_sources::DataOutSrc_DataBus;
+
+                // Should have written the value read from memory. Doing so
+                // would have required us to add another control option to
+                // DataOutSrc, which doesn't make sense just to reproduce
+                // a CPU bug.
+                // data_bus_src = bus_sources::DataBusSrc_Mem;
+                // Instead, we write the *correct* value twice.
+                incompatible = 1'b1;
             end
 
             alu_a_src = bus_sources::AluASrc_Mem;
             alu_op = control_signals::AluOp_shift_right_logical;
             alu_carry_in = status[control_signals::FlagsCarry];
-        end
-        CycleOp2: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
-            write = 1'b1;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
             ctrl_signals[control_signals::StatUpdateN] = 1'b1;
             ctrl_signals[control_signals::StatUpdateC] = 1'b1;
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
+        end
+        CycleOp2: begin
+            addr_bus_ol();
+            memory_lock = 1'b1;
+            data_out_src = bus_sources::DataOutSrc_Alu;
+            write = 1'b1;
         end
         CycleOp3: begin
             next_instruction();
@@ -2496,13 +2464,12 @@ endtask
 task op_ror_A();
     casex(op_cycle)
         CycleAnyAddr: begin
-            addr_bus_pc();
-
+        end
+        FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_op = control_signals::AluOp_shift_right_logical;
             alu_carry_in = status[control_signals::FlagsCarry];
-        end
-        FirstOpCycle: begin
+
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
@@ -2613,16 +2580,15 @@ task op_rsmb();
             memory_lock = 1'b1;
 
             alu_a_src = bus_sources::AluASrc_Mem;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
             case(current_opcode[6:4])
-                0: data_bus_src = bus_sources::DataBusSrc_Bit0;
-                1: data_bus_src = bus_sources::DataBusSrc_Bit1;
-                2: data_bus_src = bus_sources::DataBusSrc_Bit2;
-                3: data_bus_src = bus_sources::DataBusSrc_Bit3;
-                4: data_bus_src = bus_sources::DataBusSrc_Bit4;
-                5: data_bus_src = bus_sources::DataBusSrc_Bit5;
-                6: data_bus_src = bus_sources::DataBusSrc_Bit6;
-                7: data_bus_src = bus_sources::DataBusSrc_Bit7;
+                0: alu_b_src = bus_sources::AluBSrc_Bit0;
+                1: alu_b_src = bus_sources::AluBSrc_Bit1;
+                2: alu_b_src = bus_sources::AluBSrc_Bit2;
+                3: alu_b_src = bus_sources::AluBSrc_Bit3;
+                4: alu_b_src = bus_sources::AluBSrc_Bit4;
+                5: alu_b_src = bus_sources::AluBSrc_Bit5;
+                6: alu_b_src = bus_sources::AluBSrc_Bit6;
+                7: alu_b_src = bus_sources::AluBSrc_Bit7;
             endcase
 
             if( current_opcode[7] ) begin
@@ -2639,8 +2605,7 @@ task op_rsmb();
             addr_bus_ol();
             memory_lock = 1'b1;
 
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            data_out_src = bus_sources::DataOutSrc_DataBus;
+            data_out_src = bus_sources::DataOutSrc_Alu;
             write = 1'b1;
         end
         CycleOp3: next_instruction();
@@ -2654,19 +2619,11 @@ task op_sbc();
         end
         FirstOpCycle: begin
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Mem;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_add;
             alu_carry_in = status[control_signals::FlagsCarry];
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
 
-            next_instruction();
-        end
-        default: set_invalid_state();
-    endcase
-endtask
-
-task post_sbc();
             data_bus_src = bus_sources::DataBusSrc_Alu;
 
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
@@ -2677,6 +2634,11 @@ task post_sbc();
             ctrl_signals[control_signals::StatUseAlu] = 1'b1;
 
             ctrl_signals[control_signals::LOAD_A] = 1'b1;
+
+            next_instruction();
+        end
+        default: set_invalid_state();
+    endcase
 endtask
 
 task op_sec();
@@ -2858,9 +2820,7 @@ task op_trb();
             memory_lock = 1'b1;
 
             alu_a_src = bus_sources::AluASrc_Mem;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_RegA;
             alu_op = control_signals::AluOp_and;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
         end
@@ -2871,18 +2831,17 @@ task op_trb();
 
             data_out_src = bus_sources::DataOutSrc_Alu;
 
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
-        end
-        CycleOp3: begin
-            next_instruction();
 
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
         end
     endcase
 endtask
@@ -2897,9 +2856,7 @@ task op_tsb();
             memory_lock = 1'b1;
 
             alu_a_src = bus_sources::AluASrc_Mem;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
-            data_bus_src = bus_sources::DataBusSrc_Special;
-            special_bus_src = bus_sources::SpecialBusSrc_RegA;
+            alu_b_src = bus_sources::AluBSrc_RegA;
             alu_op = control_signals::AluOp_or;
             ctrl_signals[control_signals::AluInverseB] = 1'b0;
         end
@@ -2910,18 +2867,17 @@ task op_tsb();
 
             data_out_src = bus_sources::DataOutSrc_Alu;
 
-            data_bus_src = bus_sources::DataBusSrc_Mem;
             alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_DataBus;
+            alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
-        end
-        CycleOp3: begin
-            next_instruction();
 
             data_bus_src = bus_sources::DataBusSrc_Alu;
             ctrl_signals[control_signals::AluInverseB] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
+        end
+        CycleOp3: begin
+            next_instruction();
         end
     endcase
 endtask

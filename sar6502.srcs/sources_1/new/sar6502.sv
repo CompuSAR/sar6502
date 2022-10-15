@@ -96,8 +96,8 @@ logic last_alu_carry, last_alu_overflow;
 status_register reg_stat(
     .data_in(data_bus),
     .clock(clock),
-    .alu_carry(last_alu_carry),
-    .alu_overflow(last_alu_overflow),
+    .alu_carry(alu.carry_out),
+    .alu_overflow(alu.overflow_out),
 
     .update_c(decoder.ctrl_signals[control_signals::StatUpdateC]),
     .update_z(decoder.ctrl_signals[control_signals::StatUpdateZ]),
@@ -113,12 +113,13 @@ status_register reg_stat(
     .ready(ready),
     .set_overflow(set_overflow)
 );
+logic [7:0] last_status;
 
 decoder#(.CPU_VARIANT(CPU_VARIANT)) decoder(
     .clock(clock),
     .reset(reset),
     .ready(ready),
-    .status(reg_stat.data_out),
+    .status(last_status),
     .alu_carry_out(last_alu_carry),
     .memory_in(data_in)
 );
@@ -148,7 +149,9 @@ always_comb begin
         bus_sources::AddrBusLowSrc_FF: address_bus_low = 8'hff;
         default: address_bus_low = 8'hXX;
     endcase
+end
 
+always_comb begin
     case(decoder.addr_bus_high_src)
         bus_sources::AddrBusHighSrc_Zero: address_bus_high = 8'h00;
         bus_sources::AddrBusHighSrc_One: address_bus_high = 8'h01;
@@ -159,7 +162,9 @@ always_comb begin
         bus_sources::AddrBusHighSrc_FF: address_bus_high = 8'hff;
         default: address_bus_high = 8'hXX;
     endcase
+end
 
+always_comb begin
     case(decoder.special_bus_src)
         bus_sources::SpecialBusSrc_RegA: special_bus = reg_a.data_out;
         bus_sources::SpecialBusSrc_RegX: special_bus = reg_x.data_out;
@@ -168,28 +173,9 @@ always_comb begin
         bus_sources::SpecialBusSrc_Mem: special_bus = data_in;
         default: special_bus = 8'hXX;
     endcase
+end
 
-    case(decoder.data_bus_src)
-        bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
-        bus_sources::DataBusSrc_Ones: data_bus = 8'hff;
-        bus_sources::DataBusSrc_RegA: data_bus = reg_a.data_out;
-        bus_sources::DataBusSrc_Mem: data_bus = data_in;
-        bus_sources::DataBusSrc_Alu: data_bus = last_alu_result;
-        bus_sources::DataBusSrc_Special: data_bus = special_bus;
-        bus_sources::DataBusSrc_PcLow: data_bus = reg_pcl.data_out;
-        bus_sources::DataBusSrc_PcHigh: data_bus = reg_pch.data_out;
-
-        bus_sources::DataBusSrc_Bit0: data_bus = 8'b0000_0001;
-        bus_sources::DataBusSrc_Bit1: data_bus = 8'b0000_0010;
-        bus_sources::DataBusSrc_Bit2: data_bus = 8'b0000_0100;
-        bus_sources::DataBusSrc_Bit3: data_bus = 8'b0000_1000;
-        bus_sources::DataBusSrc_Bit4: data_bus = 8'b0001_0000;
-        bus_sources::DataBusSrc_Bit5: data_bus = 8'b0010_0000;
-        bus_sources::DataBusSrc_Bit6: data_bus = 8'b0100_0000;
-        bus_sources::DataBusSrc_Bit7: data_bus = 8'b1000_0000;
-        default: data_bus = 8'hXX;
-    endcase
-
+always_comb begin
     case(decoder.alu_a_src)
         bus_sources::AluASrc_RegA: alu_a_input = reg_a.data_out;
         bus_sources::AluASrc_RegX: alu_a_input = reg_x.data_out;
@@ -204,16 +190,48 @@ always_comb begin
 
     case(decoder.alu_b_src)
         bus_sources::AluBSrc_Zero: alu_b_input = 8'h00;
-        bus_sources::AluBSrc_DataBus: alu_b_input = data_bus;
+        bus_sources::AluBSrc_Mem: alu_b_input = data_in;
         default: alu_b_input = 8'hXX;
     endcase
+    if( CPU_VARIANT>=2 ) begin
+        case(decoder.alu_b_src)
+            bus_sources::AluBSrc_RegA: alu_b_input = reg_a.data_out;
+            bus_sources::AluBSrc_Bit0: alu_b_input = 8'b0000_0001;
+            bus_sources::AluBSrc_Bit1: alu_b_input = 8'b0000_0010;
+            bus_sources::AluBSrc_Bit2: alu_b_input = 8'b0000_0100;
+            bus_sources::AluBSrc_Bit3: alu_b_input = 8'b0000_1000;
+            bus_sources::AluBSrc_Bit4: alu_b_input = 8'b0001_0000;
+            bus_sources::AluBSrc_Bit5: alu_b_input = 8'b0010_0000;
+            bus_sources::AluBSrc_Bit6: alu_b_input = 8'b0100_0000;
+            bus_sources::AluBSrc_Bit7: alu_b_input = 8'b1000_0000;
+        endcase
+    end
+end
 
+always_comb begin
+    case(decoder.data_bus_src)
+        bus_sources::DataBusSrc_Zero: data_bus = 8'h00;
+        bus_sources::DataBusSrc_Ones: data_bus = 8'hff;
+        bus_sources::DataBusSrc_Mem: data_bus = data_in;
+        bus_sources::DataBusSrc_Alu: data_bus = alu.result;
+        bus_sources::DataBusSrc_AluLast: data_bus = last_alu_result;
+        bus_sources::DataBusSrc_Special: data_bus = special_bus;
+        bus_sources::DataBusSrc_PcLow: data_bus = reg_pcl.data_out;
+        bus_sources::DataBusSrc_PcHigh: data_bus = reg_pch.data_out;
+
+        default: data_bus = 8'hXX;
+    endcase
+end
+
+always_comb begin
     case(decoder.pc_next_src)
         bus_sources::PcNextSrc_Pc: pc_next = {reg_pch.data_out, reg_pcl.data_out} + 1;
         bus_sources::PcNextSrc_Bus: pc_next = {address_bus_high, address_bus_low} + 1;
         default: pc_next = 16'hXX;
     endcase
+end
 
+always_comb begin
     case(decoder.pcl_bus_src)
         bus_sources::PcLowSrc_Mem: pcl_in = data_in;
         bus_sources::PcLowSrc_ALU: pcl_in = last_alu_result;
@@ -226,7 +244,9 @@ always_comb begin
         bus_sources::PcHighSrc_Incrementor: pch_in = pc_next[15:8];
         default: pch_in = 8'hXX;
     endcase
+end
 
+always_comb begin
     case(decoder.data_out_src)
         bus_sources::DataOutSrc_Status: data_out = reg_stat.data_out;
         bus_sources::DataOutSrc_DataBus: data_out = data_bus;
@@ -241,6 +261,7 @@ always_ff@(posedge clock) begin
         last_alu_result <= alu.result;
         last_alu_carry <= alu.carry_out;
         last_alu_overflow <= alu.overflow_out;
+        last_status <= reg_stat.data_out;
     end
 end
 

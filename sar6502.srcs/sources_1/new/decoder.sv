@@ -1622,7 +1622,7 @@ task op_brk();
         CycleOp6: begin
             // Must be before the call to next_instruction, as we want it to
             // override us if necessary.
-            current_int_next <= IntStateNone;
+            current_int_next = IntStateNone;
 
             next_instruction();
 

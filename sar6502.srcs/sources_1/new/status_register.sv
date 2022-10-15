@@ -76,8 +76,6 @@ always_comb begin
         update_v ?
         (use_alu_flags ? alu_overflow : data_in[control_signals::FlagsOverflow]) :
         stored_flags[control_signals::FlagsOverflow];
-    if( prev_so==0 && set_overflow==1 )
-        overflow = 1'b1;
 
     decimal =
         update_d ?
@@ -104,8 +102,11 @@ always_ff@(posedge clock)
 begin
     if( ready ) begin
         stored_flags <= data_out;
-        prev_so <= set_overflow;
     end
+
+    if( prev_so==0 && set_overflow==1 )
+        stored_flags[control_signals::FlagsOverflow] <= 1'b1;
+    prev_so <= set_overflow;
 end
 
 endmodule

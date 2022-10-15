@@ -99,7 +99,7 @@ logic [35:0]test_plan[30000];
 
 logic [7:0]prev_data_out;
 logic [15:0]prev_address;
-logic prev_write, prev_memory_lock, prev_vector_pull, prev_sync, prev_incompatible;
+logic prev_write, prev_memory_lock, prev_vector_pull, prev_sync, prev_incompatible, prev_ready;
 
 struct {
     int delay;
@@ -110,6 +110,8 @@ always_ff@(posedge clock) begin
     if( cpu.write==1 ) begin
         memory[cpu.address] <= cpu.data_out;
         data_in <= 8'bX;
+    end else if(!cpu.ready) begin
+        data_in <= data_in;
     end else begin
         data_in <= memory[cpu.address];
     end
@@ -121,6 +123,7 @@ always_ff@(posedge clock) begin
     prev_vector_pull <= cpu.vector_pull;
     prev_sync <= cpu.sync;
     prev_incompatible <= cpu.incompatible;
+    prev_ready <= cpu.ready;
 end
 
 initial begin
@@ -211,7 +214,7 @@ begin
 
     if( !prev_write ) begin
         // Read
-        if( !prev_incompatible )
+        if( !prev_incompatible && prev_ready )
             assert_state( data_in, plan_line[15:8], "Data in" );
     end else begin
         // Write
@@ -239,7 +242,7 @@ task perform_io();
             $finish();
         end
         8'h80: pending_signals[SigReady].count = prev_data_out;
-        8'h81: pending_signals[SigReady].delay = prev_data_out;
+        8'h81: pending_signals[SigReady].delay = prev_data_out-1;
         8'h82: pending_signals[SigSo].count = prev_data_out;
         8'h83: pending_signals[SigSo].delay = prev_data_out;
         8'hfa: pending_signals[SigNmi].count = prev_data_out;

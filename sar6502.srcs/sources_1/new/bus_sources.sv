@@ -114,7 +114,7 @@ typedef enum logic[1:0] {
 
     DataOutSrc_DataBus = 2'b0,
     DataOutSrc_Status,
-    DataOutSrc_Alu              // Use only for TRB/TSB commands.
+    DataOutSrc_Alu
 } DataOutSourceCtl;
 
 endpackage // bus_sources

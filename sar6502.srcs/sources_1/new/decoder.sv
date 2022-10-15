@@ -361,7 +361,6 @@ task do_address(input [7:0] opcode);
         8'h8a: addr_mode_implied();             // TXA
         8'h8c: addr_mode_absolute();            // STY abs
         8'h8d: addr_mode_absolute();            // STA abs
-        8'h8d: addr_mode_absolute();            // STA abs
         8'h8e: addr_mode_absolute();            // STX abs
         8'h8f: addr_mode_zp();                  // BBS0 zp
         8'h90: addr_mode_pc_rel();              // BCC
@@ -464,28 +463,28 @@ task do_opcode(input [7:0]opcode);
     case(opcode)
         8'h00: op_brk();
         8'h01: op_ora();                        // ORA (zp,x)
-        8'h04: op_tsb();                        // TSB zp
+        8'h04: op_trsb();                       // TSB zp
         8'h05: op_ora();                        // ORA zp
         8'h06: op_asl();                        // ASL zp
         8'h07: op_rsmb();
         8'h08: op_php();
         8'h09: op_ora();                        // ORA #
         8'h0a: op_asl_A();
-        8'h0c: op_tsb();                        // TSB abs
+        8'h0c: op_trsb();                       // TSB abs
         8'h0d: op_ora();                        // ORA abs
         8'h0e: op_asl();                        // ASL abs
         8'h0f: op_bbrs();                       // BBR0 zp
         8'h10: op_bpl();
         8'h11: op_ora();                        // ORA (zp),y
         8'h12: op_ora();                        // ORA (zp)
-        8'h14: op_trb();                        // TRB zp
+        8'h14: op_trsb();                       // TRB zp
         8'h15: op_ora();                        // ORA zp,x
         8'h16: op_asl();                        // ASL zp,x
         8'h17: op_rsmb();
         8'h18: op_clc();
         8'h19: op_ora();                        // ORA abs,y
         8'h1a: op_inc_A();                      // INC
-        8'h1c: op_trb();                        // TRB abs
+        8'h1c: op_trsb();                       // TRB abs
         8'h1d: op_ora();                        // ORA abs,x
         8'h1e: op_asl();                        // ASL abs,x
         8'h1f: op_bbrs();                       // BBR1 zp
@@ -2810,7 +2809,7 @@ task op_tya();
     next_instruction();
 endtask
 
-task op_trb();
+task op_trsb();
     casex(op_cycle)
         CycleAnyAddr: begin
             memory_lock = 1'b1;
@@ -2821,8 +2820,15 @@ task op_trb();
 
             alu_a_src = bus_sources::AluASrc_Mem;
             alu_b_src = bus_sources::AluBSrc_RegA;
-            alu_op = control_signals::AluOp_and;
-            ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            if( current_opcode[4] ) begin
+                // TRB
+                alu_op = control_signals::AluOp_and;
+                ctrl_signals[control_signals::AluInverseB] = 1'b1;
+            end else begin
+                // TSB
+                alu_op = control_signals::AluOp_or;
+                ctrl_signals[control_signals::AluInverseB] = 1'b0;
+            end
         end
         CycleOp2: begin
             addr_bus_ol();
@@ -2834,45 +2840,9 @@ task op_trb();
             alu_a_src = bus_sources::AluASrc_RegA;
             alu_b_src = bus_sources::AluBSrc_Mem;
             alu_op = control_signals::AluOp_and;
-
-            data_bus_src = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluInverseB] = 1'b1;
-            ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
-            ctrl_signals[control_signals::StatCalcZero] = 1'b1;
-        end
-        CycleOp3: begin
-            next_instruction();
-        end
-    endcase
-endtask
-
-task op_tsb();
-    casex(op_cycle)
-        CycleAnyAddr: begin
-            memory_lock = 1'b1;
-        end
-        FirstOpCycle: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
-
-            alu_a_src = bus_sources::AluASrc_Mem;
-            alu_b_src = bus_sources::AluBSrc_RegA;
-            alu_op = control_signals::AluOp_or;
             ctrl_signals[control_signals::AluInverseB] = 1'b0;
-        end
-        CycleOp2: begin
-            addr_bus_ol();
-            memory_lock = 1'b1;
-            write = 1'b1;
-
-            data_out_src = bus_sources::DataOutSrc_Alu;
-
-            alu_a_src = bus_sources::AluASrc_RegA;
-            alu_b_src = bus_sources::AluBSrc_Mem;
-            alu_op = control_signals::AluOp_and;
 
             data_bus_src = bus_sources::DataBusSrc_Alu;
-            ctrl_signals[control_signals::AluInverseB] = 1'b1;
             ctrl_signals[control_signals::StatUpdateZ] = 1'b1;
             ctrl_signals[control_signals::StatCalcZero] = 1'b1;
         end

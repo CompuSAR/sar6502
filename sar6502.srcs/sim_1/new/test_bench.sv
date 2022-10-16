@@ -106,25 +106,29 @@ struct {
     int count;
 } pending_signals[Sig_NumElements-1:0];
 
-always_ff@(posedge clock) begin
-    if( cpu.write==1 ) begin
-        memory[cpu.address] <= cpu.data_out;
-        data_in <= 8'bX;
-    end else if(!cpu.ready) begin
-        data_in <= data_in;
-    end else begin
-        data_in <= memory[cpu.address];
-    end
+initial begin
+    forever begin
+        @(posedge clock)
+        #5
+        if( cpu.write==1 ) begin
+            memory[cpu.address] <= cpu.data_out;
+            data_in <= 8'bX;
+        end else if(!cpu.ready) begin
+            data_in <= data_in;
+        end else begin
+            data_in <= memory[cpu.address];
+        end
 
-    prev_data_out <= cpu.data_out;
-    prev_address <= cpu.address;
-    prev_write <= cpu.write;
-    prev_memory_lock <= cpu.memory_lock;
-    prev_vector_pull <= cpu.vector_pull;
-    prev_sync <= cpu.sync;
-    prev_incompatible <= cpu.incompatible;
-    prev_ready <= cpu.ready;
-    prev_reset <= cpu.reset;
+        prev_data_out <= cpu.data_out;
+        prev_address <= cpu.address;
+        prev_write <= cpu.write;
+        prev_memory_lock <= cpu.memory_lock;
+        prev_vector_pull <= cpu.vector_pull;
+        prev_sync <= cpu.sync;
+        prev_incompatible <= cpu.incompatible;
+        prev_ready <= cpu.ready;
+        prev_reset <= cpu.reset;
+    end
 end
 
 initial begin

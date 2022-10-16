@@ -58,8 +58,15 @@ module sar6502#(parameter CPU_VARIANT = 2)
     output vector_pull,
     output sync,
 
-    output incompatible        // Address bus is deliberately incompatible with our base CPU
+    output incompatible,       // Address bus is deliberately incompatible with our base CPU
+    output [16:0] debug1,
+    output [16:0] debug2,
+    output [16:0] debug3
 );
+
+assign debug1 = decoder.addr_bus_low_src;
+assign debug2 = reg_pcl.data_out;
+assign debug3 = reg_pch.data_out;
 
 logic [7:0] data_bus;
 logic [7:0] address_bus_low, address_bus_high;
